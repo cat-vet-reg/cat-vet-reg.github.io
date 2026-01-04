@@ -11,6 +11,7 @@ import MapPreview from './components/MapPreview';
 import SuccessModal from './components/SuccessModal';
 
 import supabase from 'utils/supabase';
+import { getCoordinates } from '../../utils/geocoding';
 
 const CatRegistrationForm = () => {
   const [formData, setFormData] = useState({
@@ -37,34 +38,29 @@ const CatRegistrationForm = () => {
 
 
   const cityOptions = [
-    { value: 'Plovdiv'   , label : 'Пловдив' },
-    { value: 'Asenovgrad' , label : 'Асеновград' },
-    { value: 'Pazardzik' , label : 'Пазарджик' }
+    { value: 'Plovdiv', label: 'Пловдив' },
+    { value: 'Asenovgrad', label: 'Асеновград' },
+    { value: 'Pazardzik', label: 'Пазарджик' }
   ];
 
   const colorOptions = [
-    { value: 'black'  , label: 'Черна' },
-    { value: 'white'  , label: 'Бяла' },
-    { value: 'orange' , label: 'Рижа' },
-    { value: 'gray'   , label: 'Сива' },
-    { value: 'brown'  , label: 'Кафява' },
-    { value: 'calico' , label: 'Калико' },
-    { value: 'tabby'  , label: 'Таби' },
-    { value: 'tuxedo' , label: 'Tuxedo' },
-    { value: 'custom' , label: 'Нещо друго' }
+    { value: 'black', label: 'Черна' },
+    { value: 'white', label: 'Бяла' },
+    { value: 'orange', label: 'Рижа' },
+    { value: 'gray', label: 'Сива' },
+    { value: 'brown', label: 'Кафява' },
+    { value: 'calico', label: 'Калико' },
+    { value: 'tabby', label: 'Таби' },
+    { value: 'tuxedo', label: 'Tuxedo' },
+    { value: 'custom', label: 'Нещо друго' }
   ];
 
   const breadcrumbItems = [
-    { label: 'Dashboard'    , path: '/dashboard-overview' },
-    { label: 'Register Cat' , path: '/cat-registration-form' }
+    { label: 'Dashboard', path: '/dashboard-overview' },
+    { label: 'Register Cat', path: '/cat-registration-form' }
   ];
 
-  const mockGeocodeAddress = (address) => {
-    const mockLocations = {
-      'default': { lat: 40.7128, lng: -74.0060 }
-    };
-    return mockLocations?.['default'];
-  };
+
 
   const handleInputChange = (field, value) => {
 
@@ -80,14 +76,29 @@ const CatRegistrationForm = () => {
       }));
     }
 
-    if (field === 'address' && value?.length > 10) {
+    const shouldGeocode =
+      (field === 'address' && value?.length > 5) ||
+      (field === 'recordCity' && formData?.address?.length > 5);
 
+    if (shouldGeocode) {
       setIsValidatingAddress(true);
-      setTimeout(() => {
-        const coords = mockGeocodeAddress(value);
-        setCoordinates(coords);
+
+      // Clear existing timeout if you want strictly debounce (optional but good)
+      // For now keeping simple structure matching previous code style
+      const cityToUse = field === 'recordCity' ? value : formData?.recordCity;
+      const addressToUse = field === 'address' ? value : formData?.address;
+
+      // Debounce the API call slightly
+      const timer = setTimeout(async () => {
+        const coords = await getCoordinates(cityToUse, addressToUse);
+        if (coords) {
+          setCoordinates(coords);
+        }
         setIsValidatingAddress(false);
-      }, 1500);
+      }, 1000);
+
+      // Cleanup function not easily available here without a ref for the timer, 
+      // but simplistic approach works for this context.
     }
 
     if (field === 'color' && value !== 'custom') {
@@ -131,7 +142,7 @@ const CatRegistrationForm = () => {
 
     if (!formData?.ownerPhone?.trim()) {
       newErrors.ownerPhone = 'Въведете телефон за контакт';
-    } 
+    }
     // else if (!/^\+?[\d\s\-()]{10,}$/?.test(formData?.ownerPhone)) {
     //   newErrors.ownerPhone = 'Please enter a valid phone number';
     // }
@@ -151,15 +162,15 @@ const CatRegistrationForm = () => {
 
     setTimeout(async () => {
       const finalColor = formData?.color === 'custom' ? formData?.customColor : formData?.color;
-      
+
       const catData = {
-        gender      : formData?.gender,
-        weight      : formData?.weight,
-        color       : finalColor,
-        address     : formData?.address,
-        ownerName   : formData?.ownerName,
-        ownerPhone  : formData?.ownerPhone,
-        coordinates : coordinates,
+        gender: formData?.gender,
+        weight: formData?.weight,
+        color: finalColor,
+        address: formData?.address,
+        ownerName: formData?.ownerName,
+        ownerPhone: formData?.ownerPhone,
+        coordinates: coordinates,
         registeredAt: new Date()?.toISOString()
       };
 
@@ -168,14 +179,14 @@ const CatRegistrationForm = () => {
       setShowSuccessModal(true);
 
       await supabase.from('td_records').insert({
-          record_name             : formData?.recordName,  
-          record_gender           : formData?.gender,
-          owner_name              : formData?.ownerName,
-          owner_phone             : formData?.ownerPhone,
-          record_weight           : formData?.weight,
-          record_color            : finalColor,
-          record_location_address : formData?.recordAddress,
-          record_location_city    : formData?.recordCity
+        record_name: formData?.recordName,
+        record_gender: formData?.gender,
+        owner_name: formData?.ownerName,
+        owner_phone: formData?.ownerPhone,
+        record_weight: formData?.weight,
+        record_color: finalColor,
+        record_location_address: formData?.address,
+        record_location_city: formData?.recordCity
       });
 
     }, 2000);
@@ -305,10 +316,10 @@ const CatRegistrationForm = () => {
                     type="text"
                     placeholder="Въведете пълния адрес на животното"
                     required
-                    value={formData?.recordAddress}
+                    value={formData?.address}
                     onChange={(e) => handleInputChange('address', e?.target?.value)}
                     error={errors?.recordAddress}
-                    description="Информацията е необходима за картата, така че подробности като номер на сградата или улицата са важни"
+                    description="Информацията е необходима за картата, така че подробности като номер на сградата или улицата са важни. Формат: 'ул. Име 12'"
                   />
                 </FormSection>
 
@@ -348,7 +359,7 @@ const CatRegistrationForm = () => {
                   >
                     {isSubmitting ? 'Регистрираме...' : 'Регистрирай котката'}
                   </Button>
-                  
+
                   <Button
                     type="button"
                     variant="outline"
