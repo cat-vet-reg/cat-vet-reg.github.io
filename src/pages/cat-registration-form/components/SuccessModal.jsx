@@ -30,10 +30,10 @@ const SuccessModal = ({ isOpen, onClose, catData }) => {
           
           <div className="space-y-2">
             <h2 className="text-xl md:text-2xl font-semibold text-foreground">
-              Registration Successful!
+              Успешна регистрация
             </h2>
             <p className="text-sm md:text-base text-muted-foreground">
-              The cat has been successfully registered in the system
+              Котката е заведена в регистъра.
             </p>
           </div>
 
@@ -60,34 +60,14 @@ const SuccessModal = ({ isOpen, onClose, catData }) => {
         </div>
 
         <div className="space-y-3">
-          <Button
-            variant="default"
-            fullWidth
-            iconName="List"
-            iconPosition="left"
-            onClick={handleViewRegistry}
-          >
-            View Registry List
-          </Button>
           
           <Button
-            variant="outline"
+            variant="primary"
             fullWidth
-            iconName="Map"
-            iconPosition="left"
-            onClick={handleViewMap}
-          >
-            View on Map
-          </Button>
-          
-          <Button
-            variant="ghost"
-            fullWidth
-            iconName="Plus"
             iconPosition="left"
             onClick={handleRegisterAnother}
           >
-            Register Another Cat
+            Затвори
           </Button>
         </div>
       </div>

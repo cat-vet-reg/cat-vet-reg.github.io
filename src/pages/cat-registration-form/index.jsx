@@ -10,6 +10,8 @@ import FormSection from './components/FormSection';
 import MapPreview from './components/MapPreview';
 import SuccessModal from './components/SuccessModal';
 
+import supabase from 'utils/supabase';
+
 const CatRegistrationForm = () => {
   const [formData, setFormData] = useState({
     gender: '',
@@ -33,16 +35,23 @@ const CatRegistrationForm = () => {
     { value: 'female', label: 'Женски' }
   ];
 
+
+  const cityOptions = [
+    { value: 'Plovdiv'   , label : 'Пловдив' },
+    { value: 'Asenovgrad' , label : 'Асеновград' },
+    { value: 'Pazardzik' , label : 'Пазарджик' }
+  ];
+
   const colorOptions = [
-    { value: 'black', label: 'Black' },
-    { value: 'white', label: 'White' },
-    { value: 'orange', label: 'Orange' },
-    { value: 'gray', label: 'Gray' },
-    { value: 'brown', label: 'Brown' },
-    { value: 'calico', label: 'Calico' },
-    { value: 'tabby', label: 'Tabby' },
-    { value: 'tuxedo', label: 'Tuxedo' },
-    { value: 'custom', label: 'Custom Color' }
+    { value: 'black'  , label: 'Черна' },
+    { value: 'white'  , label: 'Бяла' },
+    { value: 'orange' , label: 'Рижа' },
+    { value: 'gray'   , label: 'Сива' },
+    { value: 'brown'  , label: 'Кафява' },
+    { value: 'calico' , label: 'Калико' },
+    { value: 'tabby'  , label: 'Таби' },
+    { value: 'tuxedo' , label: 'Tuxedo' },
+    { value: 'custom' , label: 'Нещо друго' }
   ];
 
   const breadcrumbItems = [
@@ -58,6 +67,7 @@ const CatRegistrationForm = () => {
   };
 
   const handleInputChange = (field, value) => {
+
     setFormData(prev => ({
       ...prev,
       [field]: value
@@ -71,6 +81,7 @@ const CatRegistrationForm = () => {
     }
 
     if (field === 'address' && value?.length > 10) {
+
       setIsValidatingAddress(true);
       setTimeout(() => {
         const coords = mockGeocodeAddress(value);
@@ -91,7 +102,7 @@ const CatRegistrationForm = () => {
     const newErrors = {};
 
     if (!formData?.gender) {
-      newErrors.gender = 'Please select a gender';
+      newErrors.gender = 'Изберете пол';
     }
 
     if (!formData?.weight) {
@@ -138,23 +149,35 @@ const CatRegistrationForm = () => {
 
     setIsSubmitting(true);
 
-    setTimeout(() => {
+    setTimeout(async () => {
       const finalColor = formData?.color === 'custom' ? formData?.customColor : formData?.color;
       
       const catData = {
-        gender: formData?.gender,
-        weight: formData?.weight,
-        color: finalColor,
-        address: formData?.address,
-        ownerName: formData?.ownerName,
-        ownerPhone: formData?.ownerPhone,
-        coordinates: coordinates,
+        gender      : formData?.gender,
+        weight      : formData?.weight,
+        color       : finalColor,
+        address     : formData?.address,
+        ownerName   : formData?.ownerName,
+        ownerPhone  : formData?.ownerPhone,
+        coordinates : coordinates,
         registeredAt: new Date()?.toISOString()
       };
 
       setRegisteredCatData(catData);
       setIsSubmitting(false);
       setShowSuccessModal(true);
+
+      await supabase.from('td_records').insert({
+          record_name             : formData?.recordName,  
+          record_gender           : formData?.gender,
+          owner_name              : formData?.ownerName,
+          owner_phone             : formData?.ownerPhone,
+          record_weight           : formData?.weight,
+          record_color            : finalColor,
+          record_location_address : formData?.recordAddress,
+          record_location_city    : formData?.recordCity
+      });
+
     }, 2000);
   };
 
@@ -174,13 +197,14 @@ const CatRegistrationForm = () => {
   };
 
   const isFormValid = () => {
-    return (formData?.gender &&
-    formData?.weight &&
-    parseFloat(formData?.weight) > 0 &&
-    formData?.color &&
-    (formData?.color !== 'custom' || formData?.customColor?.trim()) &&
-    formData?.address?.trim()?.length >= 10 &&
-    formData?.ownerName?.trim()?.length >= 2 && /^\+?[\d\s\-()]{10,}$/?.test(formData?.ownerPhone));
+    return true;
+    // return (formData?.gender &&
+    // formData?.weight &&
+    // parseFloat(formData?.weight) > 0 &&
+    // formData?.color &&
+    // (formData?.color !== 'custom' || formData?.customColor?.trim()) &&
+    // formData?.address?.trim()?.length >= 10 &&
+    // formData?.ownerName?.trim()?.length >= 2 && /^\+?[\d\s\-()]{10,}$/?.test(formData?.ownerPhone));
   };
 
   return (
@@ -203,8 +227,17 @@ const CatRegistrationForm = () => {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-8">
               <div className="space-y-6 md:space-y-8">
                 <FormSection
-                  title="Основна информация"
-                >
+                  title="Основна информация">
+
+                  <Input
+                    label="Име на животното"
+                    type="text"
+                    placeholder="Как лицето за контакт нарича животното"
+                    value={formData?.recordName}
+                    onChange={(e) => handleInputChange('recordName', e?.target?.value)}
+                    error={errors?.recordName}
+                  />
+
                   <Select
                     label="Пол"
                     placeholder="Мъжки / Женски"
@@ -260,10 +293,10 @@ const CatRegistrationForm = () => {
                     label="Град"
                     placeholder="В кой град (или околностите), е намерено животното"
                     required
-                    options={genderOptions}
-                    value={formData?.city}
-                    onChange={(value) => handleInputChange('city', value)}
-                    error={errors?.city}
+                    options={cityOptions}
+                    value={formData?.recordCity}
+                    onChange={(value) => handleInputChange('recordCity', value)}
+                    error={errors?.recordCity}
                   />
 
 
@@ -272,9 +305,9 @@ const CatRegistrationForm = () => {
                     type="text"
                     placeholder="Въведете пълния адрес на животното"
                     required
-                    value={formData?.address}
+                    value={formData?.recordAddress}
                     onChange={(e) => handleInputChange('address', e?.target?.value)}
-                    error={errors?.address}
+                    error={errors?.recordAddress}
                     description="Информацията е необходима за картата, така че подробности като номер на сградата или улицата са важни"
                   />
                 </FormSection>

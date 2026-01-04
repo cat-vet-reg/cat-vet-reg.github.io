@@ -42,10 +42,10 @@ const MapPreview = ({ address, coordinates, isValidating }) => {
           </div>
           <div className="space-y-1">
             <p className="text-sm md:text-base font-medium text-foreground">
-              Location Preview
+              Къде е намерено животното
             </p>
             <p className="text-xs md:text-sm text-muted-foreground max-w-xs">
-              Enter a valid address to see the location on the map
+              Въведения адрес в комбинация с града, ще покажат точната улица, върху картата.
             </p>
           </div>
         </div>
