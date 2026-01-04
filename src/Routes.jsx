@@ -8,10 +8,11 @@ import DashboardOverview from './pages/dashboard-overview';
 import CatRegistryList from './pages/cat-registry-list';
 import InteractiveCatMap from './pages/interactive-cat-map';
 import CatRegistrationForm from './pages/cat-registration-form';
+import { HashRouter } from "react-router-dom";
 
 const Routes = () => {
   return (
-    <BrowserRouter>
+    <HashRouter>
       <ErrorBoundary>
       <ScrollToTop />
       <RouterRoutes>
@@ -25,7 +26,7 @@ const Routes = () => {
         <Route path="*" element={<NotFound />} />
       </RouterRoutes>
       </ErrorBoundary>
-    </BrowserRouter>
+    </HashRouter>
   );
 };
 

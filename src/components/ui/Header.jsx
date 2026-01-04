@@ -69,7 +69,7 @@ const Header = () => {
               variant="default"
               iconName="Plus"
               iconPosition="left"
-              onClick={() => window.location.href = '/cat-registration-form'}
+              onClick={() => window.location.href = '#/cat-registration-form'}
               className="hidden sm:flex"
             >
               Нова котка
@@ -79,7 +79,7 @@ const Header = () => {
               variant="default"
               size="icon"
               iconName="Plus"
-              onClick={() => window.location.href = '/cat-registration-form'}
+              onClick={() => window.location.href = '#/cat-registration-form'}
               className="sm:hidden"
               aria-label="Register Cat"
             />
