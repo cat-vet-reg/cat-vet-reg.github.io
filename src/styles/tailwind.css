@@ -1,0 +1,219 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Primary Colors */
+    --color-primary: #2563EB; /* blue-600 */
+    --color-primary-foreground: #FFFFFF; /* white */
+    
+    /* Secondary Colors */
+    --color-secondary: #7C3AED; /* violet-600 */
+    --color-secondary-foreground: #FFFFFF; /* white */
+    
+    /* Accent Colors */
+    --color-accent: #F59E0B; /* amber-500 */
+    --color-accent-foreground: #1F2937; /* gray-800 */
+    
+    /* Background Colors */
+    --color-background: #FEFEFE; /* gray-50 */
+    --color-foreground: #1F2937; /* gray-800 */
+    
+    /* Surface Colors */
+    --color-card: #F8FAFC; /* slate-50 */
+    --color-card-foreground: #374151; /* gray-700 */
+    
+    /* Popover Colors */
+    --color-popover: #FFFFFF; /* white */
+    --color-popover-foreground: #1F2937; /* gray-800 */
+    
+    /* Muted Colors */
+    --color-muted: #F1F5F9; /* slate-100 */
+    --color-muted-foreground: #6B7280; /* gray-500 */
+    
+    /* Destructive/Error Colors */
+    --color-destructive: #DC2626; /* red-600 */
+    --color-destructive-foreground: #FFFFFF; /* white */
+    --color-error: #DC2626; /* red-600 */
+    --color-error-foreground: #FFFFFF; /* white */
+    
+    /* Success Colors */
+    --color-success: #059669; /* emerald-600 */
+    --color-success-foreground: #FFFFFF; /* white */
+    
+    /* Warning Colors */
+    --color-warning: #D97706; /* amber-600 */
+    --color-warning-foreground: #FFFFFF; /* white */
+    
+    /* Border & Input Colors */
+    --color-border: rgba(37, 99, 235, 0.15); /* primary/15 */
+    --color-input: #E5E7EB; /* gray-200 */
+    --color-ring: #2563EB; /* blue-600 */
+    
+    /* Radius */
+    --radius-sm: 6px;
+    --radius-md: 12px;
+    --radius-lg: 18px;
+    --radius-xl: 24px;
+  }
+
+  .dark {
+    /* Primary Colors */
+    --color-primary: #3B82F6; /* blue-500 */
+    --color-primary-foreground: #FFFFFF; /* white */
+    
+    /* Secondary Colors */
+    --color-secondary: #8B5CF6; /* violet-500 */
+    --color-secondary-foreground: #FFFFFF; /* white */
+    
+    /* Accent Colors */
+    --color-accent: #FBBF24; /* amber-400 */
+    --color-accent-foreground: #0F172A; /* slate-900 */
+    
+    /* Background Colors */
+    --color-background: #0F172A; /* slate-900 */
+    --color-foreground: #E8E8E8; /* gray-200 - 92% white */
+    
+    /* Surface Colors */
+    --color-card: #1E293B; /* slate-800 */
+    --color-card-foreground: #CBD5E1; /* slate-300 */
+    
+    /* Popover Colors */
+    --color-popover: #1E293B; /* slate-800 */
+    --color-popover-foreground: #E8E8E8; /* gray-200 */
+    
+    /* Muted Colors */
+    --color-muted: #334155; /* slate-700 */
+    --color-muted-foreground: #94A3B8; /* slate-400 */
+    
+    /* Destructive/Error Colors */
+    --color-destructive: #EF4444; /* red-500 */
+    --color-destructive-foreground: #FFFFFF; /* white */
+    --color-error: #EF4444; /* red-500 */
+    --color-error-foreground: #FFFFFF; /* white */
+    
+    /* Success Colors */
+    --color-success: #10B981; /* emerald-500 */
+    --color-success-foreground: #FFFFFF; /* white */
+    
+    /* Warning Colors */
+    --color-warning: #F59E0B; /* amber-500 */
+    --color-warning-foreground: #FFFFFF; /* white */
+    
+    /* Border & Input Colors */
+    --color-border: rgba(226, 232, 240, 0.1); /* slate-200/10 */
+    --color-input: #334155; /* slate-700 */
+    --color-ring: #3B82F6; /* blue-500 */
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family: 'Source Sans 3', sans-serif;
+    font-size: 16px;
+    line-height: 1.6;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Outfit', sans-serif;
+  }
+
+  h1 {
+    @apply text-4xl leading-tight font-semibold;
+  }
+
+  h2 {
+    @apply text-3xl leading-snug font-semibold;
+  }
+
+  h3 {
+    @apply text-2xl leading-normal font-medium;
+  }
+
+  h4 {
+    @apply text-xl leading-relaxed font-medium;
+  }
+
+  h5 {
+    @apply text-lg leading-normal font-medium;
+  }
+
+  .caption {
+    font-family: 'Inter', sans-serif;
+    @apply text-sm leading-relaxed;
+    letter-spacing: -0.01em;
+  }
+
+  .data-text {
+    font-family: 'JetBrains Mono', monospace;
+    font-feature-settings: 'tnum' on, 'lnum' on;
+  }
+
+  @media (max-width: 640px) {
+    body {
+      font-size: 15px;
+    }
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  .transition-smooth {
+    transition: all 250ms cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .transition-spring {
+    transition: all 250ms cubic-bezier(0.34, 1.26, 0.64, 1);
+  }
+
+  .shadow-warm-sm {
+    box-shadow: 0 2px 4px rgba(15, 23, 42, 0.08);
+  }
+
+  .shadow-warm {
+    box-shadow: 0 4px 6px rgba(15, 23, 42, 0.1);
+  }
+
+  .shadow-warm-md {
+    box-shadow: 0 6px 12px rgba(15, 23, 42, 0.12);
+  }
+
+  .shadow-warm-lg {
+    box-shadow: 0 12px 24px rgba(15, 23, 42, 0.14);
+  }
+
+  .shadow-warm-xl {
+    box-shadow: 0 20px 40px -8px rgba(15, 23, 42, 0.16);
+  }
+
+  .focus-ring {
+    @apply outline-none ring-3 ring-ring ring-offset-2 ring-offset-background;
+  }
+
+  .scrollbar-custom::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  .scrollbar-custom::-webkit-scrollbar-track {
+    @apply bg-muted rounded-md;
+  }
+.scrollbar-custom::-webkit-scrollbar-thumb  {
+    @apply rounded-md;
+  }
+.scrollbar-custom::-webkit-scrollbar-thumb:hover  {
+    
+  }
+}
