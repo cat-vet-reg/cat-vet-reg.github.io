@@ -61,7 +61,7 @@ const MapMarkerPopup = ({ cat }) => {
           iconName="ExternalLink"
           iconPosition="right"
         >
-          View Full Profile
+          Виж подробна информация
         </Button>
       </div>
     </div>

@@ -14,20 +14,20 @@ const CatProfileDetails = () => {
 
   const mockCatData = {
     id: "CAT-2026-001",
-    name: "Whiskers",
-    gender: "Male",
-    color: "Orange Tabby",
-    weight: 4.5,
-    foundLocation: "Central Park, New York, NY 10024, United States",
+    name: "Рижко",
+    gender: "male",
+    color: "orange",
+    weight: 7,
+    foundLocation: "ж.к. Тракия, бул. „Освобождение“ 45",
     coordinates: {
-      lat: 40.7829,
-      lng: -73.9654
+      lat: 42.133997,
+      lng: 24.781278
     },
     status: "active",
     registeredAt: "2026-01-02T14:30:00",
     owner: {
-      name: "Sarah Johnson",
-      phone: "+1 (555) 123-4567",
+      name: "Ивана Иванова",
+      phone: "(555) 123-4567",
       email: "sarah.johnson@email.com"
     }
   };

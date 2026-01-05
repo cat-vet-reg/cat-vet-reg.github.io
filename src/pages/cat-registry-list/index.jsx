@@ -22,13 +22,13 @@ const CatRegistryList = () => {
   let mockCats = [
     {
       id: 1,
-      name: "Whiskers",
+      name: "Рижко",
       gender: "Мъжки",
-      color: "Orange Tabby",
+      color: "Orange",
       colorHex: "#FF8C42",
-      weight: 4.5,
-      foundLocation: "123 Main Street, Downtown District, Springfield, IL 62701",
-      ownerName: "Sarah Johnson",
+      weight: 7,
+      foundLocation: "ж.к. Тракия, бул. „Освобождение“ 45",
+      ownerName: "Ивана Иванова",
       ownerPhone: "+1 (555) 123-4567",
       registrationDate: "01/15/2026",
       registrationTimestamp: new Date("2026-01-15")?.getTime()

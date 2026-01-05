@@ -65,12 +65,12 @@ const DashboardOverview = () => {
   const recentActivities = [
   {
     id: 1,
-    name: "Whiskers",
+    name: "Рижко",
     gender: "Мъжки",
     image: "https://images.unsplash.com/photo-1456082981076-c3f00302c876",
     imageAlt: "Orange tabby cat with white chest sitting on wooden surface looking directly at camera with bright green eyes",
     location: "Central Park, Manhattan",
-    ownerName: "Sarah Johnson",
+    ownerName: "Ивана Иванова",
     registeredTime: "2 hours ago"
   },
   {
