@@ -48,11 +48,28 @@ const CatRegistrationForm = () => {
   ];
 
 
-  const cityOptions = [
-    { value: 'Plovdiv', label: 'Пловдив' },
-    { value: 'Asenovgrad', label: 'Асеновград' },
-    { value: 'Pazardzik', label: 'Пазарджик' }
-  ];
+const cityOptions = [
+  { value: "plovdiv", label: "Пловдив" },
+  { value: "asenovgrad", label: "Асеновград" },
+  { value: "karlovo", label: "Карлово" },
+  { value: "hisarya", label: "Хисаря" },
+  { value: "rakovski", label: "Раковски" },
+  { value: "perushtitsa", label: "Перущица" },
+  { value: "brezovo", label: "Брезово" },
+  { value: "kaloyanovo", label: "Калояново" },
+  { value: "graf_ignatievo", label: "Граф Игнатиево" },
+  { value: "trud", label: "Труд" },
+  { value: "tsaratsovo", label: "Царацово" },
+  { value: "benkovski_plovdiv", label: "Бенковски" },
+  { value: "rogosh", label: "Рогош" },
+  { value: "voivodinovo", label: "Войводиново" },
+  { value: "manole", label: "Маноле" },
+  { value: "manolsko_konare", label: "Манолско Конаре" },
+  { value: "skutare", label: "Скутаре" },
+  { value: "yasno_pole", label: "Ясно поле" },
+  // ... всички останали ~200
+];
+
 
   const colorOptions = [
     // Patterns
@@ -432,15 +449,16 @@ const CatRegistrationForm = () => {
                   title="Къде е намерено / отглеждано животното"
                 >
 
-                  <Select
-                    label="Град"
-                    placeholder="В кой град (или околностите), е намерено животното"
-                    required
-                    options={cityOptions}
-                    value={formData?.recordCity}
-                    onChange={(value) => handleInputChange('recordCity', value)}
-                    error={errors?.recordCity}
-                  />
+                <Select
+                  label="Град / село"
+                  placeholder="Започнете да пишете град или село..."
+                  required
+                  searchable
+                  options={cityOptions}
+                  value={formData?.recordCity}
+                  onChange={(value) => handleInputChange('recordCity', value)}
+                  error={errors?.recordCity}
+                />
 
 
                   <Input
