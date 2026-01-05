@@ -8,16 +8,12 @@ const SuccessModal = ({ isOpen, onClose, catData }) => {
 
   if (!isOpen) return null;
 
-  const handleViewRegistry = () => {
-    navigate('/cat-registry-list');
-  };
-
-  const handleViewMap = () => {
-    navigate('/interactive-cat-map');
-  };
-
   const handleRegisterAnother = () => {
-    onClose();
+    onClose('close');
+  };
+
+  const handleRegisterAnotherOnTheSame = () => {
+    onClose('same_owner');
   };
 
   return (
@@ -60,7 +56,16 @@ const SuccessModal = ({ isOpen, onClose, catData }) => {
         </div>
 
         <div className="space-y-3">
-          
+
+          <Button
+            variant="primary"
+            fullWidth
+            iconPosition="left"
+            onClick={handleRegisterAnotherOnTheSame}
+          >
+            Регистрирай ново животно на същия собственик
+          </Button>
+
           <Button
             variant="primary"
             fullWidth
@@ -69,6 +74,7 @@ const SuccessModal = ({ isOpen, onClose, catData }) => {
           >
             Затвори
           </Button>
+
         </div>
       </div>
     </div>

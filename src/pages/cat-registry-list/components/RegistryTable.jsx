@@ -1,7 +1,10 @@
-import React from 'react';
-import Icon from '../../../components/AppIcon';
-import Button from '../../../components/ui/Button';
+import React        from 'react';
+import Icon         from '../../../components/AppIcon';
+import Button       from '../../../components/ui/Button';
 import { Checkbox } from '../../../components/ui/Checkbox';
+
+import {convertDate} from '../../../utils/date'
+
 
 const RegistryTable = ({ 
   cats, 
@@ -42,11 +45,11 @@ const RegistryTable = ({
                   onClick={() => handleSort('name')}
                   className="flex items-center gap-2 font-semibold text-sm text-foreground hover:text-primary transition-smooth"
                 >
-                  Име на котката
+                  Име
                   <Icon name={getSortIcon('name')} size={16} />
                 </button>
               </th>
-              <th className="px-4 py-3 text-left">
+              {/* <th className="px-4 py-3 text-left">
                 <button
                   onClick={() => handleSort('gender')}
                   className="flex items-center gap-2 font-semibold text-sm text-foreground hover:text-primary transition-smooth"
@@ -54,7 +57,7 @@ const RegistryTable = ({
                   Пол
                   <Icon name={getSortIcon('gender')} size={16} />
                 </button>
-              </th>
+              </th> */}
               <th className="px-4 py-3 text-left">
                 <button
                   onClick={() => handleSort('color')}
@@ -74,23 +77,31 @@ const RegistryTable = ({
                 </button>
               </th>
               <th className="px-4 py-3 text-left">
-                <span className="font-semibold text-sm text-foreground">Локация на котката</span>
+                <button
+                  onClick={() => handleSort('ownerName')}
+                  className="flex items-center gap-2 font-semibold text-sm text-foreground hover:text-primary transition-smooth"
+                >
+                  Собственик
+                  <Icon name={getSortIcon('ownerName')} size={16} />
+                </button>
               </th>
+
               <th className="px-4 py-3 text-left">
                 <button
                   onClick={() => handleSort('ownerName')}
                   className="flex items-center gap-2 font-semibold text-sm text-foreground hover:text-primary transition-smooth"
                 >
-                  Име на собственик
+                  Телефон
                   <Icon name={getSortIcon('ownerName')} size={16} />
                 </button>
               </th>
+
               <th className="px-4 py-3 text-left">
                 <button
                   onClick={() => handleSort('registrationDate')}
                   className="flex items-center gap-2 font-semibold text-sm text-foreground hover:text-primary transition-smooth"
                 >
-                  Дата на регистрация
+                  Регистрирана на
                   <Icon name={getSortIcon('registrationDate')} size={16} />
                 </button>
               </th>
@@ -105,25 +116,26 @@ const RegistryTable = ({
                 key={cat?.id} 
                 className="hover:bg-muted/50 transition-smooth"
               >
+
                 <td className="px-4 py-3">
                   <Checkbox
                     checked={selectedCats?.includes(cat?.id)}
                     onChange={() => onSelectCat(cat?.id)}
                   />
                 </td>
+
                 <td className="px-4 py-3">
-                  <span className="font-medium text-foreground">{cat?.name}</span>
-                </td>
-                <td className="px-4 py-3">
+                  
                   <div className="flex items-center gap-2">
                     <Icon 
-                      name={cat?.gender === 'Male' ? 'Mars' : 'Venus'} 
+                      name={cat?.gender === 'male' ? 'Mars' : 'Venus'} 
                       size={16} 
-                      color={cat?.gender === 'Male' ? 'var(--color-primary)' : 'var(--color-secondary)'} 
+                      color={cat?.gender === 'male' ? 'var(--color-primary)' : 'var(--color-secondary)'} 
                     />
-                    <span className="text-sm text-muted-foreground">{cat?.gender}</span>
+                    <span className="font-medium text-foreground">{cat?.name}</span>
                   </div>
                 </td>
+
                 <td className="px-4 py-3">
                   <div className="flex items-center gap-2">
                     <div 
@@ -137,13 +149,13 @@ const RegistryTable = ({
                   <span className="text-sm text-muted-foreground data-text">{cat?.weight} кг</span>
                 </td>
                 <td className="px-4 py-3">
-                  <span className="text-sm text-muted-foreground line-clamp-2">{cat?.foundLocation}</span>
+                  <span className="text-sm text-muted-foreground">{cat?.owner_name}</span>
                 </td>
                 <td className="px-4 py-3">
-                  <span className="text-sm text-muted-foreground">{cat?.ownerName}</span>
-                </td>
+                  <span className="text-sm text-muted-foreground">{cat?.owner_phone}</span>
+                </td>                
                 <td className="px-4 py-3">
-                  <span className="text-sm text-muted-foreground data-text">{cat?.registrationDate}</span>
+                  <span className="text-sm text-muted-foreground data-text">{convertDate(cat?.created_at)}</span>
                 </td>
                 <td className="px-4 py-3">
                   <div className="flex items-center justify-end gap-2">

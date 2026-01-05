@@ -18,7 +18,7 @@ const OwnerContactCard = ({ owner }) => {
           <Icon name="UserCircle" size={20} color="var(--color-primary)" className="md:w-6 md:h-6" />
         </div>
         <h2 className="text-xl md:text-2xl lg:text-3xl font-heading font-semibold text-foreground">
-          Контакти на собственика
+          Лице за контакт
         </h2>
       </div>
       <div className="space-y-4 md:space-y-6">
@@ -46,38 +46,6 @@ const OwnerContactCard = ({ owner }) => {
           </div>
         </div>
 
-        <div className="flex items-start gap-3 md:gap-4 p-3 md:p-4 rounded-lg bg-muted/30">
-          <div className="flex-shrink-0 w-10 h-10 md:w-12 md:h-12 rounded-lg bg-background flex items-center justify-center text-secondary">
-            <Icon name="Mail" size={20} className="md:w-6 md:h-6" />
-          </div>
-          <div className="flex-1 min-w-0">
-            <p className="text-xs md:text-sm text-muted-foreground mb-1">Имейл адрес</p>
-            <p className="text-sm md:text-base lg:text-lg font-medium text-foreground break-words">
-              {owner?.email}
-            </p>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4 pt-2">
-          <Button
-            variant="default"
-            iconName="Phone"
-            iconPosition="left"
-            onClick={handleCall}
-            fullWidth
-          >
-            Обади се
-          </Button>
-          <Button
-            variant="outline"
-            iconName="Mail"
-            iconPosition="left"
-            onClick={handleEmail}
-            fullWidth
-          >
-            Изпрати имейл
-          </Button>
-        </div>
       </div>
     </div>
   );

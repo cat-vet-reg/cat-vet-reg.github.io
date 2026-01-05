@@ -13,26 +13,30 @@ import SuccessModal from './components/SuccessModal';
 import supabase from 'utils/supabase';
 import { getCoordinates } from '../../utils/geocoding';
 
+
+import { $apiCreateNewRecord } from '../../services/create_new_record'
+
 const CatRegistrationForm = () => {
+
   const [formData, setFormData] = useState({
-    gender: '',
-    weight: '',
-    ageValue: '',
-    ageUnit: 'months',
-    recordNotes: '',
-    color: '',
-    customColor: '',
-    address: '',
-    ownerName: '',
-    ownerPhone: ''
+    gender      : '',
+    weight      : '',
+    ageValue    : '',
+    ageUnit     : 'months',
+    recordNotes : '',
+    color       : '',
+    customColor : '',
+    address     : '',
+    ownerName   : '',
+    ownerPhone  : ''
   });
 
-  const [errors, setErrors] = useState({});
+  const [errors, setErrors]                           = useState({});
   const [isValidatingAddress, setIsValidatingAddress] = useState(false);
-  const [coordinates, setCoordinates] = useState(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [showSuccessModal, setShowSuccessModal] = useState(false);
-  const [registeredCatData, setRegisteredCatData] = useState(null);
+  const [coordinates, setCoordinates]                 = useState(null);
+  const [isSubmitting, setIsSubmitting]               = useState(false);
+  const [showSuccessModal, setShowSuccessModal]       = useState(false);
+  const [registeredCatData, setRegisteredCatData]     = useState(null);
 
   const genderOptions = [
     { value: 'male', label: 'Мъжки' },
@@ -149,8 +153,6 @@ const CatRegistrationForm = () => {
       newErrors.ageValue = 'Невалидна възраст в месеци';
     }
 
-
-
     if (!formData?.color) {
       newErrors.color = 'Изберете цвят';
     }
@@ -163,13 +165,13 @@ const CatRegistrationForm = () => {
       newErrors.address = 'Въведете адрес';
     }
 
-    if (!formData?.ownerName?.trim()) {
-      newErrors.ownerName = 'Въведете име на собственик';
-    }
+    // if (!formData?.ownerName?.trim()) {
+    //   newErrors.ownerName = 'Въведете име на собственик';
+    // }
 
-    if (!formData?.ownerPhone?.trim()) {
-      newErrors.ownerPhone = 'Въведете телефон за контакт';
-    }
+    // if (!formData?.ownerPhone?.trim()) {
+    //   newErrors.ownerPhone = 'Въведете телефон за контакт';
+    // }
     // else if (!/^\+?[\d\s\-()]{10,}$/?.test(formData?.ownerPhone)) {
     //   newErrors.ownerPhone = 'Please enter a valid phone number';
     // }
@@ -188,55 +190,68 @@ const CatRegistrationForm = () => {
     setIsSubmitting(true);
 
     setTimeout(async () => {
+
       const finalColor = formData?.color === 'custom' ? formData?.customColor : formData?.color;
 
-      const catData = {
-        gender: formData?.gender,
-        weight: formData?.weight,
-        ageValue: formData.ageValue,
-        ageUnit: formData.ageUnit,
-        color: finalColor,
-        address: formData?.address,
-        ownerName: formData?.ownerName,
-        ownerPhone: formData?.ownerPhone,
-        coordinates: coordinates,
-        registeredAt: new Date()?.toISOString()
-      };
-
-      setRegisteredCatData(catData);
+      setRegisteredCatData({
+        gender        : formData?.gender,
+        weight        : formData?.weight,
+        ageValue      : formData.ageValue,
+        ageUnit       : formData.ageUnit,
+        color         : finalColor,
+        address       : formData?.address,
+        ownerName     : formData?.ownerName,
+        ownerPhone    : formData?.ownerPhone,
+        coordinates   : coordinates,
+        registeredAt  : new Date()?.toISOString()
+      });
+      
       setIsSubmitting(false);
       setShowSuccessModal(true);
 
-      await supabase.from('td_records').insert({
-        record_name: formData?.recordName,
-        record_notes: formData?.recordNotes,
-        record_gender: formData?.gender,
-        owner_name: formData?.ownerName,
-        owner_phone: formData?.ownerPhone,
-        record_weight: formData?.weight,
-        record_age_value: formData.ageValue,
-        record_age_unit: formData.ageUnit,
-        record_color: finalColor,
-        record_location_address: formData?.address,
-        record_location_city: formData?.recordCity
-      });
-
+      // ***
+      await $apiCreateNewRecord(formData);
     }, 2000);
   };
 
-  const handleSuccessModalClose = () => {
+  const handleSuccessModalClose = (state) => {
+
+    console.log("DDDDDDDDD")
+    console.log(state);
+    console.log("DDDDDDDDD")
+
     setShowSuccessModal(false);
-    setFormData({
-      gender: '',
-      weight: '',
-      ageValue: '',
-      ageUnit: 'months',
-      color: '',
-      customColor: '',
-      address: '',
-      ownerName: '',
-      ownerPhone: ''
-    });
+
+    if(state == 'close') {
+      setFormData({
+        recordName  : '',
+        gender      : '',
+        weight      : '',
+        ageValue    : '',
+        ageUnit     : 'months',
+        color       : '',
+        customColor : '',
+        address     : '',
+        ownerName   : '',
+        ownerPhone  : '',
+        recordNotes : ''
+      });
+    }
+
+    if(state == 'same_owner') {
+      setFormData({
+        recordName  : '',
+        gender      : '',
+        weight      : '',
+        ageValue    : '',
+        ageUnit     : 'months',
+        color       : '',
+        customColor : '',
+        address     : '',
+        recordNotes : ''
+      });
+    }    
+
     setCoordinates(null);
     setRegisteredCatData(null);
   };

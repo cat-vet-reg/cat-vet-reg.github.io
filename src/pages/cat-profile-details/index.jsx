@@ -9,6 +9,7 @@ import OwnerContactCard from './components/OwnerContactCard';
 import ActionButtons from './components/ActionButtons';
 
 const CatProfileDetails = () => {
+
   const navigate = useNavigate();
 
   const mockCatData = {

@@ -178,18 +178,18 @@ const CatRegistryList = () => {
     }
   ];
 
+  let paginatedCats = [];
 
   useEffect(() => {
 
     async function fetchData() {
-      const result = await supabase.from('td_records').select('*');
-      console.log('@@@@');
-      mockCats = result.data;
-      console.log('@@@@');
+      const result = await supabase.from('vw_get_all_records')
+                                    .select(`*`)
+      setCatCollection(result.data)      
     }
 
     fetchData();
-  });
+  }, []);
 
   const [filters, setFilters] = useState({
     search: '',
@@ -206,6 +206,8 @@ const CatRegistryList = () => {
   const [selectedCats, setSelectedCats] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
+
+  const [catCollection, setCatCollection] = useState([]);
 
   const genderOptions = [
     { value: 'male', label: 'Мъжки' },
@@ -297,11 +299,14 @@ const CatRegistryList = () => {
     return result;
   }, [mockCats, filters, sortConfig]);
 
-  const paginatedCats = useMemo(() => {
-    const startIndex = (currentPage - 1) * pageSize;
-    const endIndex = startIndex + pageSize;
-    return filteredAndSortedCats?.slice(startIndex, endIndex);
-  }, [filteredAndSortedCats, currentPage, pageSize]);
+  // const paginatedCats = useMemo(() => {
+  //   const startIndex = (currentPage - 1) * pageSize;
+  //   const endIndex = startIndex + pageSize;
+  //   return filteredAndSortedCats?.slice(startIndex, endIndex);
+  // }, [filteredAndSortedCats, currentPage, pageSize]);
+
+  // const paginatedCats = await supabase.from('td_records').select('*')
+
 
   const totalPages = Math.ceil(filteredAndSortedCats?.length / pageSize);
 
@@ -396,7 +401,7 @@ const CatRegistryList = () => {
           </div>
 
           <div className="flex items-center gap-3">
-            <Button
+            {/* <Button
               variant="outline"
               iconName="Map"
               iconPosition="left"
@@ -404,7 +409,7 @@ const CatRegistryList = () => {
               className="hidden sm:flex"
             >
               Виж картата
-            </Button>
+            </Button> */}
             <Button
               variant="default"
               iconName="Plus"
@@ -412,7 +417,7 @@ const CatRegistryList = () => {
               onClick={() => navigate('/cat-registration-form')}
               className="hidden sm:flex"
             >
-              Регистрирай нова котка
+              Нова регистрация
             </Button>
           </div>
         </div>
@@ -434,7 +439,7 @@ const CatRegistryList = () => {
 
         <div className="hidden lg:block">
           <RegistryTable
-            cats={paginatedCats}
+            cats={catCollection}
             selectedCats={selectedCats}
             onSelectCat={handleSelectCat}
             onSelectAll={handleSelectAll}
@@ -445,7 +450,7 @@ const CatRegistryList = () => {
           />
         </div>
 
-        <div className="lg:hidden grid grid-cols-1 sm:grid-cols-2 gap-4">
+        {/* <div className="lg:hidden grid grid-cols-1 sm:grid-cols-2 gap-4">
           {paginatedCats?.map(cat => (
             <RegistryCard
               key={cat?.id}
@@ -456,7 +461,7 @@ const CatRegistryList = () => {
               onEdit={handleEdit}
             />
           ))}
-        </div>
+        </div> */}
 
         {filteredAndSortedCats?.length === 0 && (
           <div className="bg-card rounded-lg p-8 md:p-12 text-center shadow-warm">
@@ -476,7 +481,7 @@ const CatRegistryList = () => {
           </div>
         )}
 
-        {filteredAndSortedCats?.length > 0 && (
+        {/* {filteredAndSortedCats?.length > 0 && (
           <Pagination
             currentPage={currentPage}
             totalPages={totalPages}
@@ -485,7 +490,7 @@ const CatRegistryList = () => {
             onPageChange={handlePageChange}
             onPageSizeChange={handlePageSizeChange}
           />
-        )}
+        )} */}
       </main>
       <BulkActionsBar
         selectedCount={selectedCats?.length}
