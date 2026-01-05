@@ -40,19 +40,19 @@ const SuccessModal = ({ isOpen, onClose, catData }) => {
           {catData && (
             <div className="w-full bg-muted/50 rounded-md p-4 space-y-2 text-left">
               <div className="flex items-center justify-between text-sm">
-                <span className="text-muted-foreground">Gender:</span>
+                <span className="text-muted-foreground">Пол:</span>
                 <span className="font-medium text-foreground capitalize">{catData?.gender}</span>
               </div>
               <div className="flex items-center justify-between text-sm">
-                <span className="text-muted-foreground">Weight:</span>
+                <span className="text-muted-foreground">Тегло:</span>
                 <span className="font-medium text-foreground">{catData?.weight} kg</span>
               </div>
               <div className="flex items-center justify-between text-sm">
-                <span className="text-muted-foreground">Color:</span>
+                <span className="text-muted-foreground">Цвят:</span>
                 <span className="font-medium text-foreground capitalize">{catData?.color}</span>
               </div>
               <div className="flex items-center justify-between text-sm">
-                <span className="text-muted-foreground">Owner:</span>
+                <span className="text-muted-foreground">Собственик:</span>
                 <span className="font-medium text-foreground">{catData?.ownerName}</span>
               </div>
             </div>

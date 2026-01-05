@@ -17,6 +17,9 @@ const CatRegistrationForm = () => {
   const [formData, setFormData] = useState({
     gender: '',
     weight: '',
+    ageValue: '',
+    ageUnit: 'months',
+    recordNotes: '',
     color: '',
     customColor: '',
     address: '',
@@ -63,8 +66,14 @@ const CatRegistrationForm = () => {
     { value: 'fawn'         , label: 'Бежова' },
   ];
 
+  const ageUnitOptions = [
+    { value: 'months', label: 'Месеца' },
+    { value: 'years', label: 'Години' }
+  ];
+
+
   const breadcrumbItems = [
-    { label: 'Dashboard', path: '/dashboard-overview' },
+    { label: 'Табло', path: '/dashboard-overview' },
     { label: 'Регистрирай котка', path: '/cat-registration-form' }
   ];
 
@@ -122,13 +131,25 @@ const CatRegistrationForm = () => {
       newErrors.gender = 'Изберете пол';
     }
 
-    if (!formData?.weight) {
-      newErrors.weight = 'Теглото е задължително';
-    } else if (parseFloat(formData?.weight) <= 0) {
-      newErrors.weight = 'Теглото трябва да е по-голямо от 0';
-    } else if (parseFloat(formData?.weight) > 50) {
-      newErrors.weight = 'Тегло';
+    // if (!formData?.weight) {
+    //   newErrors.weight = 'Теглото е задължително';
+    // } else if (parseFloat(formData?.weight) <= 0) {
+    //   newErrors.weight = 'Теглото трябва да е по-голямо от 0';
+    // } else if (parseFloat(formData?.weight) > 50) {
+    //   newErrors.weight = 'Тегло';
+    // }
+
+    if (!formData?.ageValue) {
+      newErrors.ageValue = 'Въведете възраст';
+    } else if (parseInt(formData.ageValue) <= 0) {
+      newErrors.ageValue = 'Възрастта трябва да е положително число';
+    } else if (
+      formData.ageUnit === 'months' && parseInt(formData.ageValue) > 24
+    ) {
+      newErrors.ageValue = 'Невалидна възраст в месеци';
     }
+
+
 
     if (!formData?.color) {
       newErrors.color = 'Изберете цвят';
@@ -172,6 +193,8 @@ const CatRegistrationForm = () => {
       const catData = {
         gender: formData?.gender,
         weight: formData?.weight,
+        ageValue: formData.ageValue,
+        ageUnit: formData.ageUnit,
         color: finalColor,
         address: formData?.address,
         ownerName: formData?.ownerName,
@@ -186,10 +209,13 @@ const CatRegistrationForm = () => {
 
       await supabase.from('td_records').insert({
         record_name: formData?.recordName,
+        record_notes: formData?.recordNotes,
         record_gender: formData?.gender,
         owner_name: formData?.ownerName,
         owner_phone: formData?.ownerPhone,
         record_weight: formData?.weight,
+        record_age_value: formData.ageValue,
+        record_age_unit: formData.ageUnit,
         record_color: finalColor,
         record_location_address: formData?.address,
         record_location_city: formData?.recordCity
@@ -203,6 +229,8 @@ const CatRegistrationForm = () => {
     setFormData({
       gender: '',
       weight: '',
+      ageValue: '',
+      ageUnit: 'months',
       color: '',
       customColor: '',
       address: '',
@@ -243,6 +271,31 @@ const CatRegistrationForm = () => {
           <form onSubmit={handleSubmit} className="space-y-6 md:space-y-8">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-8">
               <div className="space-y-6 md:space-y-8">
+              
+                <FormSection
+                  title="Лице за контакти / Собственик"
+                >
+                  <Input
+                    label="Име"
+                    type="text"
+                    placeholder="Име и фамилия:"
+                    required
+                    value={formData?.ownerName}
+                    onChange={(e) => handleInputChange('ownerName', e?.target?.value)}
+                    error={errors?.ownerName}
+                  />
+
+                  <Input
+                    label="Номер за кореспонденция"
+                    type="tel"
+                    placeholder="Телефонен номер:"
+                    required
+                    value={formData?.ownerPhone}
+                    onChange={(e) => handleInputChange('ownerPhone', e?.target?.value)}
+                    error={errors?.ownerPhone}
+                  />
+                </FormSection>
+                
                 <FormSection
                   title="Основна информация">
 
@@ -266,7 +319,7 @@ const CatRegistrationForm = () => {
                   />
 
                   <Input
-                    label="Тегло в килограми"
+                    label="Тегло (в килограми)"
                     type="number"
                     placeholder="Въведете теглото"
                     required
@@ -278,6 +331,28 @@ const CatRegistrationForm = () => {
                     error={errors?.weight}
                   />
 
+                  <div className="grid grid-cols-2 gap-4">
+                    <Input
+                      label="Възраст"
+                      type="number"
+                      placeholder="Напр. 4"
+                      required
+                      min="1"
+                      max={formData.ageUnit === 'months' ? 24 : 30}
+                      step="1"
+                      value={formData.ageValue}
+                      onChange={(e) => handleInputChange('ageValue', e.target.value)}
+                      error={errors?.ageValue}
+                    />
+
+                    <Select
+                      label="Единица"
+                      options={ageUnitOptions}
+                      value={formData.ageUnit}
+                      onChange={(value) => handleInputChange('ageUnit', value)}
+                    />
+                  </div>
+
                   <Select
                     label="Цвят на козината"
                     placeholder="Изберете цвят"
@@ -286,6 +361,15 @@ const CatRegistrationForm = () => {
                     value={formData?.color}
                     onChange={(value) => handleInputChange('color', value)}
                     error={errors?.color}
+                  />
+
+                <Input
+                    label="Бележки"
+                    type="text"
+                    placeholder="Открити заболявания, усложнения и др..."
+                    value={formData?.recordNotes}
+                    onChange={(e) => handleInputChange('recordNotes', e?.target?.value)}
+                    error={errors?.recordNotes}
                   />
 
                   {formData?.color === 'custom' && (
@@ -329,29 +413,7 @@ const CatRegistrationForm = () => {
                   />
                 </FormSection>
 
-                <FormSection
-                  title="Лице за контакти / Собственик"
-                >
-                  <Input
-                    label="Име"
-                    type="text"
-                    placeholder="Име и фамилия на лицето за контакт"
-                    required
-                    value={formData?.ownerName}
-                    onChange={(e) => handleInputChange('ownerName', e?.target?.value)}
-                    error={errors?.ownerName}
-                  />
 
-                  <Input
-                    label="Номер за кореспонденция"
-                    type="tel"
-                    placeholder="Телефонен номер на лицето за контакт"
-                    required
-                    value={formData?.ownerPhone}
-                    onChange={(e) => handleInputChange('ownerPhone', e?.target?.value)}
-                    error={errors?.ownerPhone}
-                  />
-                </FormSection>
 
                 <div className="flex flex-col sm:flex-row gap-3 pt-4">
                   <Button
