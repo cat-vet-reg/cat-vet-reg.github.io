@@ -8,7 +8,11 @@ const Header = () => {
   const location = useLocation();
 
   const navigationItems = [
+<<<<<<< HEAD
     { label: 'Табло', path: '/dashboard-overview', icon: 'LayoutDashboard' },
+=======
+    { label: 'Dashboard', path: '/dashboard-overview', icon: 'LayoutDashboard' },
+>>>>>>> 5bf2240c40b1ffe00401e90ffe8061c33962b09d
     { label: 'Регистрирани', path: '/cat-registry-list', icon: 'BookOpen' },
     { label: 'Карта', path: '/interactive-cat-map', icon: 'Map' },
   ];
@@ -36,6 +40,7 @@ const Header = () => {
               onClick={closeMobileMenu}
             >
               <div className="flex items-center justify-center w-10 h-10 bg-primary/10 rounded-lg">
+<<<<<<< HEAD
                 <div className="flex items-center justify-center w-10 h-10 bg-primary/10 rounded-lg overflow-hidden">
                   <img
                     src="/logo.png"
@@ -46,6 +51,12 @@ const Header = () => {
               </div>
               <span className="text-xl font-heading font-semibold text-foreground hidden sm:block">
                 CastraMap
+=======
+                <Icon name="Cat" size={24} color="var(--color-primary)" />
+              </div>
+              <span className="text-xl font-heading font-semibold text-foreground hidden sm:block">
+                Cat Vet Reg
+>>>>>>> 5bf2240c40b1ffe00401e90ffe8061c33962b09d
               </span>
             </Link>
 
@@ -87,7 +98,11 @@ const Header = () => {
               iconName="Plus"
               onClick={() => window.location.href = '#/cat-registration-form'}
               className="sm:hidden"
+<<<<<<< HEAD
               aria-label="Регистрирай котка"
+=======
+              aria-label="Register Cat"
+>>>>>>> 5bf2240c40b1ffe00401e90ffe8061c33962b09d
             />
 
             <button

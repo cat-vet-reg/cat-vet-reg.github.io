@@ -5,25 +5,42 @@ const BasicInfoCard = ({ cat }) => {
   const infoItems = [
     {
       icon: 'User',
+<<<<<<< HEAD
       label: 'Пол',
+=======
+      label: 'Gender',
+>>>>>>> 5bf2240c40b1ffe00401e90ffe8061c33962b09d
       value: cat?.gender,
       color: cat?.gender === 'Male' ? 'text-primary' : 'text-secondary'
     },
     {
       icon: 'Palette',
+<<<<<<< HEAD
       label: 'Цвят',
+=======
+      label: 'Color',
+>>>>>>> 5bf2240c40b1ffe00401e90ffe8061c33962b09d
       value: cat?.color,
       color: 'text-accent'
     },
     {
       icon: 'Weight',
+<<<<<<< HEAD
       label: 'Тегло',
       value: `${cat?.weight} кг`,
+=======
+      label: 'Weight',
+      value: `${cat?.weight} kg`,
+>>>>>>> 5bf2240c40b1ffe00401e90ffe8061c33962b09d
       color: 'text-success'
     },
     {
       icon: 'MapPin',
+<<<<<<< HEAD
       label: 'Локация',
+=======
+      label: 'Found Location',
+>>>>>>> 5bf2240c40b1ffe00401e90ffe8061c33962b09d
       value: cat?.foundLocation,
       color: 'text-warning'
     }
@@ -36,7 +53,11 @@ const BasicInfoCard = ({ cat }) => {
           <Icon name="Info" size={20} color="var(--color-primary)" className="md:w-6 md:h-6" />
         </div>
         <h2 className="text-xl md:text-2xl lg:text-3xl font-heading font-semibold text-foreground">
+<<<<<<< HEAD
           Основна информация
+=======
+          Basic Information
+>>>>>>> 5bf2240c40b1ffe00401e90ffe8061c33962b09d
         </h2>
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">

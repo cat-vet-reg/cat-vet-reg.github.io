@@ -44,6 +44,7 @@ const CatRegistrationForm = () => {
   ];
 
   const colorOptions = [
+<<<<<<< HEAD
     // Patterns
     { value: 'tabby'        , label: 'Таби (тигрова)' },
 
@@ -61,11 +62,26 @@ const CatRegistrationForm = () => {
     { value: 'brown'        , label: 'Кафява' },
     { value: 'cinnamon'     , label: 'Светлокафява' },
     { value: 'fawn'         , label: 'Бежова' },
+=======
+    { value: 'black', label: 'Черна' },
+    { value: 'white', label: 'Бяла' },
+    { value: 'orange', label: 'Рижа' },
+    { value: 'gray', label: 'Сива' },
+    { value: 'brown', label: 'Кафява' },
+    { value: 'calico', label: 'Калико' },
+    { value: 'tabby', label: 'Таби' },
+    { value: 'tuxedo', label: 'Tuxedo' },
+    { value: 'custom', label: 'Нещо друго' }
+>>>>>>> 5bf2240c40b1ffe00401e90ffe8061c33962b09d
   ];
 
   const breadcrumbItems = [
     { label: 'Dashboard', path: '/dashboard-overview' },
+<<<<<<< HEAD
     { label: 'Регистрирай котка', path: '/cat-registration-form' }
+=======
+    { label: 'Register Cat', path: '/cat-registration-form' }
+>>>>>>> 5bf2240c40b1ffe00401e90ffe8061c33962b09d
   ];
 
 
@@ -398,7 +414,11 @@ const CatRegistrationForm = () => {
       </div>
       <FloatingActionButton
         onClick={handleSubmit}
+<<<<<<< HEAD
         label="Регистрирай котка"
+=======
+        label="Register Cat"
+>>>>>>> 5bf2240c40b1ffe00401e90ffe8061c33962b09d
       />
       <SuccessModal
         isOpen={showSuccessModal}

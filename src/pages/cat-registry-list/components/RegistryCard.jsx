@@ -58,7 +58,11 @@ const RegistryCard = ({
 
         <div className="flex items-center gap-2">
           <Icon name="Weight" size={16} className="text-muted-foreground flex-shrink-0" />
+<<<<<<< HEAD
           <span className="text-sm text-muted-foreground data-text">{cat?.weight} кг</span>
+=======
+          <span className="text-sm text-muted-foreground data-text">{cat?.weight} kg</span>
+>>>>>>> 5bf2240c40b1ffe00401e90ffe8061c33962b09d
         </div>
 
         <div className="flex items-start gap-2">

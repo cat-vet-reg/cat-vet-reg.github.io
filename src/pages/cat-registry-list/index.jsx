@@ -19,7 +19,11 @@ const CatRegistryList = () => {
     {
       id: 1,
       name: "Whiskers",
+<<<<<<< HEAD
       gender: "Мъжки",
+=======
+      gender: "Male",
+>>>>>>> 5bf2240c40b1ffe00401e90ffe8061c33962b09d
       color: "Orange Tabby",
       colorHex: "#FF8C42",
       weight: 4.5,
@@ -32,7 +36,11 @@ const CatRegistryList = () => {
     {
       id: 2,
       name: "Luna",
+<<<<<<< HEAD
       gender: "Женски",
+=======
+      gender: "Female",
+>>>>>>> 5bf2240c40b1ffe00401e90ffe8061c33962b09d
       color: "Black",
       colorHex: "#1A1A1A",
       weight: 3.8,
@@ -45,7 +53,11 @@ const CatRegistryList = () => {
     {
       id: 3,
       name: "Shadow",
+<<<<<<< HEAD
       gender: "Мъжки",
+=======
+      gender: "Male",
+>>>>>>> 5bf2240c40b1ffe00401e90ffe8061c33962b09d
       color: "Gray",
       colorHex: "#808080",
       weight: 5.2,
@@ -58,7 +70,11 @@ const CatRegistryList = () => {
     {
       id: 4,
       name: "Mittens",
+<<<<<<< HEAD
       gender: "Женски",
+=======
+      gender: "Female",
+>>>>>>> 5bf2240c40b1ffe00401e90ffe8061c33962b09d
       color: "White",
       colorHex: "#FFFFFF",
       weight: 3.2,
@@ -71,7 +87,11 @@ const CatRegistryList = () => {
     {
       id: 5,
       name: "Tiger",
+<<<<<<< HEAD
       gender: "Мъжки",
+=======
+      gender: "Male",
+>>>>>>> 5bf2240c40b1ffe00401e90ffe8061c33962b09d
       color: "Brown Tabby",
       colorHex: "#8B4513",
       weight: 6.1,
@@ -84,7 +104,11 @@ const CatRegistryList = () => {
     {
       id: 6,
       name: "Bella",
+<<<<<<< HEAD
       gender: "Женски",
+=======
+      gender: "Female",
+>>>>>>> 5bf2240c40b1ffe00401e90ffe8061c33962b09d
       color: "Calico",
       colorHex: "#F4A460",
       weight: 4.0,
@@ -97,7 +121,11 @@ const CatRegistryList = () => {
     {
       id: 7,
       name: "Simba",
+<<<<<<< HEAD
       gender: "Мъжки",
+=======
+      gender: "Male",
+>>>>>>> 5bf2240c40b1ffe00401e90ffe8061c33962b09d
       color: "Orange",
       colorHex: "#FFA500",
       weight: 5.5,
@@ -110,7 +138,11 @@ const CatRegistryList = () => {
     {
       id: 8,
       name: "Chloe",
+<<<<<<< HEAD
       gender: "Женски",
+=======
+      gender: "Female",
+>>>>>>> 5bf2240c40b1ffe00401e90ffe8061c33962b09d
       color: "Siamese",
       colorHex: "#D2B48C",
       weight: 3.5,
@@ -123,7 +155,11 @@ const CatRegistryList = () => {
     {
       id: 9,
       name: "Max",
+<<<<<<< HEAD
       gender: "Мъжки",
+=======
+      gender: "Male",
+>>>>>>> 5bf2240c40b1ffe00401e90ffe8061c33962b09d
       color: "Tuxedo",
       colorHex: "#000000",
       weight: 4.8,
@@ -136,7 +172,11 @@ const CatRegistryList = () => {
     {
       id: 10,
       name: "Daisy",
+<<<<<<< HEAD
       gender: "Женски",
+=======
+      gender: "Female",
+>>>>>>> 5bf2240c40b1ffe00401e90ffe8061c33962b09d
       color: "Tortoiseshell",
       colorHex: "#8B4513",
       weight: 3.9,
@@ -149,7 +189,11 @@ const CatRegistryList = () => {
     {
       id: 11,
       name: "Oliver",
+<<<<<<< HEAD
       gender: "Мъжки",
+=======
+      gender: "Male",
+>>>>>>> 5bf2240c40b1ffe00401e90ffe8061c33962b09d
       color: "Gray Tabby",
       colorHex: "#A9A9A9",
       weight: 5.0,
@@ -162,7 +206,11 @@ const CatRegistryList = () => {
     {
       id: 12,
       name: "Lily",
+<<<<<<< HEAD
       gender: "Женски",
+=======
+      gender: "Female",
+>>>>>>> 5bf2240c40b1ffe00401e90ffe8061c33962b09d
       color: "Cream",
       colorHex: "#FFFDD0",
       weight: 3.6,
@@ -191,6 +239,7 @@ const CatRegistryList = () => {
   const [pageSize, setPageSize] = useState(10);
 
   const genderOptions = [
+<<<<<<< HEAD
     { value: 'male', label: 'Мъжки' },
     { value: 'female', label: 'Женски' }
   ];
@@ -213,6 +262,25 @@ const CatRegistryList = () => {
     { value: 'brown'        , label: 'Кафява' },
     { value: 'cinnamon'     , label: 'Светлокафява' },
     { value: 'fawn'         , label: 'Бежова' },
+=======
+    { value: 'Male', label: 'Male' },
+    { value: 'Female', label: 'Female' }
+  ];
+
+  const colorOptions = [
+    { value: 'Orange Tabby', label: 'Orange Tabby' },
+    { value: 'Black', label: 'Black' },
+    { value: 'Gray', label: 'Gray' },
+    { value: 'White', label: 'White' },
+    { value: 'Brown Tabby', label: 'Brown Tabby' },
+    { value: 'Calico', label: 'Calico' },
+    { value: 'Orange', label: 'Orange' },
+    { value: 'Siamese', label: 'Siamese' },
+    { value: 'Tuxedo', label: 'Tuxedo' },
+    { value: 'Tortoiseshell', label: 'Tortoiseshell' },
+    { value: 'Gray Tabby', label: 'Gray Tabby' },
+    { value: 'Cream', label: 'Cream' }
+>>>>>>> 5bf2240c40b1ffe00401e90ffe8061c33962b09d
   ];
 
   const locationOptions = [
@@ -360,8 +428,13 @@ const CatRegistryList = () => {
   };
 
   const breadcrumbItems = [
+<<<<<<< HEAD
     { label: 'Табло', path: '/dashboard-overview' },
     { label: 'Регистър на котките', path: '/cat-registry-list' }
+=======
+    { label: 'Dashboard', path: '/dashboard-overview' },
+    { label: 'Cat Registry', path: '/cat-registry-list' }
+>>>>>>> 5bf2240c40b1ffe00401e90ffe8061c33962b09d
   ];
 
   return (
@@ -372,9 +445,15 @@ const CatRegistryList = () => {
 
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6 md:mb-8">
           <div>
+<<<<<<< HEAD
             <h1 className="text-3xl md:text-4xl lg:text-5xl mb-2">Регистър на котките</h1>
             <p className="text-base md:text-lg text-muted-foreground">
               Търси и управлявай всички регистрирани котки в системата
+=======
+            <h1 className="text-3xl md:text-4xl lg:text-5xl mb-2">Cat Registry</h1>
+            <p className="text-base md:text-lg text-muted-foreground">
+              Browse and manage all registered cats in the system
+>>>>>>> 5bf2240c40b1ffe00401e90ffe8061c33962b09d
             </p>
           </div>
 
@@ -386,7 +465,11 @@ const CatRegistryList = () => {
               onClick={() => navigate('/interactive-cat-map')}
               className="hidden sm:flex"
             >
+<<<<<<< HEAD
               Виж картата
+=======
+              View Map
+>>>>>>> 5bf2240c40b1ffe00401e90ffe8061c33962b09d
             </Button>
             <Button
               variant="default"
@@ -395,7 +478,11 @@ const CatRegistryList = () => {
               onClick={() => navigate('/cat-registration-form')}
               className="hidden sm:flex"
             >
+<<<<<<< HEAD
               Регистрирай нова котка
+=======
+              Register New Cat
+>>>>>>> 5bf2240c40b1ffe00401e90ffe8061c33962b09d
             </Button>
           </div>
         </div>
@@ -411,7 +498,11 @@ const CatRegistryList = () => {
 
         <div className="mb-4">
           <p className="text-sm text-muted-foreground">
+<<<<<<< HEAD
             Има {filteredAndSortedCats?.length} {filteredAndSortedCats?.length === 1 ? 'резултат' : 'резултати'}
+=======
+            Showing {filteredAndSortedCats?.length} {filteredAndSortedCats?.length === 1 ? 'result' : 'results'}
+>>>>>>> 5bf2240c40b1ffe00401e90ffe8061c33962b09d
           </p>
         </div>
 
@@ -448,6 +539,7 @@ const CatRegistryList = () => {
                 <Icon name="Search" size={32} className="text-muted-foreground" />
               </div>
             </div>
+<<<<<<< HEAD
             <h3 className="text-xl md:text-2xl font-semibold mb-2">Няма намерени резултати</h3>
             <p className="text-muted-foreground mb-6">
               {/* Try adjusting your filters or search terms */}
@@ -455,6 +547,14 @@ const CatRegistryList = () => {
             </p>
             <Button variant="outline" onClick={handleClearFilters}>
               Изчисти филтрите
+=======
+            <h3 className="text-xl md:text-2xl font-semibold mb-2">No cats found</h3>
+            <p className="text-muted-foreground mb-6">
+              Try adjusting your filters or search terms
+            </p>
+            <Button variant="outline" onClick={handleClearFilters}>
+              Clear Filters
+>>>>>>> 5bf2240c40b1ffe00401e90ffe8061c33962b09d
             </Button>
           </div>
         )}
@@ -478,7 +578,11 @@ const CatRegistryList = () => {
       />
       <FloatingActionButton
         onClick={() => navigate('/cat-registration-form')}
+<<<<<<< HEAD
         label="Регистрирай нова котка"
+=======
+        label="Register New Cat"
+>>>>>>> 5bf2240c40b1ffe00401e90ffe8061c33962b09d
       />
     </div>
   );

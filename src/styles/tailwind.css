@@ -14,7 +14,11 @@
     --color-primary-foreground: #FFFFFF; /* white */
     
     /* Secondary Colors */
+<<<<<<< HEAD
     --color-secondary: #e64072; /* violet-600 */
+=======
+    --color-secondary: #7C3AED; /* violet-600 */
+>>>>>>> 5bf2240c40b1ffe00401e90ffe8061c33962b09d
     --color-secondary-foreground: #FFFFFF; /* white */
     
     /* Accent Colors */
@@ -69,7 +73,11 @@
     --color-primary-foreground: #FFFFFF; /* white */
     
     /* Secondary Colors */
+<<<<<<< HEAD
     --color-secondary: #e64072; /* violet-500 */
+=======
+    --color-secondary: #8B5CF6; /* violet-500 */
+>>>>>>> 5bf2240c40b1ffe00401e90ffe8061c33962b09d
     --color-secondary-foreground: #FFFFFF; /* white */
     
     /* Accent Colors */

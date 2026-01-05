@@ -37,7 +37,11 @@ const SearchBar = ({ suggestions }) => {
           />
           <input
             type="text"
+<<<<<<< HEAD
             placeholder="Търси по животно или собственик..."
+=======
+            placeholder="Search by cat name or owner..."
+>>>>>>> 5bf2240c40b1ffe00401e90ffe8061c33962b09d
             value={searchQuery}
             onChange={(e) => {
               setSearchQuery(e?.target?.value);

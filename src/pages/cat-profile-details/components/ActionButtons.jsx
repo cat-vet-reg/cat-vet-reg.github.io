@@ -21,7 +21,11 @@ const ActionButtons = ({ onEdit, onDelete }) => {
     <>
       <div className="bg-card rounded-xl shadow-warm p-4 md:p-6 lg:p-8">
         <h2 className="text-xl md:text-2xl lg:text-3xl font-heading font-semibold text-foreground mb-4 md:mb-6">
+<<<<<<< HEAD
           Действия
+=======
+          Actions
+>>>>>>> 5bf2240c40b1ffe00401e90ffe8061c33962b09d
         </h2>
         
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
@@ -32,7 +36,11 @@ const ActionButtons = ({ onEdit, onDelete }) => {
             onClick={onEdit}
             fullWidth
           >
+<<<<<<< HEAD
             Редактирай
+=======
+            Edit Registration
+>>>>>>> 5bf2240c40b1ffe00401e90ffe8061c33962b09d
           </Button>
           
           <Button
@@ -42,7 +50,11 @@ const ActionButtons = ({ onEdit, onDelete }) => {
             onClick={() => window.location.href = '/interactive-cat-map'}
             fullWidth
           >
+<<<<<<< HEAD
             Виж на картата
+=======
+            View on Map
+>>>>>>> 5bf2240c40b1ffe00401e90ffe8061c33962b09d
           </Button>
           
           <Button
@@ -52,7 +64,11 @@ const ActionButtons = ({ onEdit, onDelete }) => {
             onClick={handleDeleteClick}
             fullWidth
           >
+<<<<<<< HEAD
             Изтрий
+=======
+            Delete Record
+>>>>>>> 5bf2240c40b1ffe00401e90ffe8061c33962b09d
           </Button>
         </div>
       </div>
@@ -72,7 +88,11 @@ const ActionButtons = ({ onEdit, onDelete }) => {
             </div>
             
             <p className="text-sm md:text-base text-muted-foreground mb-6">
+<<<<<<< HEAD
               Сигурен ли си, че искаш да изтриеш тази регистрация на котка? След това не може да се възстанови и цялата информация ще бъде загубена.
+=======
+              Are you sure you want to delete this cat registration? This action cannot be undone and all associated data will be permanently removed.
+>>>>>>> 5bf2240c40b1ffe00401e90ffe8061c33962b09d
             </p>
             
             <div className="flex flex-col sm:flex-row gap-3">
@@ -88,7 +108,11 @@ const ActionButtons = ({ onEdit, onDelete }) => {
                 onClick={handleConfirmDelete}
                 fullWidth
               >
+<<<<<<< HEAD
                 Изтрий завинаги
+=======
+                Delete Permanently
+>>>>>>> 5bf2240c40b1ffe00401e90ffe8061c33962b09d
               </Button>
             </div>
           </div>

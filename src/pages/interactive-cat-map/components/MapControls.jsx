@@ -3,8 +3,13 @@ import Icon from '../../../components/AppIcon';
 
 const MapControls = ({ mapType, onMapTypeChange, clusteringEnabled, onClusteringToggle }) => {
   const mapTypes = [
+<<<<<<< HEAD
     { value: 'street', label: 'Улица', icon: 'Map' },
     { value: 'satellite', label: 'Сателит', icon: 'Globe' }
+=======
+    { value: 'street', label: 'Street', icon: 'Map' },
+    { value: 'satellite', label: 'Satellite', icon: 'Globe' }
+>>>>>>> 5bf2240c40b1ffe00401e90ffe8061c33962b09d
   ];
 
   return (
@@ -42,7 +47,11 @@ const MapControls = ({ mapType, onMapTypeChange, clusteringEnabled, onClustering
         aria-pressed={clusteringEnabled}
       >
         <Icon name="Layers" size={18} />
+<<<<<<< HEAD
         <span className="text-sm font-medium">Групиране</span>
+=======
+        <span className="text-sm font-medium">Clustering</span>
+>>>>>>> 5bf2240c40b1ffe00401e90ffe8061c33962b09d
       </button>
     </div>
   );

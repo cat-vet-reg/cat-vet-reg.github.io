@@ -18,7 +18,11 @@ const OwnerContactCard = ({ owner }) => {
           <Icon name="UserCircle" size={20} color="var(--color-primary)" className="md:w-6 md:h-6" />
         </div>
         <h2 className="text-xl md:text-2xl lg:text-3xl font-heading font-semibold text-foreground">
+<<<<<<< HEAD
           Контакти на собственика
+=======
+          Owner Contact
+>>>>>>> 5bf2240c40b1ffe00401e90ffe8061c33962b09d
         </h2>
       </div>
       <div className="space-y-4 md:space-y-6">
@@ -27,7 +31,11 @@ const OwnerContactCard = ({ owner }) => {
             <Icon name="User" size={20} className="md:w-6 md:h-6" />
           </div>
           <div className="flex-1 min-w-0">
+<<<<<<< HEAD
             <p className="text-xs md:text-sm text-muted-foreground mb-1">Име на собственика</p>
+=======
+            <p className="text-xs md:text-sm text-muted-foreground mb-1">Owner Name</p>
+>>>>>>> 5bf2240c40b1ffe00401e90ffe8061c33962b09d
             <p className="text-sm md:text-base lg:text-lg font-medium text-foreground break-words">
               {owner?.name}
             </p>
@@ -39,7 +47,11 @@ const OwnerContactCard = ({ owner }) => {
             <Icon name="Phone" size={20} className="md:w-6 md:h-6" />
           </div>
           <div className="flex-1 min-w-0">
+<<<<<<< HEAD
             <p className="text-xs md:text-sm text-muted-foreground mb-1">Телефонен номер</p>
+=======
+            <p className="text-xs md:text-sm text-muted-foreground mb-1">Phone Number</p>
+>>>>>>> 5bf2240c40b1ffe00401e90ffe8061c33962b09d
             <p className="text-sm md:text-base lg:text-lg font-medium text-foreground font-mono data-text whitespace-nowrap">
               {owner?.phone}
             </p>
@@ -51,7 +63,11 @@ const OwnerContactCard = ({ owner }) => {
             <Icon name="Mail" size={20} className="md:w-6 md:h-6" />
           </div>
           <div className="flex-1 min-w-0">
+<<<<<<< HEAD
             <p className="text-xs md:text-sm text-muted-foreground mb-1">Имейл адрес</p>
+=======
+            <p className="text-xs md:text-sm text-muted-foreground mb-1">Email Address</p>
+>>>>>>> 5bf2240c40b1ffe00401e90ffe8061c33962b09d
             <p className="text-sm md:text-base lg:text-lg font-medium text-foreground break-words">
               {owner?.email}
             </p>
@@ -66,7 +82,11 @@ const OwnerContactCard = ({ owner }) => {
             onClick={handleCall}
             fullWidth
           >
+<<<<<<< HEAD
             Обади се
+=======
+            Call Owner
+>>>>>>> 5bf2240c40b1ffe00401e90ffe8061c33962b09d
           </Button>
           <Button
             variant="outline"
@@ -75,7 +95,11 @@ const OwnerContactCard = ({ owner }) => {
             onClick={handleEmail}
             fullWidth
           >
+<<<<<<< HEAD
             Изпрати имейл
+=======
+            Send Email
+>>>>>>> 5bf2240c40b1ffe00401e90ffe8061c33962b09d
           </Button>
         </div>
       </div>

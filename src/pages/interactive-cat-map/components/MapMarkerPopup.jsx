@@ -41,7 +41,11 @@ const MapMarkerPopup = ({ cat }) => {
           </div>
           <div className="flex items-center gap-2">
             <Icon name="Weight" size={16} className="text-muted-foreground" />
+<<<<<<< HEAD
             <span className="text-foreground">{cat?.weight} кг</span>
+=======
+            <span className="text-foreground">{cat?.weight} lbs</span>
+>>>>>>> 5bf2240c40b1ffe00401e90ffe8061c33962b09d
           </div>
           <div className="flex items-center gap-2">
             <Icon name="Phone" size={16} className="text-muted-foreground" />
@@ -50,7 +54,11 @@ const MapMarkerPopup = ({ cat }) => {
         </div>
 
         <div className="pt-2 border-t border-border">
+<<<<<<< HEAD
           <p className="text-sm text-muted-foreground mb-2">Собственик</p>
+=======
+          <p className="text-sm text-muted-foreground mb-2">Owner</p>
+>>>>>>> 5bf2240c40b1ffe00401e90ffe8061c33962b09d
           <p className="text-sm font-medium text-foreground">{cat?.ownerName}</p>
         </div>
 

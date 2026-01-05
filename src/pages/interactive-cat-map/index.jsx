@@ -214,8 +214,13 @@ const InteractiveCatMap = () => {
   };
 
   const breadcrumbItems = [
+<<<<<<< HEAD
   { label: 'Табло', path: '/dashboard-overview' },
   { label: 'Интерактивна карта', path: '/interactive-cat-map' }];
+=======
+  { label: 'Dashboard', path: '/dashboard-overview' },
+  { label: 'Interactive Map', path: '/interactive-cat-map' }];
+>>>>>>> 5bf2240c40b1ffe00401e90ffe8061c33962b09d
 
 
   const tileLayerUrl = mapType === 'satellite' ? 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}' :
@@ -235,10 +240,17 @@ const InteractiveCatMap = () => {
           <div className="flex items-center justify-between px-4 lg:px-0 mb-4">
             <div>
               <h1 className="text-2xl md:text-3xl lg:text-4xl font-semibold text-foreground mb-2">
+<<<<<<< HEAD
                 Интерактивна карта на котките
               </h1>
               <p className="text-sm md:text-base text-muted-foreground">
                 Разгледайте регистрирани котки по локация и получете достъп до подробна информация.
+=======
+                Interactive Cat Map
+              </h1>
+              <p className="text-sm md:text-base text-muted-foreground">
+                Explore registered cats by location and access detailed information
+>>>>>>> 5bf2240c40b1ffe00401e90ffe8061c33962b09d
               </p>
             </div>
 
@@ -249,7 +261,11 @@ const InteractiveCatMap = () => {
               iconPosition="left"
               className="lg:hidden">
 
+<<<<<<< HEAD
               Филтри
+=======
+              Filters
+>>>>>>> 5bf2240c40b1ffe00401e90ffe8061c33962b09d
             </Button>
           </div>
 
@@ -271,7 +287,11 @@ const InteractiveCatMap = () => {
                   <Marker
                     key={cat?.id}
                     position={[cat?.latitude, cat?.longitude]}
+<<<<<<< HEAD
                     icon={createCustomIcon(cat?.gender === 'male' ? '#2563EB' : '#e64072')}>
+=======
+                    icon={createCustomIcon(cat?.gender === 'male' ? '#2563EB' : '#8B5CF6')}>
+>>>>>>> 5bf2240c40b1ffe00401e90ffe8061c33962b09d
 
                       <Popup maxWidth={280} closeButton={true}>
                         <MapMarkerPopup cat={cat} />
@@ -306,7 +326,11 @@ const InteractiveCatMap = () => {
       </main>
       <FloatingActionButton
         onClick={handleRegisterCat}
+<<<<<<< HEAD
         label="Регистрирай нова котка" />
+=======
+        label="Register New Cat" />
+>>>>>>> 5bf2240c40b1ffe00401e90ffe8061c33962b09d
 
     </div>);
 
