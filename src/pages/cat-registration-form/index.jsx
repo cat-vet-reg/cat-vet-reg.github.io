@@ -1,34 +1,33 @@
-import React, { useState } from 'react';
-import { Helmet } from 'react-helmet';
-import Header from '../../components/ui/Header';
-import Breadcrumb from '../../components/ui/Breadcrumb';
-import FloatingActionButton from '../../components/ui/FloatingActionButton';
-import Input from '../../components/ui/Input';
-import Select from '../../components/ui/Select';
-import Button from '../../components/ui/Button';
-import FormSection from './components/FormSection';
-import MapPreview from './components/MapPreview';
-import SuccessModal from './components/SuccessModal';
-
-import supabase from 'utils/supabase';
-import { getCoordinates } from '../../utils/geocoding';
+import React, { useState }      from 'react';
+import Header                   from '../../components/ui/Header';
+import Breadcrumb               from '../../components/ui/Breadcrumb';
+import FloatingActionButton     from '../../components/ui/FloatingActionButton';
+import Input                    from '../../components/ui/Input';
+import Select                   from '../../components/ui/Select';
+import Button                   from '../../components/ui/Button';
+import { Checkbox }             from '../../components/ui/Checkbox';
+import FormSection              from './components/FormSection';
+import MapPreview               from './components/MapPreview';
+import SuccessModal             from './components/SuccessModal';
 
 
-import { $apiCreateNewRecord } from '../../services/create_new_record'
+import { getCoordinates }       from '../../utils/geocoding';
+import { $apiCreateNewRecord }  from '../../services/create_new_record'
 
 const CatRegistrationForm = () => {
 
   const [formData, setFormData] = useState({
-    gender      : '',
-    weight      : '',
-    ageValue    : '',
-    ageUnit     : 'months',
-    recordNotes : '',
-    color       : '',
-    customColor : '',
-    address     : '',
-    ownerName   : '',
-    ownerPhone  : ''
+    gender          : '',
+    weight          : '',
+    ageValue        : '',
+    ageUnit         : 'months',
+    recordNotes     : '',
+    color           : '',
+    customColor     : '',
+    address         : '',
+    ownerName       : '',
+    ownerPhone      : '',
+    livingCondition : ''
   });
 
   const [errors, setErrors]                           = useState({});
@@ -37,6 +36,11 @@ const CatRegistrationForm = () => {
   const [isSubmitting, setIsSubmitting]               = useState(false);
   const [showSuccessModal, setShowSuccessModal]       = useState(false);
   const [registeredCatData, setRegisteredCatData]     = useState(null);
+
+  const [livingConditions, setLivingConditions]       = useState(new Set());
+
+
+  // const sss = new Set();
 
   const genderOptions = [
     { value: 'male', label: 'Мъжки' },
@@ -216,10 +220,6 @@ const CatRegistrationForm = () => {
 
   const handleSuccessModalClose = (state) => {
 
-    console.log("DDDDDDDDD")
-    console.log(state);
-    console.log("DDDDDDDDD")
-
     setShowSuccessModal(false);
 
     if(state == 'close') {
@@ -236,6 +236,8 @@ const CatRegistrationForm = () => {
         ownerPhone  : '',
         recordNotes : ''
       });
+
+      setLivingConditions(new Set());
     }
 
     if(state == 'same_owner') {
@@ -250,6 +252,8 @@ const CatRegistrationForm = () => {
         address     : '',
         recordNotes : ''
       });
+
+      setLivingConditions(new Set());
     }    
 
     setCoordinates(null);
@@ -265,6 +269,29 @@ const CatRegistrationForm = () => {
     // (formData?.color !== 'custom' || formData?.customColor?.trim()) &&
     // formData?.address?.trim()?.length >= 10 &&
     // formData?.ownerName?.trim()?.length >= 2 && /^\+?[\d\s\-()]{10,}$/?.test(formData?.ownerPhone));
+  };
+
+  const onCheckLocation = (id) => {
+
+    setLivingConditions(prev => {
+
+      const abc = new Set(prev);
+
+      if(abc.has(id)) {
+        abc.delete(id);
+      }
+      else {
+        abc.add(id)
+      }
+
+      handleInputChange('livingCondition', Array.from(abc));
+
+      return abc;
+    });
+    
+    // sss.add(id);
+
+    // handleInputChange('livingCondition', Array.from(livingConditions));
   };
 
   return (
@@ -426,6 +453,24 @@ const CatRegistrationForm = () => {
                     error={errors?.recordAddress}
                     description="Информацията е необходима за картата, така че подробности като номер на сградата или улицата са важни. Формат: 'ул. Име 12'"
                   />
+
+                <label class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 mb-2 block text-foreground">Къде живее</label>
+
+                <Checkbox 
+                  label="на улицата" 
+                  onChange={(e) => onCheckLocation('street')}
+                  checked={livingConditions.has('street')}
+                  />
+                <Checkbox 
+                  label="на двора"   
+                  onChange={(e) => onCheckLocation('outdoor')}
+                  checked={livingConditions.has('outdoor')}
+                  />
+                <Checkbox 
+                  label="в дома"     
+                  onChange={(e) => onCheckLocation('indoor')}
+                  checked={livingConditions.has('indoor')}/>
+
                 </FormSection>
 
 

@@ -2,6 +2,10 @@ import supabase from 'utils/supabase';
 
 export async function $apiCreateNewRecord(formData) {
 
+    console.log("@@@@@@@@@@@@@@")
+    console.log(formData);
+    console.log("@@@@@@@@@@@@@@")
+
     // check if the owner already exist into the system
     const ownerId = await getOwnerIdByPhone(formData?.ownerPhone)
 
@@ -32,6 +36,8 @@ async function recordAnimal(formData, ownerId) {
 
         location_address : formData?.address,
         location_city    : formData?.recordCity,
+
+        living_condition : formData?.livingCondition,
 
         owner_id : ownerId
     });
