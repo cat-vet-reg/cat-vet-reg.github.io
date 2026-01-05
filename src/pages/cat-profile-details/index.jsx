@@ -32,15 +32,9 @@ const CatProfileDetails = () => {
   };
 
   const breadcrumbItems = [
-<<<<<<< HEAD
     { label: 'Табло', path: '/dashboard-overview' },
     { label: 'Регистрация котки', path: '/cat-registry-list' },
     { label: 'Профил на котката', path: '/cat-profile-details' }
-=======
-    { label: 'Dashboard', path: '/dashboard-overview' },
-    { label: 'Cat Registry', path: '/cat-registry-list' },
-    { label: 'Profile Details', path: '/cat-profile-details' }
->>>>>>> 5bf2240c40b1ffe00401e90ffe8061c33962b09d
   ];
 
   const handleEdit = () => {

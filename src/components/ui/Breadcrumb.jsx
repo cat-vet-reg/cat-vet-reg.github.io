@@ -6,11 +6,7 @@ const Breadcrumb = ({ items }) => {
   const location = useLocation();
 
   const defaultItems = [
-<<<<<<< HEAD
     { label: 'Табло', path: '/dashboard-overview' },
-=======
-    { label: 'Dashboard', path: '/dashboard-overview' },
->>>>>>> 5bf2240c40b1ffe00401e90ffe8061c33962b09d
   ];
 
   const breadcrumbItems = items || defaultItems;

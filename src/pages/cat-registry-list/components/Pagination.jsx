@@ -11,17 +11,10 @@ const Pagination = ({
   onPageSizeChange 
 }) => {
   const pageSizeOptions = [
-<<<<<<< HEAD
     { value: '10', label: '10 на стр.' },
     { value: '25', label: '25 на стр.' },
     { value: '50', label: '50 на стр.' },
     { value: '100', label: '100 на стр.' }
-=======
-    { value: '10', label: '10 per page' },
-    { value: '25', label: '25 per page' },
-    { value: '50', label: '50 per page' },
-    { value: '100', label: '100 per page' }
->>>>>>> 5bf2240c40b1ffe00401e90ffe8061c33962b09d
   ];
 
   const startItem = (currentPage - 1) * pageSize + 1;
@@ -67,11 +60,7 @@ const Pagination = ({
       <div className="flex flex-col md:flex-row items-center justify-between gap-4">
         <div className="flex items-center gap-4 w-full md:w-auto">
           <span className="text-sm text-muted-foreground whitespace-nowrap">
-<<<<<<< HEAD
             Има {startItem}-{endItem} от {totalItems}
-=======
-            Showing {startItem}-{endItem} of {totalItems}
->>>>>>> 5bf2240c40b1ffe00401e90ffe8061c33962b09d
           </span>
           <div className="w-full md:w-40">
             <Select
@@ -123,11 +112,7 @@ const Pagination = ({
             iconName="ChevronRight"
             onClick={() => onPageChange(currentPage + 1)}
             disabled={currentPage === totalPages}
-<<<<<<< HEAD
             aria-label="Следваща страница"
-=======
-            aria-label="Next page"
->>>>>>> 5bf2240c40b1ffe00401e90ffe8061c33962b09d
           />
         </div>
       </div>

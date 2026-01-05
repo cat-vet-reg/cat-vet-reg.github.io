@@ -17,13 +17,8 @@ const FilterPanel = ({
         <div className="flex-1">
           <Input
             type="search"
-<<<<<<< HEAD
             label="Търси"
             placeholder="Търси по животно, собственик или локация..."
-=======
-            label="Search"
-            placeholder="Search by cat name, owner, or location..."
->>>>>>> 5bf2240c40b1ffe00401e90ffe8061c33962b09d
             value={filters?.search}
             onChange={(e) => onFilterChange('search', e?.target?.value)}
             className="w-full"
@@ -32,13 +27,8 @@ const FilterPanel = ({
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 flex-1">
           <Select
-<<<<<<< HEAD
             label="Пол"
             placeholder="Избери пол"
-=======
-            label="Gender"
-            placeholder="All Genders"
->>>>>>> 5bf2240c40b1ffe00401e90ffe8061c33962b09d
             options={genderOptions}
             value={filters?.gender}
             onChange={(value) => onFilterChange('gender', value)}
@@ -46,13 +36,8 @@ const FilterPanel = ({
           />
 
           <Select
-<<<<<<< HEAD
             label="Цвят"
             placeholder="Избери цвят"
-=======
-            label="Color"
-            placeholder="All Colors"
->>>>>>> 5bf2240c40b1ffe00401e90ffe8061c33962b09d
             options={colorOptions}
             value={filters?.color}
             onChange={(value) => onFilterChange('color', value)}
@@ -61,13 +46,8 @@ const FilterPanel = ({
           />
 
           <Select
-<<<<<<< HEAD
             label="Локация"
             placeholder="Избери локация"
-=======
-            label="Location"
-            placeholder="All Locations"
->>>>>>> 5bf2240c40b1ffe00401e90ffe8061c33962b09d
             options={locationOptions}
             value={filters?.location}
             onChange={(value) => onFilterChange('location', value)}
@@ -83,11 +63,7 @@ const FilterPanel = ({
           iconPosition="left"
           className="lg:mb-0"
         >
-<<<<<<< HEAD
           Изчисти филтрите
-=======
-          Clear Filters
->>>>>>> 5bf2240c40b1ffe00401e90ffe8061c33962b09d
         </Button>
       </div>
     </div>

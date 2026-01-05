@@ -42,11 +42,7 @@ const RegistryTable = ({
                   onClick={() => handleSort('name')}
                   className="flex items-center gap-2 font-semibold text-sm text-foreground hover:text-primary transition-smooth"
                 >
-<<<<<<< HEAD
                   Име на котката
-=======
-                  Cat Name
->>>>>>> 5bf2240c40b1ffe00401e90ffe8061c33962b09d
                   <Icon name={getSortIcon('name')} size={16} />
                 </button>
               </th>
@@ -55,11 +51,7 @@ const RegistryTable = ({
                   onClick={() => handleSort('gender')}
                   className="flex items-center gap-2 font-semibold text-sm text-foreground hover:text-primary transition-smooth"
                 >
-<<<<<<< HEAD
                   Пол
-=======
-                  Gender
->>>>>>> 5bf2240c40b1ffe00401e90ffe8061c33962b09d
                   <Icon name={getSortIcon('gender')} size={16} />
                 </button>
               </th>
@@ -68,11 +60,7 @@ const RegistryTable = ({
                   onClick={() => handleSort('color')}
                   className="flex items-center gap-2 font-semibold text-sm text-foreground hover:text-primary transition-smooth"
                 >
-<<<<<<< HEAD
                   Цвят
-=======
-                  Color
->>>>>>> 5bf2240c40b1ffe00401e90ffe8061c33962b09d
                   <Icon name={getSortIcon('color')} size={16} />
                 </button>
               </th>
@@ -81,31 +69,19 @@ const RegistryTable = ({
                   onClick={() => handleSort('weight')}
                   className="flex items-center gap-2 font-semibold text-sm text-foreground hover:text-primary transition-smooth"
                 >
-<<<<<<< HEAD
                   Тегло
-=======
-                  Weight
->>>>>>> 5bf2240c40b1ffe00401e90ffe8061c33962b09d
                   <Icon name={getSortIcon('weight')} size={16} />
                 </button>
               </th>
               <th className="px-4 py-3 text-left">
-<<<<<<< HEAD
                 <span className="font-semibold text-sm text-foreground">Локация на котката</span>
-=======
-                <span className="font-semibold text-sm text-foreground">Found Location</span>
->>>>>>> 5bf2240c40b1ffe00401e90ffe8061c33962b09d
               </th>
               <th className="px-4 py-3 text-left">
                 <button
                   onClick={() => handleSort('ownerName')}
                   className="flex items-center gap-2 font-semibold text-sm text-foreground hover:text-primary transition-smooth"
                 >
-<<<<<<< HEAD
                   Име на собственик
-=======
-                  Owner Name
->>>>>>> 5bf2240c40b1ffe00401e90ffe8061c33962b09d
                   <Icon name={getSortIcon('ownerName')} size={16} />
                 </button>
               </th>
@@ -114,20 +90,12 @@ const RegistryTable = ({
                   onClick={() => handleSort('registrationDate')}
                   className="flex items-center gap-2 font-semibold text-sm text-foreground hover:text-primary transition-smooth"
                 >
-<<<<<<< HEAD
                   Дата на регистрация
-=======
-                  Registration Date
->>>>>>> 5bf2240c40b1ffe00401e90ffe8061c33962b09d
                   <Icon name={getSortIcon('registrationDate')} size={16} />
                 </button>
               </th>
               <th className="px-4 py-3 text-right">
-<<<<<<< HEAD
                 <span className="font-semibold text-sm text-foreground">Действия</span>
-=======
-                <span className="font-semibold text-sm text-foreground">Actions</span>
->>>>>>> 5bf2240c40b1ffe00401e90ffe8061c33962b09d
               </th>
             </tr>
           </thead>
@@ -166,11 +134,7 @@ const RegistryTable = ({
                   </div>
                 </td>
                 <td className="px-4 py-3">
-<<<<<<< HEAD
                   <span className="text-sm text-muted-foreground data-text">{cat?.weight} кг</span>
-=======
-                  <span className="text-sm text-muted-foreground data-text">{cat?.weight} kg</span>
->>>>>>> 5bf2240c40b1ffe00401e90ffe8061c33962b09d
                 </td>
                 <td className="px-4 py-3">
                   <span className="text-sm text-muted-foreground line-clamp-2">{cat?.foundLocation}</span>

@@ -1,21 +1,25 @@
-import React, { useState, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
-import Header from '../../components/ui/Header';
-import Breadcrumb from '../../components/ui/Breadcrumb';
+import  React, { 
+        useState, 
+        useMemo, 
+        useEffect}         from 'react';
+import { useNavigate }      from 'react-router-dom';
+import Header               from '../../components/ui/Header';
+import Breadcrumb           from '../../components/ui/Breadcrumb';
 import FloatingActionButton from '../../components/ui/FloatingActionButton';
-import Button from '../../components/ui/Button';
-import FilterPanel from './components/FilterPanel';
-import RegistryTable from './components/RegistryTable';
-import RegistryCard from './components/RegistryCard';
-import BulkActionsBar from './components/BulkActionsBar';
-import Pagination from './components/Pagination';
-import Icon from '../../components/AppIcon';
+import Button               from '../../components/ui/Button';
+import FilterPanel          from './components/FilterPanel';
+import RegistryTable        from './components/RegistryTable';
+import RegistryCard         from './components/RegistryCard';
+import BulkActionsBar       from './components/BulkActionsBar';
+import Pagination           from './components/Pagination';
+import Icon                 from '../../components/AppIcon';
 
+import supabase from 'utils/supabase';
 
 const CatRegistryList = () => {
   const navigate = useNavigate();
 
-  const mockCats = [
+  let mockCats = [
     {
       id: 1,
       name: "Whiskers",
@@ -173,6 +177,19 @@ const CatRegistryList = () => {
       registrationTimestamp: new Date("2025-12-25")?.getTime()
     }
   ];
+
+
+  useEffect(() => {
+
+    async function fetchData() {
+      const result = await supabase.from('td_records').select('*');
+      console.log('@@@@');
+      mockCats = result.data;
+      console.log('@@@@');
+    }
+
+    fetchData();
+  });
 
   const [filters, setFilters] = useState({
     search: '',

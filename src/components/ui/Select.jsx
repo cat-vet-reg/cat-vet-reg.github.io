@@ -10,11 +10,7 @@ const Select = React.forwardRef(({
     options = [],
     value,
     defaultValue,
-<<<<<<< HEAD
     placeholder = "Избери опция",
-=======
-    placeholder = "Select an option",
->>>>>>> 5bf2240c40b1ffe00401e90ffe8061c33962b09d
     multiple = false,
     disabled = false,
     required = false,
@@ -183,11 +179,7 @@ const Select = React.forwardRef(({
                                 <div className="relative">
                                     <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
                                     <Input
-<<<<<<< HEAD
                                         placeholder="Избери опция..."
-=======
-                                        placeholder="Search options..."
->>>>>>> 5bf2240c40b1ffe00401e90ffe8061c33962b09d
                                         value={searchTerm}
                                         onChange={handleSearchChange}
                                         className="pl-8"
