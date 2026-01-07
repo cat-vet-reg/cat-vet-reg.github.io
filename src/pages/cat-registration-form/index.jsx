@@ -9,7 +9,7 @@ import { Checkbox }             from '../../components/ui/Checkbox';
 import FormSection              from './components/FormSection';
 import MapPreview               from './components/MapPreview';
 import SuccessModal             from './components/SuccessModal';
-
+import { cityOptions }          from './components/city_options';
 
 import { getCoordinates }       from '../../utils/geocoding';
 import { $apiCreateNewRecord }  from '../../services/create_new_record'
@@ -27,7 +27,9 @@ const CatRegistrationForm = () => {
     address         : '',
     ownerName       : '',
     ownerPhone      : '',
-    livingCondition : ''
+    livingCondition : '',
+    image           : null,
+    imagePreview    : ''
   });
 
   const [errors, setErrors]                           = useState({});
@@ -45,21 +47,6 @@ const CatRegistrationForm = () => {
   const genderOptions = [
     { value: 'male', label: 'Мъжки' },
     { value: 'female', label: 'Женски' }
-  ];
-
-
-  const cityOptions = [
-    { value: "с. Абланица", label: "Ablanitsa_BLG", oblast: "обл. Благоевград" },
-    { value: "с. Абланица", label: "Ablanitsa_LOV", oblast: "обл. Ловеч" },
-    { value: "с. Абрит", label: "Abrit_DOB", oblast: "обл. Добрич" },
-    { value: "с. Мокрен", label: "Mokren_SLV", oblast: "обл. Сливен" },
-    { value: "с. Аврамово", label: "Avramovo_BLG", oblast: "обл. Благоевград" },
-    { value: "с. Аврамово", label: "Avramovo_KRZ", oblast: "обл. Кърджали" },
-    { value: "с. Аврен", label: "Avren_VAR", oblast: "обл. Варна" },
-    { value: "с. Аврен", label: "Avren_KRZ", oblast: "обл. Кърджали" },
-    { value: "с. Агатово", label: "Agatovo_GAB", oblast: "обл. Габрово" },
-    { value: "с. Азманите", label: "Azmanite_GAB", oblast: "обл. Габрово" },
-    { value: "с. Върбен", label: "Varben_KRZ", oblast: "обл. Кърджали" }
   ];
 
 
@@ -94,52 +81,60 @@ const CatRegistrationForm = () => {
     { label: 'Регистрирай котка', path: '/cat-registration-form' }
   ];
 
-  const handleInputChange = (field, value) => {
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      // Проверка дали е картинка
+      if (!file.type.startsWith('image/')) {
+        alert("Моля, изберете валиден графичен файл.");
+        return;
+      }
 
-    setFormData(prev => ({
-      ...prev,
-      [field]: value
-    }));
-
-    if (errors?.[field]) {
-      setErrors(prev => ({
-        ...prev,
-        [field]: ''
-      }));
-    }
-
-    const shouldGeocode =
-      (field === 'address' && value?.length > 5) ||
-      (field === 'recordCity' && formData?.address?.length > 5);
-
-    if (shouldGeocode) {
-      setIsValidatingAddress(true);
-
-      // Clear existing timeout if you want strictly debounce (optional but good)
-      // For now keeping simple structure matching previous code style
-      const cityToUse = field === 'recordCity' ? value : formData?.recordCity;
-      const addressToUse = field === 'address' ? value : formData?.address;
-
-      // Debounce the API call slightly
-      const timer = setTimeout(async () => {
-        const coords = await getCoordinates(cityToUse, addressToUse);
-        if (coords) {
-          setCoordinates(coords);
-        }
-        setIsValidatingAddress(false);
-      }, 1000);
-
-      // Cleanup function not easily available here without a ref for the timer, 
-      // but simplistic approach works for this context.
-    }
-
-    if (field === 'color' && value !== 'custom') {
       setFormData(prev => ({
         ...prev,
-        customColor: ''
+        image: file,
+        imagePreview: URL.createObjectURL(file) // Създава временен линк за преглед
       }));
     }
   };
+
+// В CatRegistrationForm (index.jsx)
+
+const handleInputChange = (field, value) => {
+  setFormData(prev => ({
+    ...prev,
+    [field]: value
+  }));
+
+  // ... (кода за изчистване на грешки)
+
+  // 1. Вземаме актуалните стойности
+  const currentCityValue = field === 'recordCity' ? value : formData?.recordCity;
+  const currentAddress = field === 'address' ? value : formData?.address;
+
+  // 2. Намираме името на града на кирилица от cityOptions
+  // Това е важно, защото Nominatim не разбира "plovdiv", но разбира "гр. Пловдив"
+  const cityObject = cityOptions.find(opt => opt.value === currentCityValue);
+  const cityLabel = cityObject ? cityObject.label : "";
+
+  // 3. Условие за стартиране на търсенето
+  if (currentAddress?.length > 5 && cityLabel) {
+    setIsValidatingAddress(true);
+
+    const timer = setTimeout(async () => {
+      // Подаваме истинското име на града и адреса
+      const coords = await getCoordinates(cityLabel, currentAddress);
+      
+      if (coords) {
+        setCoordinates(coords);
+      }
+      setIsValidatingAddress(false);
+    }, 1000);
+    
+    // Почистваме таймера, ако потребителят продължи да пише
+    // (Ако си вътре в useEffect е лесно, но тук трябва да се внимава)
+  }
+};
 
   const validateForm = () => {
     const newErrors = {};
@@ -445,8 +440,8 @@ const CatRegistrationForm = () => {
                     label="Град / село"
                     placeholder="Започнете да пишете град или село..."
                     required
-                    searchable // Това активира Input-а за търсене вътре в Select
-                    options={cityOptions} // ВИНАГИ подавай целия масив тук
+                    searchable
+                    options={cityOptions}
                     value={formData?.recordCity}
                     onChange={(value) => handleInputChange('recordCity', value)}
                     error={errors?.recordCity}
@@ -483,6 +478,49 @@ const CatRegistrationForm = () => {
 
                 </FormSection>
 
+<FormSection title="Снимка на животното">
+  <div className="space-y-4">
+    <div className="flex items-center justify-center w-full">
+      <label className="flex flex-col items-center justify-center w-full h-64 border-2 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100 border-muted-foreground/25">
+        
+        {formData.imagePreview ? (
+          <img 
+            src={formData.imagePreview} 
+            alt="Preview" 
+            className="h-full w-full object-contain rounded-lg" 
+          />
+        ) : (
+          <div className="flex flex-col items-center justify-center pt-5 pb-6">
+            <svg className="w-8 h-8 mb-4 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" />
+            </svg>
+            <p className="mb-2 text-sm text-muted-foreground">
+              <span className="font-semibold">Кликни за качване</span> или влачи снимка
+            </p>
+            <p className="text-xs text-muted-foreground">PNG, JPG или WebP</p>
+          </div>
+        )}
+        
+        <input 
+          type="file" 
+          className="hidden" 
+          accept="image/*" 
+          onChange={handleImageChange} 
+        />
+      </label>
+    </div>
+    
+    {formData.imagePreview && (
+      <Button 
+        variant="outline" 
+        size="sm" 
+        onClick={() => setFormData(prev => ({ ...prev, image: null, imagePreview: '' }))}
+      >
+        Премахни снимката
+      </Button>
+    )}
+  </div>
+</FormSection>
 
 
                 <div className="flex flex-col sm:flex-row gap-3 pt-4">

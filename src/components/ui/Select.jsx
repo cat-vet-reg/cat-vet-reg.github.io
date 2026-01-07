@@ -194,7 +194,7 @@ const Select = React.forwardRef(({
                                     {searchTerm ? 'No options found' : 'No options available'}
                                 </div>
                             ) : (
-                                filteredOptions?.map((option) => (
+                                filteredOptions?.slice(0, 15).map((option) => (
                                     <div
                                         key={option?.value}
                                         className={cn(
