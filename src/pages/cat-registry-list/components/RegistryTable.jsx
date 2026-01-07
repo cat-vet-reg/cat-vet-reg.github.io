@@ -28,12 +28,12 @@ const RegistryTable = ({
   };
 
   return (
-    <div className="bg-card rounded-lg shadow-warm overflow-hidden">
+    <div className="bg-card rounded-lg shadow-warm">
       <div className="overflow-x-auto scrollbar-custom">
         <table className="w-full">
           <thead className="bg-muted">
             <tr>
-              <th className="px-4 py-3 text-left">
+              <th className="hidden md:table-cell px-4 py-3 text-left">
                 <Checkbox
                   checked={selectedCats?.length === cats?.length && cats?.length > 0}
                   indeterminate={selectedCats?.length > 0 && selectedCats?.length < cats?.length}
@@ -58,7 +58,7 @@ const RegistryTable = ({
                   <Icon name={getSortIcon('gender')} size={16} />
                 </button>
               </th> */}
-              <th className="px-4 py-3 text-left">
+              <th className="hidden md:table-cell px-4 py-3 text-left">
                 <button
                   onClick={() => handleSort('color')}
                   className="flex items-center gap-2 font-semibold text-sm text-foreground hover:text-primary transition-smooth"
@@ -67,7 +67,7 @@ const RegistryTable = ({
                   <Icon name={getSortIcon('color')} size={16} />
                 </button>
               </th>
-              <th className="px-4 py-3 text-left">
+              <th className="hidden md:table-cell px-4 py-3 text-left">
                 <button
                   onClick={() => handleSort('weight')}
                   className="flex items-center gap-2 font-semibold text-sm text-foreground hover:text-primary transition-smooth"
@@ -86,7 +86,7 @@ const RegistryTable = ({
                 </button>
               </th>
 
-              <th className="px-4 py-3 text-left">
+              <th className="hidden md:table-cell px-4 py-3 text-left">
                 <button
                   onClick={() => handleSort('ownerName')}
                   className="flex items-center gap-2 font-semibold text-sm text-foreground hover:text-primary transition-smooth"
@@ -96,7 +96,7 @@ const RegistryTable = ({
                 </button>
               </th>
 
-              <th className="px-4 py-3 text-left">
+              <th className="hidden md:table-cell px-4 py-3 text-left">
                 <button
                   onClick={() => handleSort('registrationDate')}
                   className="flex items-center gap-2 font-semibold text-sm text-foreground hover:text-primary transition-smooth"
@@ -117,7 +117,7 @@ const RegistryTable = ({
                 className="hover:bg-muted/50 transition-smooth"
               >
 
-                <td className="px-4 py-3">
+                <td className="hidden md:table-cell px-4 py-3">
                   <Checkbox
                     checked={selectedCats?.includes(cat?.id)}
                     onChange={() => onSelectCat(cat?.id)}
@@ -136,7 +136,7 @@ const RegistryTable = ({
                   </div>
                 </td>
 
-                <td className="px-4 py-3">
+                <td className="hidden md:table-cell px-4 py-3">
                   <div className="flex items-center gap-2">
                     <div 
                       className="w-4 h-4 rounded-full border border-border"
@@ -145,16 +145,16 @@ const RegistryTable = ({
                     <span className="text-sm text-muted-foreground">{cat?.color}</span>
                   </div>
                 </td>
-                <td className="px-4 py-3">
+                <td className="hidden md:table-cell px-4 py-3">
                   <span className="text-sm text-muted-foreground data-text">{cat?.weight} кг</span>
                 </td>
                 <td className="px-4 py-3">
                   <span className="text-sm text-muted-foreground">{cat?.owner_name}</span>
                 </td>
-                <td className="px-4 py-3">
+                <td className="hidden md:table-cell px-4 py-3">
                   <span className="text-sm text-muted-foreground">{cat?.owner_phone}</span>
                 </td>                
-                <td className="px-4 py-3">
+                <td className="hidden md:table-cell px-4 py-3">
                   <span className="text-sm text-muted-foreground data-text">{convertDate(cat?.created_at)}</span>
                 </td>
                 <td className="px-4 py-3">

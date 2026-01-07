@@ -437,7 +437,7 @@ const CatRegistryList = () => {
           </p>
         </div>
 
-        <div className="hidden lg:block">
+        <div>
           <RegistryTable
             cats={catCollection}
             selectedCats={selectedCats}
