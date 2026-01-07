@@ -48,27 +48,19 @@ const CatRegistrationForm = () => {
   ];
 
 
-const cityOptions = [
-  { value: "plovdiv", label: "Пловдив" },
-  { value: "asenovgrad", label: "Асеновград" },
-  { value: "karlovo", label: "Карлово" },
-  { value: "hisarya", label: "Хисаря" },
-  { value: "rakovski", label: "Раковски" },
-  { value: "perushtitsa", label: "Перущица" },
-  { value: "brezovo", label: "Брезово" },
-  { value: "kaloyanovo", label: "Калояново" },
-  { value: "graf_ignatievo", label: "Граф Игнатиево" },
-  { value: "trud", label: "Труд" },
-  { value: "tsaratsovo", label: "Царацово" },
-  { value: "benkovski_plovdiv", label: "Бенковски" },
-  { value: "rogosh", label: "Рогош" },
-  { value: "voivodinovo", label: "Войводиново" },
-  { value: "manole", label: "Маноле" },
-  { value: "manolsko_konare", label: "Манолско Конаре" },
-  { value: "skutare", label: "Скутаре" },
-  { value: "yasno_pole", label: "Ясно поле" },
-  // ... всички останали ~200
-];
+  const cityOptions = [
+    { value: "с. Абланица", label: "Ablanitsa_BLG", oblast: "обл. Благоевград" },
+    { value: "с. Абланица", label: "Ablanitsa_LOV", oblast: "обл. Ловеч" },
+    { value: "с. Абрит", label: "Abrit_DOB", oblast: "обл. Добрич" },
+    { value: "с. Мокрен", label: "Mokren_SLV", oblast: "обл. Сливен" },
+    { value: "с. Аврамово", label: "Avramovo_BLG", oblast: "обл. Благоевград" },
+    { value: "с. Аврамово", label: "Avramovo_KRZ", oblast: "обл. Кърджали" },
+    { value: "с. Аврен", label: "Avren_VAR", oblast: "обл. Варна" },
+    { value: "с. Аврен", label: "Avren_KRZ", oblast: "обл. Кърджали" },
+    { value: "с. Агатово", label: "Agatovo_GAB", oblast: "обл. Габрово" },
+    { value: "с. Азманите", label: "Azmanite_GAB", oblast: "обл. Габрово" },
+    { value: "с. Върбен", label: "Varben_KRZ", oblast: "обл. Кърджали" }
+  ];
 
 
   const colorOptions = [
@@ -449,16 +441,16 @@ const cityOptions = [
                   title="Къде е намерено / отглеждано животното"
                 >
 
-                <Select
-                  label="Град / село"
-                  placeholder="Започнете да пишете град или село..."
-                  required
-                  searchable
-                  options={cityOptions}
-                  value={formData?.recordCity}
-                  onChange={(value) => handleInputChange('recordCity', value)}
-                  error={errors?.recordCity}
-                />
+                  <Select
+                    label="Град / село"
+                    placeholder="Започнете да пишете град или село..."
+                    required
+                    searchable // Това активира Input-а за търсене вътре в Select
+                    options={cityOptions} // ВИНАГИ подавай целия масив тук
+                    value={formData?.recordCity}
+                    onChange={(value) => handleInputChange('recordCity', value)}
+                    error={errors?.recordCity}
+                  />
 
 
                   <Input
