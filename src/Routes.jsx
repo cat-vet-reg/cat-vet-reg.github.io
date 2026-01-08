@@ -18,7 +18,7 @@ const Routes = () => {
       <RouterRoutes>
         {/* Define your route here */}
         <Route path="/" element={<DashboardOverview />} />
-        <Route path="/cat-profile-details" element={<CatProfileDetails />} />
+        <Route path="/cat-profile-details/:id" element={<CatProfileDetails />} />
         <Route path="/dashboard-overview" element={<DashboardOverview />} />
         <Route path="/cat-registry-list" element={<CatRegistryList />} />
         <Route path="/interactive-cat-map" element={<InteractiveCatMap />} />

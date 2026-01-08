@@ -78,3 +78,30 @@ async function getOwnerIdByPhone(ownerPhone) {
 
     return data[0].id;
 }
+
+
+export async function $apiGetCats() {
+    // Вземаме данните от td_records и автоматично закачаме информацията за собственика от td_owners
+    const { data, error } = await supabase
+        .from('td_records')
+        .select(`
+            *,
+            owner:td_owners(name, phone)
+        `);
+
+    if (error) {
+        console.error("Грешка при вземане на котките:", error);
+        return { data: [] };
+    }
+
+    // Тъй като Supabase връща собственика като обект, 
+    // "разгръщаме" го малко, за да е по-лесно за ползване
+    const formattedData = data.map(cat => ({
+        ...cat,
+        owner_name: cat.owner?.name,
+        owner_phone: cat.owner?.phone,
+        address: cat.location_address // Уеднаквяваме името на полето
+    }));
+
+    return { data: formattedData };
+}

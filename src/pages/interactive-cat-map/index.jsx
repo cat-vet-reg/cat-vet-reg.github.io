@@ -31,9 +31,12 @@ const MapBoundsUpdater = ({ cats }) => {
   const map = useMap();
 
   useEffect(() => {
-    if (cats?.length > 0) {
-      const bounds = L?.latLngBounds(cats?.map((cat) => [cat?.latitude, cat?.longitude]));
-      map?.fitBounds(bounds, { padding: [50, 50] });
+    // Проверяваме дали имаме котки И дали те имат координати
+    const validCats = cats?.filter(c => c.latitude && c.longitude);
+    
+    if (validCats && validCats.length > 0) {
+      const bounds = L.latLngBounds(validCats.map((c) => [c.latitude, c.longitude]));
+      map.fitBounds(bounds, { padding: [50, 50] });
     }
   }, [cats, map]);
 
@@ -67,6 +70,7 @@ const InteractiveCatMap = () => {
         // Извикваме Supabase през твоя сървис
         const response = await $apiGetCats(); 
         if (response && response.data) {
+          console.log("Данни от Supabase:", response.data);
           setRealCats(response.data);
           setFilteredCats(response.data);
         }
@@ -83,8 +87,9 @@ const InteractiveCatMap = () => {
   // ФИЛТРИРАНЕ (Обновено да работи с realCats)
 // 2. Логика за филтриране
 useEffect(() => {
-  // Започваме винаги от пълния списък с реални котки
-  let result = [...realCats]; 
+
+  // 1. Вземаме само тези, които имат гео-данни, за да не се чупи Leaflet
+  let result = realCats.filter(cat => cat.latitude != null && cat.longitude != null); 
 
   if (filters?.search) {
     const searchLower = filters.search.toLowerCase();
@@ -179,17 +184,22 @@ useEffect(() => {
                     url={tileLayerUrl} />
 
 
-                  {filteredCats?.map((cat) =>
-                  <Marker
-                    key={cat?.id}
-                    position={[cat?.latitude, cat?.longitude]}
-                    icon={createCustomIcon(cat?.gender === 'male' ? '#2563EB' : '#e64072')}>
+{filteredCats?.map((cat) => {
+  // Проверка дали координатите са числа
+  if (!cat.latitude || !cat.longitude) return null;
 
-                      <Popup maxWidth={280} closeButton={true}>
-                        <MapMarkerPopup cat={cat} />
-                      </Popup>
-                    </Marker>
-                  )}
+  return (
+    <Marker
+      key={cat.id}
+      position={[cat.latitude, cat.longitude]}
+      icon={createCustomIcon(cat.gender === 'male' ? '#2563EB' : '#e64072')}
+    >
+      <Popup maxWidth={280}>
+        <MapMarkerPopup cat={cat} />
+      </Popup>
+    </Marker>
+  );
+})}
 
                   <MapBoundsUpdater cats={filteredCats} />
                 </MapContainer>
