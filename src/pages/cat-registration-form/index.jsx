@@ -17,6 +17,8 @@ import { $apiCreateNewRecord }  from '../../services/create_new_record'
 const CatRegistrationForm = () => {
 
   const [formData, setFormData] = useState({
+    recordName      : '',
+    recordCity      : '',
     gender          : '',
     weight          : '',
     ageValue        : '',
@@ -107,6 +109,13 @@ const handleInputChange = (field, value) => {
   }));
 
   // ... (кода за изчистване на грешки)
+  if (errors[field]) {
+      setErrors(prev => {
+        const newErrors = { ...prev };
+        delete newErrors[field];
+        return newErrors;
+      });
+    }
 
   // 1. Вземаме актуалните стойности
   const currentCityValue = field === 'recordCity' ? value : formData?.recordCity;
@@ -130,9 +139,7 @@ const handleInputChange = (field, value) => {
       }
       setIsValidatingAddress(false);
     }, 1000);
-    
-    // Почистваме таймера, ако потребителят продължи да пише
-    // (Ако си вътре в useEffect е лесно, но тук трябва да се внимава)
+
   }
 };
 
@@ -172,6 +179,10 @@ const handleInputChange = (field, value) => {
     if (!formData?.address?.trim()) {
       newErrors.address = 'Въведете адрес';
     }
+
+    if (!formData?.recordCity) {
+      newErrors.recordCity = 'Изберете населено място';
+    } 
 
     // if (!formData?.ownerName?.trim()) {
     //   newErrors.ownerName = 'Въведете име на собственик';
@@ -454,11 +465,11 @@ const handleInputChange = (field, value) => {
                     required
                     value={formData?.address}
                     onChange={(e) => handleInputChange('address', e?.target?.value)}
-                    error={errors?.recordAddress}
+                    error={errors?.address}
                     description="Информацията е необходима за картата, така че подробности като номер на сградата или улицата са важни. Формат: 'ул. Име 12'"
                   />
 
-                <label class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 mb-2 block text-foreground">Къде живее</label>
+                <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 mb-2 block text-foreground">Къде живее</label>
 
                 <Checkbox 
                   label="на улицата" 

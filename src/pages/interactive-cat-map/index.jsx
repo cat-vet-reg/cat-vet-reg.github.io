@@ -63,42 +63,43 @@ const InteractiveCatMap = () => {
   });
 
 // ФУНКЦИЯ ЗА ВЗЕМАНЕ НА ДАННИ ОТ SUPABASE
-  useEffect(() => {
-    const fetchCats = async () => {
-      try {
-        setIsLoading(true);
-        // Извикваме Supabase през твоя сървис
-        const response = await $apiGetCats(); 
-        if (response && response.data) {
-          console.log("Данни от Supabase:", response.data);
-          setRealCats(response.data);
-          setFilteredCats(response.data);
-        }
-      } catch (error) {
-        console.error("Грешка при зареждане на котките:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
+useEffect(() => {
+  const currentAddress = formData?.address;
+  const currentCityValue = formData?.recordCity;
+  
+  // Намираме етикета на града
+  const cityObject = cityOptions.find(opt => opt.value === currentCityValue);
+  const cityLabel = cityObject ? cityObject.label : "";
 
-    fetchCats();
-  }, []);
+  // Проверяваме условията
+  if (currentAddress?.length > 5 && cityLabel) {
+    const timer = setTimeout(async () => {
+      setIsValidatingAddress(true);
+      try {
+        const coords = await getCoordinates(cityLabel, currentAddress);
+        if (coords) {
+          setCoordinates(coords);
+        }
+      } finally {
+        setIsValidatingAddress(false);
+      }
+    }, 1000);
+
+    return () => clearTimeout(timer); // Важно: чистим таймера при всяка промяна!
+  }
+}, [formData?.address, formData?.recordCity]); // Изпълнява се само при промяна на адрес или град
 
   // ФИЛТРИРАНЕ (Обновено да работи с realCats)
 // 2. Логика за филтриране
 useEffect(() => {
 
-  // 1. Вземаме само тези, които имат гео-данни, за да не се чупи Leaflet
-  let result = realCats.filter(cat => cat.latitude != null && cat.longitude != null); 
-
-  if (filters?.search) {
-    const searchLower = filters.search.toLowerCase();
-    result = result.filter((cat) =>
-      cat?.name?.toLowerCase().includes(searchLower) ||
-      cat?.address?.toLowerCase().includes(searchLower) ||
-      cat?.owner_name?.toLowerCase().includes(searchLower)
-    );
-  }
+  // Филтрираме САМО тези, които имат валидни координати
+  let result = realCats.filter(cat => 
+    cat.latitude !== null && 
+    cat.longitude !== null &&
+    !isNaN(parseFloat(cat.latitude)) && 
+    !isNaN(parseFloat(cat.longitude))
+  );
 
   if (filters?.gender) {
     result = result.filter((cat) => cat.gender === filters.gender);

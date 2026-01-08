@@ -164,10 +164,11 @@ const Select = React.forwardRef(({
                     required={required}
                 >
                     <option value="">Select...</option>
-                    {options?.map(option => (
-                        <option key={option?.value} value={option?.value}>
-                            {option?.label}
-                        </option>
+                    {options.map((option, index) => (
+                    // Добавяме index към ключа, за да гарантираме, че е уникален
+                    <option key={`${option.value}-${index}`} value={option.value}>
+                        {option.label}
+                    </option>
                     ))}
                 </select>
 
