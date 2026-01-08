@@ -2,29 +2,25 @@ import supabase from 'utils/supabase';
 
 export async function $apiCreateNewRecord(formData) {
 
-    console.log("@@@@@@@@@@@@@@")
-    console.log(formData);
-    console.log("@@@@@@@@@@@@@@")
-
     // check if the owner already exist into the system
     const ownerId = await getOwnerIdByPhone(formData?.ownerPhone)
-
+    
     if(ownerId) {
         return await recordAnimal(formData, ownerId);
     }
 
     const ownerData = await recordOwner(formData);
-    return await recordAnimal(formData, ownerData);
+    return await recordAnimal(formData, ownerData.data[0].id);
 }
 
-/**
+/**ss
  * @author Mihail Petrov
  * @param {*} formData 
  * @returns 
  */
 async function recordAnimal(formData, ownerId) {
  
-    return await supabase.from('td_records').insert({
+    const tdRecordsResponse =  await supabase.from('td_records').insert({
         name             : formData?.recordName,
         notes            : formData?.recordNotes,
         gender           : formData?.gender,
@@ -40,7 +36,14 @@ async function recordAnimal(formData, ownerId) {
         living_condition : formData?.livingCondition,
 
         owner_id : ownerId
-    });
+    }).select();
+
+    // upload file 
+    const {data, error} = await supabase.storage
+                            .from('protocol_images')
+                            .upload(`records/${tdRecordsResponse.data[0]?.id}/avatar.png`, formData.image);
+    
+    return tdRecordsResponseId;
 }
 
 /**
@@ -53,7 +56,7 @@ async function recordOwner(formData) {
     return await supabase.from('td_owners').insert({
         name              : formData?.ownerName,
         phone             : formData?.ownerPhone,
-    });
+    }).select();
 }
 
 
