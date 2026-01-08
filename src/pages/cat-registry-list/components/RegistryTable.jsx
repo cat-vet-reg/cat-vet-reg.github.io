@@ -5,6 +5,41 @@ import { Checkbox } from '../../../components/ui/Checkbox';
 
 import {convertDate} from '../../../utils/date'
 
+  const colorOptions = [
+    // Patterns
+    { value: 'tabby'        , label: 'Таби (тигрова)' },
+
+    // Bi-color & multi-color
+    { value: 'calico'       , label: 'Калико (трицветна)' },
+    { value: 'tortoiseshell', label: 'Костенуркова' },
+    { value: 'tuxedo'       , label: 'Черно-бяла' },
+    { value: 'orange_white' , label: 'Рижо-бяла' },
+
+    // Solid colors
+    { value: 'orange'       , label: 'Рижа' },
+    { value: 'black'        , label: 'Черна' },
+    { value: 'white'        , label: 'Бяла' },
+    { value: 'gray'         , label: 'Сива (Синя)' },
+    { value: 'brown'        , label: 'Кафява' },
+    { value: 'cinnamon'     , label: 'Светлокафява' },
+    { value: 'fawn'         , label: 'Бежова' },
+  ];
+
+  const colorStyles = {
+    tabby: 'repeating-linear-gradient(45deg, #8B4513, #8B4513 2px, #D2B48C 2px, #D2B48C 4px)',
+    calico: 'conic-gradient(#FF8C42 0deg 120deg, #1A1A1A 120deg 240deg, #FFFFFF 240deg)',
+    tortoiseshell: 'repeating-radial-gradient(circle, #1A1A1A, #FF8C42 5px)',
+    tuxedo: 'linear-gradient(to right, #1A1A1A 50%, #FFFFFF 50%)',
+    orange_white: 'linear-gradient(to right, #FF8C42 50%, #FFFFFF 50%)',
+    orange: '#ef8f09ff',
+    black: '#1A1A1A',
+    white: '#FFFFFF',
+    orange: '#FF8C42',
+    gray: '#808080',
+    brown: '#8B4513',
+    cinnamon: '#D2691E',
+    fawn: '#E5AA70',
+  };
 
 const RegistryTable = ({ 
   cats, 
@@ -140,9 +175,13 @@ const RegistryTable = ({
                   <div className="flex items-center gap-2">
                     <div 
                       className="w-4 h-4 rounded-full border border-border"
-                      style={{ backgroundColor: cat?.colorHex }}
+                      // Тук можеш да добавиш логика за автоматичен цвят, ако имаш colorHex в базата
+                      style={{ background: colorStyles[cat?.color] || '#ccc' }} 
                     />
-                    <span className="text-sm text-muted-foreground">{cat?.color}</span>
+                    <span className="text-sm text-muted-foreground">
+                      {/* ТУК Е ПРОМЯНАТА: */}
+                      {colorOptions[cat?.color] || cat?.color}
+                    </span>
                   </div>
                 </td>
                 <td className="hidden md:table-cell px-4 py-3">

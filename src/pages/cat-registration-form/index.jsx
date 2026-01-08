@@ -368,7 +368,6 @@ const handleInputChange = (field, value) => {
                     label="Тегло (в килограми)"
                     type="number"
                     placeholder="Въведете теглото"
-                    required
                     min="0.1"
                     max="50"
                     step="0.1"
