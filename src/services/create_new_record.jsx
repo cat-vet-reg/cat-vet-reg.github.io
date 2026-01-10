@@ -20,6 +20,10 @@ export async function $apiCreateNewRecord(formData) {
  */
 async function recordAnimal(formData, ownerId) {
  
+    console.log("@@@@@")
+    console.log(formData);
+    console.log("@@@@@")
+
     const tdRecordsResponse =  await supabase.from('td_records').insert({
         name             : formData?.recordName,
         notes            : formData?.recordNotes,
@@ -34,6 +38,7 @@ async function recordAnimal(formData, ownerId) {
         location_city    : formData?.recordCity,
 
         living_condition : formData?.livingCondition,
+        map_coordinates  : formData?.coords,
 
         owner_id : ownerId
     }).select();
@@ -43,7 +48,7 @@ async function recordAnimal(formData, ownerId) {
                             .from('protocol_images')
                             .upload(`records/${tdRecordsResponse.data[0]?.id}/avatar.png`, formData.image);
     
-    return tdRecordsResponseId;
+    return tdRecordsResponse;
 }
 
 /**

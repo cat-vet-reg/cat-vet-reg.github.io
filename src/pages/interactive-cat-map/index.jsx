@@ -1,28 +1,25 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect, useRef }             from 'react';
+import { useNavigate }                                    from 'react-router-dom';
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import L from 'leaflet';
+
 import 'leaflet/dist/leaflet.css';
-import Header from '../../components/ui/Header';
-import Breadcrumb from '../../components/ui/Breadcrumb';
+import Header               from '../../components/ui/Header';
+import Breadcrumb           from '../../components/ui/Breadcrumb';
 import FloatingActionButton from '../../components/ui/FloatingActionButton';
-import Icon from '../../components/AppIcon';
-import Button from '../../components/ui/Button';
-import MapFilterPanel from './components/MapFilterPanel';
-import MapMarkerPopup from './components/MapMarkerPopup';
-import MapControls from './components/MapControls';
-import MapLegend from './components/MapLegend';
-// Добави тези импорти най-отгоре
-import { $apiGetCats } from '../../services/create_new_record'; // Предполагам, че така се казва твоят сървис
-import { Loader2 } from 'lucide-react'; // За индикатор при зареждане
+import Button               from '../../components/ui/Button';
+import MapFilterPanel       from './components/MapFilterPanel';
+import MapMarkerPopup       from './components/MapMarkerPopup';
+import MapControls          from './components/MapControls';
+import MapLegend            from './components/MapLegend';
 
 // Custom marker icon
 const createCustomIcon = (color = '#2563EB') => {
   return L?.divIcon({
-    className: 'custom-marker',
-    html: `<div style="background-color: ${color}; width: 24px; height: 24px; border-radius: 50%; border: 3px solid white; box-shadow: 0 2px 8px rgba(0,0,0,0.3);"></div>`,
-    iconSize: [24, 24],
-    iconAnchor: [12, 12]
+    className   : 'custom-marker',
+    html        : `<div style="background-color: ${color}; width: 24px; height: 24px; border-radius: 50%; border: 3px solid white; box-shadow: 0 2px 8px rgba(0,0,0,0.3);"></div>`,
+    iconSize    : [24, 24],
+    iconAnchor  : [12, 12]
   });
 };
 
@@ -31,7 +28,7 @@ const MapBoundsUpdater = ({ cats }) => {
   const map = useMap();
 
   useEffect(() => {
-    // Проверяваме дали имаме котки И дали те имат координати
+
     const validCats = cats?.filter(c => c.latitude && c.longitude);
     
     if (validCats && validCats.length > 0) {
@@ -44,26 +41,33 @@ const MapBoundsUpdater = ({ cats }) => {
 };
 
 const InteractiveCatMap = () => {
-  const navigate = useNavigate();
-  const [isFilterPanelOpen, setIsFilterPanelOpen] = useState(false);
-  const [mapType, setMapType] = useState('street');
-  const [clusteringEnabled, setClusteringEnabled] = useState(true);
+  const navigate                                        = useNavigate();
+  const [isFilterPanelOpen    , setIsFilterPanelOpen  ] = useState(false);
+  const [mapType              , setMapType            ] = useState('street');
+  const [clusteringEnabled    , setClusteringEnabled  ] = useState(true);
 
   // Нови стейтове за реалните данни
-  const [realCats, setRealCats] = useState([]);
-  const [filteredCats, setFilteredCats] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [realCats             , setRealCats           ] = useState([]);
+  const [filteredCats         , setFilteredCats       ] = useState([]);
+  const [isLoading            , setIsLoading          ] = useState(true);
 
-  const [filters, setFilters] = useState({
-    search: '',
-    gender: '',
-    color: '',
-    weightMin: '',
-    weightMax: ''
+  const [filters              , setFilters            ] = useState({
+    search    : '',
+    gender    : '',
+    color     : '',
+    weightMin : '',
+    weightMax : ''
   });
 
 // ФУНКЦИЯ ЗА ВЗЕМАНЕ НА ДАННИ ОТ SUPABASE
+
+const formData = {};
+const cityOptions = [];
+
 useEffect(() => {
+  
+
+  
   const currentAddress = formData?.address;
   const currentCityValue = formData?.recordCity;
   
@@ -117,11 +121,6 @@ useEffect(() => {
   // Накрая обновяваме състоянието, което картата рендерира
   setFilteredCats(result);
 }, [filters, realCats]); // Преизчислявай, когато филтрите или данните се променят
-
-
-
-
-
 
   const handleFilterChange = (newFilters) => {
     setFilters(newFilters);
@@ -185,22 +184,22 @@ useEffect(() => {
                     url={tileLayerUrl} />
 
 
-{filteredCats?.map((cat) => {
-  // Проверка дали координатите са числа
-  if (!cat.latitude || !cat.longitude) return null;
+                  {filteredCats?.map((cat) => {
+                    // Проверка дали координатите са числа
+                    if (!cat.latitude || !cat.longitude) return null;
 
-  return (
-    <Marker
-      key={cat.id}
-      position={[cat.latitude, cat.longitude]}
-      icon={createCustomIcon(cat.gender === 'male' ? '#2563EB' : '#e64072')}
-    >
-      <Popup maxWidth={280}>
-        <MapMarkerPopup cat={cat} />
-      </Popup>
-    </Marker>
-  );
-})}
+                    return (
+                      <Marker
+                        key={cat.id}
+                        position={[cat.latitude, cat.longitude]}
+                        icon={createCustomIcon(cat.gender === 'male' ? '#2563EB' : '#e64072')}
+                      >
+                        <Popup maxWidth={280}>
+                          <MapMarkerPopup cat={cat} />
+                        </Popup>
+                      </Marker>
+                    );
+                  })}
 
                   <MapBoundsUpdater cats={filteredCats} />
                 </MapContainer>

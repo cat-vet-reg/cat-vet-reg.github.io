@@ -30,7 +30,7 @@ const LocationMapCard = ({ cat }) => {
             loading="lazy"
             title={`Картата показва локацията на ${cat?.name || 'cat'}, където е намерена.`}
             referrerPolicy="no-referrer-when-downgrade"
-            src={`https://www.google.com/maps?q=${cat?.coordinates?.lat},${cat?.coordinates?.lng}&z=14&output=embed`}
+            src={`https://www.google.com/maps?q=${cat?.map_coordinates?.lat},${cat?.map_coordinates?.lng}&z=14&output=embed`}
             className="border-0"
           />
         </div>
