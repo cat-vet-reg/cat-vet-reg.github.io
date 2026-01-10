@@ -39,13 +39,13 @@ const LocationMapCard = ({ cat }) => {
           <div className="p-3 md:p-4 rounded-lg bg-muted/30">
             <p className="text-xs md:text-sm text-muted-foreground mb-1">Географска ширина</p>
             <p className="text-sm md:text-base font-mono data-text text-foreground whitespace-nowrap">
-              {cat?.coordinates?.lat}
+              {cat?.map_coordinates?.lat}
             </p>
           </div>
           <div className="p-3 md:p-4 rounded-lg bg-muted/30">
             <p className="text-xs md:text-sm text-muted-foreground mb-1">Географска дължина</p>
             <p className="text-sm md:text-base font-mono data-text text-foreground whitespace-nowrap">
-              {cat?.coordinates?.lng}
+              {cat?.map_coordinates?.lng}
             </p>
           </div>
         </div>
