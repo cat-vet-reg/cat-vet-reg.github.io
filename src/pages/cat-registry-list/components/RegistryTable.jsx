@@ -10,6 +10,7 @@ import {convertDate} from '../../../utils/date'
     { value: 'tabby'        , label: 'Таби (тигрова)' },
 
     // Bi-color & multi-color
+    { value: 'tabby_white'  , label: 'Таби-бяла (бяла с тигрово)' },
     { value: 'calico'       , label: 'Калико (трицветна)' },
     { value: 'tortoiseshell', label: 'Костенуркова' },
     { value: 'tuxedo'       , label: 'Черно-бяла' },
@@ -26,19 +27,19 @@ import {convertDate} from '../../../utils/date'
   ];
 
   const colorStyles = {
-    tabby: 'repeating-linear-gradient(45deg, #8B4513, #8B4513 2px, #D2B48C 2px, #D2B48C 4px)',
-    calico: 'conic-gradient(#FF8C42 0deg 120deg, #1A1A1A 120deg 240deg, #FFFFFF 240deg)',
-    tortoiseshell: 'repeating-radial-gradient(circle, #1A1A1A, #FF8C42 5px)',
-    tuxedo: 'linear-gradient(to right, #1A1A1A 50%, #FFFFFF 50%)',
-    orange_white: 'linear-gradient(to right, #FF8C42 50%, #FFFFFF 50%)',
-    orange: '#ef8f09ff',
-    black: '#1A1A1A',
-    white: '#FFFFFF',
-    orange: '#FF8C42',
-    gray: '#808080',
-    brown: '#8B4513',
-    cinnamon: '#D2691E',
-    fawn: '#E5AA70',
+    tabby         : 'repeating-linear-gradient(45deg, #8B4513, #8B4513 2px, #D2B48C 2px, #D2B48C 4px)',
+    tabby_white   : 'repeating-linear-gradient(45deg, #8B4513, #8B4513 2px, #D2B48C 2px, #D2B48C 4px)',
+    calico        : 'conic-gradient(#FF8C42 0deg 120deg, #1A1A1A 120deg 240deg, #FFFFFF 240deg)',
+    tortoiseshell : 'repeating-radial-gradient(circle, #1A1A1A, #FF8C42 5px)',
+    tuxedo        : 'linear-gradient(to right, #1A1A1A 50%, #FFFFFF 50%)',
+    orange_white  : 'linear-gradient(to right, #FF8C42 50%, #FFFFFF 50%)',
+    orange        : '#FFA500',
+    black         : '#1A1A1A',
+    white         : '#FFFFFF',
+    gray          : '#808080',
+    brown         : '#654321',
+    cinnamon      : '#8B4513',
+    fawn          : '#E5AA70',
   };
 
 const RegistryTable = ({ 

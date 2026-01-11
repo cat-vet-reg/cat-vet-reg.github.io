@@ -111,6 +111,7 @@ useEffect(() => {
     { value: "tabby", label: "Таби (тигрова)" },
 
     // Bi-color & multi-color
+    { value: 'tabby_white'  , label: 'Таби-бяла (бяла с тигрово)' },
     { value: "calico", label: "Калико (трицветна)" },
     { value: "tortoiseshell", label: "Костенуркова" },
     { value: "tuxedo", label: "Черно-бяла" },

@@ -13,40 +13,31 @@ import supabase from 'utils/supabase';
 //     return await recordAnimal(formData, ownerData.data[0].id);
 // }
 
-export async function $apiCreateNewRecord(
-    formData, 
-    isEditing   = false, 
-    catId       = null
-) {
-    const ownerId = await getOwnerIdByPhone(formData?.ownerPhone);
-    let finalOwnerId = ownerId;
+export async function $apiCreateNewRecord(formData, isEditing = false, catId = null) {
+    // 1. Първо търсим дали вече има такъв собственик по телефона
+    let finalOwnerId = await getOwnerIdByPhone(formData?.ownerPhone);
 
-    if(!ownerId) {
+    // 2. Само ако НЕ открием такъв, създаваме нов
+    if (!finalOwnerId) {
         const ownerData = await recordOwner(formData);
-        finalOwnerId = ownerData.data[0].id;
+        
+        if (ownerData?.data && ownerData.data.length > 0) {
+            finalOwnerId = ownerData.data[0].id;
+        } else {
+            throw new Error("Неуспешно създаване на собственик.");
+        }
     }
 
+    // 3. Сега вече имаме ID (старо или ново) и записваме/обновяваме котката
     if (isEditing && catId) {
-        // РЕДАКЦИЯ: Използваме .update() вместо .insert()
         return await supabase
             .from('td_records')
             .update({
-                name: formData.recordName,
-                notes: formData.recordNotes,
-                gender: formData.gender,
-                weight: formData.weight,
-                age_value: formData.ageValue,
-                age_unit: formData.ageUnit,
-                color: formData.color,
-                location_address: formData.address,
-                location_city: formData.recordCity,
-                living_condition: formData.livingCondition,
-                map_coordinates: formData.coords,
+                // ... твоите полета за име, цвят и т.н.
                 owner_id: finalOwnerId
             })
             .eq('id', catId);
     } else {
-        // НОВ ЗАПИС: Твоята стара логика
         return await recordAnimal(formData, finalOwnerId);
     }
 }
@@ -62,16 +53,22 @@ async function recordAnimal(formData, ownerId) {
         name             : formData?.recordName, // записваме каквото е въвел потребителя
         notes            : formData?.recordNotes,
         gender           : formData?.gender,
-        weight           : formData?.weight,
-        age_value        : formData.ageValue,
+        weight: formData.weight ? Number(formData.weight) : null,
+        age_value: formData.ageValue ? Number(formData.ageValue) : null,
         age_unit         : formData.ageUnit,
         color            : formData.color,
         location_address : formData?.address,
         location_city    : formData?.recordCity,
-        living_condition : formData?.livingCondition,
+        living_condition: formData.livingCondition ? Array.from(formData.livingCondition) : [],
         map_coordinates  : formData?.coords,
         owner_id         : ownerId
     }).select();
+
+    // ПРОВЕРКА: Ако има грешка, не продължавай надолу
+    if (tdRecordsResponse.error || !tdRecordsResponse.data) {
+        console.error("Supabase Insert Error:", tdRecordsResponse.error);
+        throw new Error(tdRecordsResponse.error?.message || "Грешка при създаване на записа");
+    }
 
     const newCat = tdRecordsResponse.data[0];
 
