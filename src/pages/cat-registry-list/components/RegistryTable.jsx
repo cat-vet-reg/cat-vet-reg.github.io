@@ -113,21 +113,21 @@ const RegistryTable = ({
               </th>
               <th className="px-4 py-3 text-left">
                 <button
-                  onClick={() => handleSort('ownerName')}
+                  onClick={() => handleSort('cat?.owner_name')}
                   className="flex items-center gap-2 font-semibold text-sm text-foreground hover:text-primary transition-smooth"
                 >
                   Собственик
-                  <Icon name={getSortIcon('ownerName')} size={16} />
+                  <Icon name={getSortIcon('cat?.owner_name')} size={16} />
                 </button>
               </th>
 
               <th className="hidden md:table-cell px-4 py-3 text-left">
                 <button
-                  onClick={() => handleSort('ownerName')}
+                  onClick={() => handleSort('cat?.owner_name')}
                   className="flex items-center gap-2 font-semibold text-sm text-foreground hover:text-primary transition-smooth"
                 >
                   Телефон
-                  <Icon name={getSortIcon('ownerName')} size={16} />
+                  <Icon name={getSortIcon('cat?.owner_name')} size={16} />
                 </button>
               </th>
 
@@ -188,10 +188,10 @@ const RegistryTable = ({
                   <span className="text-sm text-muted-foreground data-text">{cat?.weight} кг</span>
                 </td>
                 <td className="px-4 py-3">
-                  <span className="text-sm text-muted-foreground">{cat?.owner_name}</span>
+                  <span className="text-sm text-muted-foreground">{cat?.owner?.name || cat?.owner_name || "—"}</span>
                 </td>
                 <td className="hidden md:table-cell px-4 py-3">
-                  <span className="text-sm text-muted-foreground">{cat?.owner_phone}</span>
+                  <span className="text-sm text-muted-foreground">{cat?.owner?.phone || cat?.owner_phone || "—"}</span>
                 </td>                
                 <td className="hidden md:table-cell px-4 py-3">
                   <span className="text-sm text-muted-foreground data-text">{convertDate(cat?.created_at)}</span>

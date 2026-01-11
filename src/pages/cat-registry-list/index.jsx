@@ -42,7 +42,13 @@ const CatRegistryList = () => {
         // Използваме твоя изглед (view) в Supabase
         const { data, error } = await supabase
           .from('td_records')
-          .select('*');
+          .select(`
+          *,
+          owner:owner_id (
+            name,
+            phone
+          )
+        `);
         
         if (error) throw error;
         setCatCollection(data || []);
