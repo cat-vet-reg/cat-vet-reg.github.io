@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from "react";
+import { useLocation } from "react-router-dom";
+
 import Header                   from "../../components/ui/Header";
 import Breadcrumb               from "../../components/ui/Breadcrumb";
 import FloatingActionButton     from "../../components/ui/FloatingActionButton";
@@ -15,9 +17,10 @@ import { cityOptions          } from "./components/city_options";
 import { getCoordinates       } from "../../utils/geocoding";
 import { $apiCreateNewRecord  } from "../../services/create_new_record";
 
-import { useLocation } from "react-router-dom";
+import supabase from "utils/supabase";
 
 const CatRegistrationForm = () => {
+
   const location = useLocation(); 
 
   // Вземаме данните, ако идваме от бутона "Редактирай"
@@ -41,7 +44,15 @@ const CatRegistrationForm = () => {
   });
 
 useEffect(() => {
+  
   if (editingData) {
+
+
+    const { data } = supabase
+      .storage
+      .from('protocol_images')
+      .getPublicUrl(`records/${editingData.id}/avatar.png`)
+    
     const lat = editingData.latitude || editingData.map_coordinates?.lat || editingData.coordinates?.lat;
     const lng = editingData.longitude || editingData.map_coordinates?.lng || editingData.coordinates?.lng;
     
@@ -68,7 +79,7 @@ useEffect(() => {
       ownerPhone      : editingData.owner?.phone || editingData.owner_phone || "",
       livingCondition : editingData.living_condition || "",
       coords          : foundCoords,
-      imagePreview: editingData.image_url || ""
+      imagePreview    : data.publicUrl || ""
     });
     
     console.log("Данни за редактиране:", editingData);
@@ -143,7 +154,6 @@ useEffect(() => {
   };
 
   // В CatRegistrationForm (index.jsx)
-console.log("Данни за редактиране:", editingData);
   const handleInputChange = (field, value) => {
     setFormData((prev) => ({
       ...prev,

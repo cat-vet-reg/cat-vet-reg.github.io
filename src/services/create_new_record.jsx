@@ -13,7 +13,11 @@ import supabase from 'utils/supabase';
 //     return await recordAnimal(formData, ownerData.data[0].id);
 // }
 
-export async function $apiCreateNewRecord(formData, isEditing = false, catId = null) {
+export async function $apiCreateNewRecord(
+    formData, 
+    isEditing   = false, 
+    catId       = null
+) {
     const ownerId = await getOwnerIdByPhone(formData?.ownerPhone);
     let finalOwnerId = ownerId;
 
