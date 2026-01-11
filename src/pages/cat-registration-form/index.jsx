@@ -1,4 +1,4 @@
-import React, { useState }      from "react";
+import React, { useState, useEffect } from "react";
 import Header                   from "../../components/ui/Header";
 import Breadcrumb               from "../../components/ui/Breadcrumb";
 import FloatingActionButton     from "../../components/ui/FloatingActionButton";
@@ -15,34 +15,80 @@ import { cityOptions          } from "./components/city_options";
 import { getCoordinates       } from "../../utils/geocoding";
 import { $apiCreateNewRecord  } from "../../services/create_new_record";
 
+import { useLocation } from "react-router-dom";
+
 const CatRegistrationForm = () => {
+  const location = useLocation(); 
+
+  // Вземаме данните, ако идваме от бутона "Редактирай"
+  const editingData = location.state?.catData;
+  const isEditing = !!location.state?.isEditing;
 
   const [formData, setFormData] = useState({
-    recordName      : "",
-    recordCity      : "",
-    gender          : "",
-    weight          : "",
-    ageValue        : "",
-    ageUnit         : "months",
-    recordNotes     : "",
-    color           : "",
-    customColor     : "",
-    address         : "",
-    ownerName       : "",
-    ownerPhone      : "",
-    livingCondition : "",
-    image           : null,
-    imagePreview    : "",
-    coords          : null
+    recordName      : editingData?.name || "",
+    recordCity      : editingData?.location_city || "",
+    gender          : editingData?.gender || "",
+    weight          : editingData?.weight || "",
+    ageValue        : editingData?.age_value || "",
+    ageUnit         : editingData?.age_unit || "months",
+    recordNotes     : editingData?.notes || "",
+    color           : editingData?.color || "",
+    address         : editingData?.location_address || "",
+    ownerName       : editingData?.owner?.name || "",
+    ownerPhone      : editingData?.owner?.phone || "",
+    livingCondition : editingData?.living_condition || "",
+    coords          : editingData?.map_coordinates || null
   });
+
+useEffect(() => {
+  if (editingData) {
+    const lat = editingData.latitude || editingData.map_coordinates?.lat || editingData.coordinates?.lat;
+    const lng = editingData.longitude || editingData.map_coordinates?.lng || editingData.coordinates?.lng;
+    
+    const foundCoords = (lat && lng) ? { lat: Number(lat), lng: Number(lng) } : null;
+
+    const existingImageUrl = editingData.image_url || editingData.photo_url || "";
+    
+    const savedConditions = editingData.living_condition || [];
+    if (Array.isArray(savedConditions)) {
+      setLivingConditions(new Set(savedConditions));
+    }
+
+    setFormData({
+      recordName      : editingData.name || "",
+      recordCity      : editingData.location_city || "",
+      gender          : editingData.gender || "",
+      weight          : editingData.weight || "",
+      ageValue        : editingData.age_value || "",
+      ageUnit         : editingData.age_unit || "months",
+      recordNotes     : editingData.notes || "",
+      color           : editingData.color || "",
+      address         : editingData.location_address || "",
+      ownerName       : editingData.owner?.name || editingData.owner_name || "",
+      ownerPhone      : editingData.owner?.phone || editingData.owner_phone || "",
+      livingCondition : editingData.living_condition || "",
+      coords          : foundCoords,
+      imagePreview: editingData.image_url || ""
+    });
+    
+    console.log("Данни за редактиране:", editingData);
+    if (foundCoords) {
+      setCoordinates(foundCoords);
+    }
+  }
+}, [editingData]);
+
+  const [coordinates, setCoordinates] = useState(editingData?.map_coordinates || null);
 
   const [errors               , setErrors               ] = useState({});
   const [isValidatingAddress  , setIsValidatingAddress  ] = useState(false);
-  const [coordinates          , setCoordinates          ] = useState(null);
   const [isSubmitting         , setIsSubmitting         ] = useState(false);
   const [showSuccessModal     , setShowSuccessModal     ] = useState(false);
   const [registeredCatData    , setRegisteredCatData    ] = useState(null);
   const [livingConditions     , setLivingConditions     ] = useState(new Set());
+  
+  // Промени заглавието на страницата динамично
+  const pageTitle = isEditing ? `Редактиране на ${editingData?.name}` : "Регистрация на животно";
 
   const genderOptions = [
     { value: "male"   , label: "Мъжки" },
@@ -97,7 +143,7 @@ const CatRegistrationForm = () => {
   };
 
   // В CatRegistrationForm (index.jsx)
-
+console.log("Данни за редактиране:", editingData);
   const handleInputChange = (field, value) => {
     setFormData((prev) => ({
       ...prev,
@@ -206,46 +252,59 @@ const CatRegistrationForm = () => {
     return Object.keys(newErrors)?.length === 0;
   };
 
-  const handleSubmit = (e) => {
-    e?.preventDefault();
+  // const handleSubmit = (e) => {
+  //   e?.preventDefault();
 
-    if (!validateForm()) {
-      return;
-    }
+  //   if (!validateForm()) {
+  //     return;
+  //   }
 
-    setIsSubmitting(true);
+  //   setIsSubmitting(true);
 
-    setTimeout(async () => {
-      const finalColor = formData?.color === "custom" ? formData?.customColor : formData?.color;
+  //   setTimeout(async () => {
+  //     const finalColor = formData?.color === "custom" ? formData?.customColor : formData?.color;
 
+  //     setRegisteredCatData({
+  //       gender        : formData?.gender,
+  //       weight        : formData?.weight,
+  //       ageValue      : formData.ageValue,
+  //       ageUnit       : formData.ageUnit,
+  //       color         : finalColor,
+  //       address       : formData?.address,
+  //       ownerName     : formData?.ownerName,
+  //       ownerPhone    : formData?.ownerPhone,
+  //       coordinates   : coordinates,
+  //       registeredAt  : new Date()?.toISOString(),
+  //     });
+
+  //     setIsSubmitting(false);
+  //     setShowSuccessModal(true);
+      
+  //     await $apiCreateNewRecord(formData);
+  //   }, 2000);
+  // };
+
+const handleSubmit = (e) => {
+  e?.preventDefault();
+  if (!validateForm()) return;
+
+  setIsSubmitting(true);
+
+  // Важно: Подаваме formData, isEditing и ID-то на котката
+  $apiCreateNewRecord(formData, isEditing, editingData?.id)
+    .then(() => {
       setRegisteredCatData({
-        gender        : formData?.gender,
-        weight        : formData?.weight,
-        ageValue      : formData.ageValue,
-        ageUnit       : formData.ageUnit,
-        color         : finalColor,
-        address       : formData?.address,
-        ownerName     : formData?.ownerName,
-        ownerPhone    : formData?.ownerPhone,
-        coordinates   : coordinates,
-        registeredAt  : new Date()?.toISOString(),
+        ...formData,
+        registeredAt: new Date()?.toISOString(),
       });
-
       setIsSubmitting(false);
       setShowSuccessModal(true);
-
-      console.log("$$$$$$$$$$$$$$$$$$$$$$$$$$")
-      console.log("$$$$$$$$$$$$$$$$$$$$$$$$$$")
-      console.log("$$$$$$$$$$$$$$$$$$$$$$$$$$")
-      console.log(formData);
-      console.log(registeredCatData);
-      console.log("$$$$$$$$$$$$$$$$$$$$$$$$$$")
-      console.log("$$$$$$$$$$$$$$$$$$$$$$$$$$")
-      console.log("$$$$$$$$$$$$$$$$$$$$$$$$$$")      
-
-      await $apiCreateNewRecord(formData);
-    }, 2000);
-  };
+    })
+    .catch((err) => {
+      console.error("Грешка при запис:", err);
+      setIsSubmitting(false);
+    });
+};
 
   const handleSuccessModalClose = (state) => {
     setShowSuccessModal(false);
@@ -326,11 +385,14 @@ const CatRegistrationForm = () => {
 
           <div className="mb-6 md:mb-8">
             <h1 className="text-2xl md:text-3xl lg:text-4xl font-semibold text-foreground mb-2">
-              Регистрация на животно
+                {isEditing 
+                  ? `Редактиране на ${formData.recordName || 'котка'}` 
+                  : "Регистрация на животно"}
             </h1>
             <p className="text-sm md:text-base text-muted-foreground">
-              Полетата от формата са опционални и ще ни помогнат за по-пълен
-              регистър на животните.
+                {isEditing 
+                  ? "Променете данните за избраното животно." 
+                  : "Полетата от формата са опционални и ще ни помогнат за по-пълен регистър."}
             </p>
           </div>
 
@@ -569,6 +631,37 @@ const CatRegistrationForm = () => {
                     )}
                   </div>
                 </FormSection>
+
+                
+                <FormSection title="Усложнения">
+                  <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 mb-2 block text-foreground">
+                    Имаше ли усложнения?
+                  </label>
+
+                  <Checkbox
+                    label="да"
+                    onChange={(e) => onCheckLocation("complications_yes")}
+                    checked={livingConditions.has("complications_yes")}
+                  />
+                  <Checkbox
+                    label="не"
+                    onChange={(e) => onCheckLocation("complications_no")}
+                    checked={livingConditions.has("complications_no")}
+                  />
+
+                  <Input
+                    label="Опиши усложненията:"
+                    type="text"
+                    placeholder="Периоперативни, постоперативни и др..."
+                    value={formData?.recordComplications}
+                    onChange={(e) =>
+                      handleInputChange("recordComplications", e?.target?.value)
+                    }
+                    error={errors?.recordComplications}
+                  />
+                </FormSection>
+
+
                 <div className="flex flex-col sm:flex-row gap-3 pt-4">
                   <Button
                     type="submit"

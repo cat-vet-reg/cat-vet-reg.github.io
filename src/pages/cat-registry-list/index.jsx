@@ -41,7 +41,7 @@ const CatRegistryList = () => {
         setIsLoading(true);
         // Използваме твоя изглед (view) в Supabase
         const { data, error } = await supabase
-          .from('vw_get_all_records')
+          .from('td_records')
           .select('*');
         
         if (error) throw error;
@@ -116,9 +116,11 @@ const CatRegistryList = () => {
     navigate(`/cat-profile-details/${catId}`);
   };
 
-  const handleEdit = (catId) => {
-    navigate(`/cat-registration-form?id=${catId}`);
-  };
+// В твоя index.jsx (този със списъка/таблицата)
+const handleEdit = (cat) => {
+  // Вече използваме "cat", който идва от параметъра
+  navigate('/cat-registration-form', { state: { catData: cat, isEditing: true } });
+};
 
   const breadcrumbItems = [
     { label: 'Табло', path: '/dashboard-overview' },

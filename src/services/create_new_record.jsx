@@ -1,16 +1,50 @@
 import supabase from 'utils/supabase';
 
-export async function $apiCreateNewRecord(formData) {
+// export async function $apiCreateNewRecord(formData) {
 
-    // check if the owner already exist into the system
-    const ownerId = await getOwnerIdByPhone(formData?.ownerPhone)
+//     // check if the owner already exist into the system
+//     const ownerId = await getOwnerIdByPhone(formData?.ownerPhone)
     
-    if(ownerId) {
-        return await recordAnimal(formData, ownerId);
+//     if(ownerId) {
+//         return await recordAnimal(formData, ownerId);
+//     }
+
+//     const ownerData = await recordOwner(formData);
+//     return await recordAnimal(formData, ownerData.data[0].id);
+// }
+
+export async function $apiCreateNewRecord(formData, isEditing = false, catId = null) {
+    const ownerId = await getOwnerIdByPhone(formData?.ownerPhone);
+    let finalOwnerId = ownerId;
+
+    if(!ownerId) {
+        const ownerData = await recordOwner(formData);
+        finalOwnerId = ownerData.data[0].id;
     }
 
-    const ownerData = await recordOwner(formData);
-    return await recordAnimal(formData, ownerData.data[0].id);
+    if (isEditing && catId) {
+        // РЕДАКЦИЯ: Използваме .update() вместо .insert()
+        return await supabase
+            .from('td_records')
+            .update({
+                name: formData.recordName,
+                notes: formData.recordNotes,
+                gender: formData.gender,
+                weight: formData.weight,
+                age_value: formData.ageValue,
+                age_unit: formData.ageUnit,
+                color: formData.color,
+                location_address: formData.address,
+                location_city: formData.recordCity,
+                living_condition: formData.livingCondition,
+                map_coordinates: formData.coords,
+                owner_id: finalOwnerId
+            })
+            .eq('id', catId);
+    } else {
+        // НОВ ЗАПИС: Твоята стара логика
+        return await recordAnimal(formData, finalOwnerId);
+    }
 }
 
 /**ss
@@ -19,34 +53,41 @@ export async function $apiCreateNewRecord(formData) {
  * @returns 
  */
 async function recordAnimal(formData, ownerId) {
- 
-    console.log("@@@@@")
-    console.log(formData);
-    console.log("@@@@@")
-
-    const tdRecordsResponse =  await supabase.from('td_records').insert({
-        name             : formData?.recordName,
+    // 1. Първо създаваме записа
+    const tdRecordsResponse = await supabase.from('td_records').insert({
+        name             : formData?.recordName, // записваме каквото е въвел потребителя
         notes            : formData?.recordNotes,
         gender           : formData?.gender,
-        
         weight           : formData?.weight,
         age_value        : formData.ageValue,
         age_unit         : formData.ageUnit,
         color            : formData.color,
-
         location_address : formData?.address,
         location_city    : formData?.recordCity,
-
         living_condition : formData?.livingCondition,
         map_coordinates  : formData?.coords,
-
-        owner_id : ownerId
+        owner_id         : ownerId
     }).select();
 
-    // upload file 
-    const {data, error} = await supabase.storage
-                            .from('protocol_images')
-                            .upload(`records/${tdRecordsResponse.data[0]?.id}/avatar.png`, formData.image);
+    const newCat = tdRecordsResponse.data[0];
+
+    // 2. АКО потребителят НЕ е въвел име, обновяваме с "Котка №ID"
+    if (!formData?.recordName?.trim()) {
+        await supabase
+            .from('td_records')
+            .update({ name: `Котка №${newCat.id}` })
+            .eq('id', newCat.id);
+        
+        // Обновяваме обекта в паметта, за да може SuccessModal да го види веднага
+        newCat.name = `Котка №${newCat.id}`;
+    }
+
+    // 3. Качване на снимката
+    if (formData.image) {
+        await supabase.storage
+            .from('protocol_images')
+            .upload(`records/${newCat.id}/avatar.png`, formData.image);
+    }
     
     return tdRecordsResponse;
 }

@@ -13,7 +13,7 @@ import supabase from '../../utils/supabase';
 
 const CatProfileDetails = () => {
   const navigate = useNavigate();
-  const { id } = useParams(); // Взема реалното ID от URL (напр. /cat-profile-details/14)
+  const { id } = useParams();
   
   const [catData, setCatData] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -23,7 +23,6 @@ const CatProfileDetails = () => {
       try {
         setIsLoading(true);
         
-        // Вземаме данните от твоя изглед или таблица
         const { data, error } = await supabase
           .from('td_records') // или 'vw_get_all_records'
           .select(`
@@ -35,10 +34,8 @@ const CatProfileDetails = () => {
 
         if (error) throw error;
 
-        // Форматираме данните, за да паснат на твоите под-компоненти
         const formattedCat = {
           ...data,
-          // Уверяваме се, че структурата съвпада с това, което ProfileHeader и другите очакват
           foundLocation: data.location_address,
           coordinates: {
             lat: data.latitude,
@@ -70,9 +67,9 @@ const CatProfileDetails = () => {
     { label: 'Профил на котката', path: '#' }
   ];
 
-  const handleEdit = () => {
-    navigate('/cat-registration-form', { state: { catData, mode: 'edit' } });
-  };
+const handleEdit = () => {
+  navigate('/cat-registration-form', { state: { catData: catData, isEditing: true } });
+};
 
   const handleDelete = async () => {
     if (window.confirm("Сигурни ли сте, че искате да изтриете този запис?")) {
@@ -86,7 +83,6 @@ const CatProfileDetails = () => {
     }
   };
 
-  // Показваме индикатор за зареждане, за да не гърми кода докато чакаме базата
   if (isLoading) {
     return (
       <div className="min-h-screen bg-background">
@@ -130,7 +126,7 @@ const CatProfileDetails = () => {
           
           <div className="space-y-4 md:space-y-6">
             <OwnerContactCard owner={catData?.owner} />
-            <ActionButtons onEdit={handleEdit} onDelete={handleDelete} />
+            <ActionButtons onEdit={() => handleEdit(catData)} onDelete={handleDelete} />
           </div>
         </div>
       </main>

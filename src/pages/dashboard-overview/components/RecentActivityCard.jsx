@@ -37,7 +37,7 @@ const RecentActivityCard = ({ cat }) => {
         <div className="flex-1 min-w-0">
           <div className="flex items-start justify-between gap-2 mb-2">
             <h4 className="text-base md:text-lg font-semibold text-foreground truncate">
-              {cat?.name || 'Unnamed Cat'}
+              {cat?.name}
             </h4>
             <Icon 
               name={getGenderIcon(cat?.gender)} 

@@ -180,7 +180,7 @@ const RegistryTable = ({
                     />
                     <span className="text-sm text-muted-foreground">
                       {/* ТУК Е ПРОМЯНАТА: */}
-                      {colorOptions[cat?.color] || cat?.color}
+                      {colorOptions.find(opt => opt.value === cat?.color)?.label || cat?.color}
                     </span>
                   </div>
                 </td>
@@ -209,7 +209,7 @@ const RegistryTable = ({
                       variant="ghost"
                       size="icon"
                       iconName="Edit"
-                      onClick={() => onEdit(cat?.id)}
+                      onClick={() => onEdit(cat)}
                       aria-label={`Edit ${cat?.name}`}
                     />
                   </div>
