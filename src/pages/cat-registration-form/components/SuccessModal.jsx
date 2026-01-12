@@ -37,15 +37,33 @@ const SuccessModal = ({ isOpen, onClose, catData }) => {
             <div className="w-full bg-muted/50 rounded-md p-4 space-y-2 text-left">
               <div className="flex items-center justify-between text-sm">
                 <span className="text-muted-foreground">Пол:</span>
-                <span className="font-medium text-foreground capitalize">{catData?.gender}</span>
+                <span className="font-medium text-foreground capitalize">
+                  {catData?.gender === 'male' ? 'Мъжки' : 
+                  catData?.gender === 'female' ? 'Женски' : 'Неизвестен'}
+                </span>
               </div>
               <div className="flex items-center justify-between text-sm">
                 <span className="text-muted-foreground">Тегло:</span>
-                <span className="font-medium text-foreground">{catData?.weight} kg</span>
+                <span className="font-medium text-foreground">{catData?.weight} кг</span>
               </div>
               <div className="flex items-center justify-between text-sm">
                 <span className="text-muted-foreground">Цвят:</span>
-                <span className="font-medium text-foreground capitalize">{catData?.color}</span>
+                <span className="font-medium text-foreground capitalize">
+                      { catData?.color === 'tabby'        ? 'Таби (тигрова)' :
+                        catData?.color === 'tabby_white'  ? 'Таби-бяла (бяла с тигрово)' :
+                        catData?.color === 'calico'       ? 'Калико (трицветна)' :
+                        catData?.color === 'tortoiseshell'? 'Костенуркова' :
+                        catData?.color === 'tuxedo'       ? 'Черно-бяла' :
+                        catData?.color === 'orange_white' ? 'Рижо-бяла' :
+                        catData?.color === 'orange'       ? 'Рижа' :
+                        catData?.color === 'black'        ? 'Черна' :
+                        catData?.color === 'white'        ? 'Бяла' :
+                        catData?.color === 'gray'         ? 'Сива (Синя)' :
+                        catData?.color === 'brown'        ? 'Кафява' :
+                        catData?.color === 'cinnamon'     ? 'Светлокафява' :
+                        catData?.color === 'fawn'         ? 'Бежова' : 'неизвестен'
+                      }
+                </span>
               </div>
               <div className="flex items-center justify-between text-sm">
                 <span className="text-muted-foreground">Собственик:</span>

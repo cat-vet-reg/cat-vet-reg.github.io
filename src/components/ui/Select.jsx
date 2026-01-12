@@ -192,7 +192,7 @@ const Select = React.forwardRef(({
                         <div className="py-1 max-h-60 overflow-auto">
                             {filteredOptions?.length === 0 ? (
                                 <div className="px-3 py-2 text-sm text-muted-foreground">
-                                    {searchTerm ? 'No options found' : 'No options available'}
+                                    {searchTerm ? 'Няма намерени резултати' : 'Няма опции за избор'}
                                 </div>
                             ) : (
                                 filteredOptions?.slice(0, 15).map((option) => (

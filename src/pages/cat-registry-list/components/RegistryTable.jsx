@@ -1,15 +1,16 @@
-import React        from 'react';
-import Icon         from '../../../components/AppIcon';
-import Button       from '../../../components/ui/Button';
-import { Checkbox } from '../../../components/ui/Checkbox';
-
-import {convertDate} from '../../../utils/date'
+import React              from 'react';
+import Icon               from '../../../components/AppIcon';
+import Button             from '../../../components/ui/Button';
+import { Checkbox }       from '../../../components/ui/Checkbox';
+import { AlertTriangle }  from "lucide-react";
+import {convertDate}      from '../../../utils/date'
 
   const colorOptions = [
     // Patterns
     { value: 'tabby'        , label: 'Таби (тигрова)' },
 
     // Bi-color & multi-color
+    { value: 'tabby_white'  , label: 'Таби-бяла (бяла с тигрово)' },
     { value: 'calico'       , label: 'Калико (трицветна)' },
     { value: 'tortoiseshell', label: 'Костенуркова' },
     { value: 'tuxedo'       , label: 'Черно-бяла' },
@@ -26,19 +27,19 @@ import {convertDate} from '../../../utils/date'
   ];
 
   const colorStyles = {
-    tabby: 'repeating-linear-gradient(45deg, #8B4513, #8B4513 2px, #D2B48C 2px, #D2B48C 4px)',
-    calico: 'conic-gradient(#FF8C42 0deg 120deg, #1A1A1A 120deg 240deg, #FFFFFF 240deg)',
-    tortoiseshell: 'repeating-radial-gradient(circle, #1A1A1A, #FF8C42 5px)',
-    tuxedo: 'linear-gradient(to right, #1A1A1A 50%, #FFFFFF 50%)',
-    orange_white: 'linear-gradient(to right, #FF8C42 50%, #FFFFFF 50%)',
-    orange: '#ef8f09ff',
-    black: '#1A1A1A',
-    white: '#FFFFFF',
-    orange: '#FF8C42',
-    gray: '#808080',
-    brown: '#8B4513',
-    cinnamon: '#D2691E',
-    fawn: '#E5AA70',
+    tabby         : 'repeating-linear-gradient(45deg, #8B4513, #8B4513 2px, #D2B48C 2px, #D2B48C 4px)',
+    tabby_white   : 'repeating-linear-gradient(45deg, #8B4513, #8B4513 2px, #D2B48C 2px, #D2B48C 4px)',
+    calico        : 'conic-gradient(#FF8C42 0deg 120deg, #1A1A1A 120deg 240deg, #FFFFFF 240deg)',
+    tortoiseshell : 'repeating-radial-gradient(circle, #1A1A1A, #FF8C42 5px)',
+    tuxedo        : 'linear-gradient(to right, #1A1A1A 50%, #FFFFFF 50%)',
+    orange_white  : 'linear-gradient(to right, #FF8C42 50%, #FFFFFF 50%)',
+    orange        : '#FFA500',
+    black         : '#1A1A1A',
+    white         : '#FFFFFF',
+    gray          : '#808080',
+    brown         : '#654321',
+    cinnamon      : '#8B4513',
+    fawn          : '#E5AA70',
   };
 
 const RegistryTable = ({ 
@@ -140,6 +141,9 @@ const RegistryTable = ({
                   <Icon name={getSortIcon('registrationDate')} size={16} />
                 </button>
               </th>
+              <th className="px-4 py-3 text-center">
+                <span className="font-semibold text-sm text-foreground">Усложнения</span>
+              </th>
               <th className="px-4 py-3 text-right">
                 <span className="font-semibold text-sm text-foreground">Действия</span>
               </th>
@@ -175,11 +179,11 @@ const RegistryTable = ({
                   <div className="flex items-center gap-2">
                     <div 
                       className="w-4 h-4 rounded-full border border-border"
-                      // Тук можеш да добавиш логика за автоматичен цвят, ако имаш colorHex в базата
-                      style={{ background: colorStyles[cat?.color] || '#ccc' }} 
+                      style={{ background: colorStyles[cat?.color] || '#ccc',
+                               border: '1px solid #000000'
+                       }} 
                     />
                     <span className="text-sm text-muted-foreground">
-                      {/* ТУК Е ПРОМЯНАТА: */}
                       {colorOptions.find(opt => opt.value === cat?.color)?.label || cat?.color}
                     </span>
                   </div>
@@ -195,6 +199,15 @@ const RegistryTable = ({
                 </td>                
                 <td className="hidden md:table-cell px-4 py-3">
                   <span className="text-sm text-muted-foreground data-text">{convertDate(cat?.created_at)}</span>
+                </td>
+                <td className="px-4 py-3 text-center">
+                  {cat?.complications === 'complications_yes' ? (
+                    <div className="flex items-center justify-center text-destructive" title="Настъпило усложнение">
+                      <AlertTriangle size={20} strokeWidth={2.5} />
+                    </div>
+                  ) : (
+                    <span className="text-xs text-muted-foreground/30">—</span>
+                  )}
                 </td>
                 <td className="px-4 py-3">
                   <div className="flex items-center justify-end gap-2">

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Header from '../../components/ui/Header';
 import Breadcrumb from '../../components/ui/Breadcrumb';
@@ -9,42 +9,73 @@ import QuickActionButton from './components/QuickActionButton';
 import MiniMap from './components/MiniMap';
 import SearchBar from './components/SearchBar';
 import Icon from '../../components/AppIcon';
+import { $apiGetCats } from '../../services/create_new_record';
 
 
 const DashboardOverview = () => {
   const navigate = useNavigate();
   const [currentTime, setCurrentTime] = useState(new Date());
+  const [realCats, setRealCats] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const timer = setInterval(() => {
-      setCurrentTime(new Date());
-    }, 60000);
+const loadData = async () => {
+      try {
+        const response = await $apiGetCats();
+        setRealCats(response.data || []);
+      } catch (err) {
+        console.error("Грешка при зареждане на таблото:", err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
 
-    return () => clearInterval(timer);
+    loadData(); // Извикваме я
+
+    const timer = setInterval(() => {
+      // Можеш да добавиш логика тук, ако ти трябва текущо време
+    }, 60000);
   }, []);
+
+  // 2. Изчисляване на динамичните статистики (useMemo ги преизчислява само при промяна на realCats)
+  const stats = useMemo(() => {
+    const total = realCats.length;
+    
+    // Филтър за последния месец
+    const monthAgo = new Date();
+    monthAgo.setMonth(monthAgo.getMonth() - 1);
+    
+    const recent = realCats.filter(cat => new Date(cat.created_at) > monthAgo).length;
+    
+    // Броене на уникални локации
+    const locations = new Set(realCats.map(cat => cat.location_address).filter(Boolean)).size;
+
+    // Усложнения (ако нямаш такова поле, временно слагаме 0 или примерен процент)
+    const hasComplications = realCats.filter(cat => cat.health_status === 'complication').length;
+    const rate = total > 0 ? ((hasComplications / total) * 100).toFixed(1) : 0;
+
+    return { total, recent, locations, rate };
+  }, [realCats]);
 
   const statsData = [
   {
     title: "Брой Регистрирани Котки",
-    value: "247",
-    change: "+12.5%",
-    changeType: "positive",
-    trend: "спрямо последния месец",
+    value: stats.total.toString(),
     icon: "Cat",
     iconColor: "var(--color-primary)"
   },
   {
     title: "Скорошни регистрирани котки",
-    value: "18",
-    change: "+6",
+    value: stats.recent.toString(),
+    change: `+${stats.recent}`,
     changeType: "positive",
-    trend: "тази седмица",
+    trend: "този месец",
     icon: "TrendingUp",
     iconColor: "var(--color-success)"
   },
   {
     title: "Активни локации",
-    value: "42",
+    value: stats.locations.toString(),
     change: "+3",
     changeType: "positive",
     trend: "нови локации",
@@ -53,76 +84,32 @@ const DashboardOverview = () => {
   },
   {
     title: "Усложнения",
-    value: "8%",
-    change: "+2.3%",
-    changeType: "negative",
-    trend: "спрямо последния месец",
-    icon: "CheckCircle",
-    iconColor: "var(--color-accent)"
-  }];
-
-
-  const recentActivities = [
-  {
-    id: 1,
-    name: "Рижко",
-    gender: "Мъжки",
-    image: "https://images.unsplash.com/photo-1456082981076-c3f00302c876",
-    imageAlt: "Orange tabby cat with white chest sitting on wooden surface looking directly at camera with bright green eyes",
-    location: "Central Park, Manhattan",
-    ownerName: "Ивана Иванова",
-    registeredTime: "2 hours ago"
-  },
-  {
-    id: 2,
-    name: "Luna",
-    gender: "Женски",
-    image: "https://images.unsplash.com/photo-1638342863734-ef786438c9e7",
-    imageAlt: "White and gray tabby kitten with blue eyes lying on soft gray blanket looking upward with curious expression",
-    location: "Brooklyn Heights",
-    ownerName: "Michael Chen",
-    registeredTime: "5 hours ago"
-  },
-  {
-    id: 3,
-    name: "Shadow",
-    gender: "Мъжки",
-    image: "https://images.unsplash.com/photo-1650940924722-092e81c9d78c",
-    imageAlt: "Sleek black cat with bright yellow eyes sitting on wooden floor in dimly lit room with mysterious expression",
-    location: "Queens, Long Island",
-    ownerName: "Emily Rodriguez",
-    registeredTime: "8 hours ago"
-  },
-  {
-    id: 4,
-    name: "Mittens",
-    gender: "Женски",
-    image: "https://images.unsplash.com/photo-1643305760386-665f877088f7",
-    imageAlt: "Fluffy white and gray tabby cat with green eyes lying comfortably on soft beige blanket looking content",
-    location: "Staten Island",
-    ownerName: "David Kim",
-    registeredTime: "12 hours ago"
+      value: `${stats.rate}%`,
+      change: stats.rate > 5 ? "Внимание" : "Нормално",
+      changeType: stats.rate > 5 ? "negative" : "positive",
+      icon: "AlertTriangle",
+      iconColor: stats.rate > 5 ? "var(--color-destructive)" : "var(--color-warning)"
   }];
 
 
   const quickActions = [
   {
-    title: "Register New Cat",
-    description: "Add a new cat to the registry with complete details and location information",
+    title: "Регистрирай Нова Котка",
+    description: "Добави нова котка в регистъра с пълна информация и локацията",
     icon: "Plus",
     iconColor: "var(--color-primary)",
     path: "/cat-registration-form"
   },
   {
-    title: "View Interactive Map",
-    description: "Explore registered cats on an interactive map showing their found locations",
+    title: "Виж интерактивна карта",
+    description: "Виж регистрираните котки на картата, показваща техните локации",
     icon: "Map",
     iconColor: "var(--color-secondary)",
     path: "/interactive-cat-map"
   },
   {
-    title: "Browse Registry",
-    description: "View complete list of all registered cats with search and filter options",
+    title: "Търси в регистъра",
+    description: "Виж целия списък на регистрираните котки с търсачка и опции за филтриране.",
     icon: "List",
     iconColor: "var(--color-accent)",
     path: "/cat-registry-list"
@@ -135,14 +122,7 @@ const DashboardOverview = () => {
   { area: "Раковски", count: 54, color: "var(--color-accent)" },
   { area: "Съединение", count: 37, color: "var(--color-success)" }];
 
-
-  const searchSuggestions = [
-  { id: 1, name: "Whiskers", owner: "Sarah Johnson" },
-  { id: 2, name: "Luna", owner: "Michael Chen" },
-  { id: 3, name: "Shadow", owner: "Emily Rodriguez" },
-  { id: 4, name: "Mittens", owner: "David Kim" },
-  { id: 5, name: "Tiger", owner: "Jessica Martinez" }];
-
+  if (isLoading) return <div className="p-10 text-center">Зареждане на таблото...</div>;
 
   const handleRegisterCat = () => {
     navigate('/cat-registration-form');
@@ -151,8 +131,8 @@ const DashboardOverview = () => {
   return (
     <>
       <Header />
-      
       <div className="min-h-screen bg-background">
+        
         <div className="max-w-7xl mx-auto px-4 md:px-6 lg:px-8 py-6 md:py-8">
           <Breadcrumb items={[{ label: 'Табло', path: '/dashboard-overview' }]} />
 
@@ -165,9 +145,9 @@ const DashboardOverview = () => {
             </p>
           </div>
 
-          <div className="mb-6 md:mb-8">
+          {/* <div className="mb-6 md:mb-8">
             <SearchBar suggestions={searchSuggestions} />
-          </div>
+          </div> */}
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-6 md:mb-8">
             {statsData.map((stat, index) =>
@@ -175,46 +155,27 @@ const DashboardOverview = () => {
             )}
           </div>
 
-          {/* <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8 mb-6 md:mb-8">
+         
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
             <div className="lg:col-span-2">
-              <div className="bg-card rounded-lg shadow-warm p-4 md:p-6">
-                <div className="flex items-center justify-between mb-4 md:mb-6">
-                  <h2 className="text-xl md:text-2xl font-semibold text-foreground">Recent Activity</h2>
-                  <button
-                    onClick={() => navigate('/cat-registry-list')}
-                    className="text-sm text-primary hover:text-primary/80 transition-smooth flex items-center gap-2">
-
-                    <span>View All</span>
-                    <Icon name="ArrowRight" size={16} />
-                  </button>
-                </div>
-                <div className="space-y-3 md:space-y-4">
-                  {recentActivities.map((cat) =>
-                  <RecentActivityCard key={cat.id} cat={cat} />
-                  )}
-                </div>
+               <MiniMap registrationHotspots={registrationHotspots} />
+            </div>
+            <div className="bg-card rounded-lg p-6 shadow-warm">
+              <h2 className="text-xl font-semibold mb-4">Бързи действия</h2>
+              <div className="space-y-3">
+                {quickActions.map((action, index) => (
+                  <QuickActionButton key={index} {...action} onClick={() => navigate(action.path)} />
+                ))}
               </div>
             </div>
-
-            <div className="space-y-4 md:space-y-6">
-              <div className="bg-card rounded-lg shadow-warm p-4 md:p-6">
-                <h2 className="text-xl md:text-2xl font-semibold text-foreground mb-4">Quick Actions</h2>
-                <div className="space-y-3">
-                  {quickActions.map((action, index) =>
-                  <QuickActionButton key={index} {...action} />
-                  )}
-                </div>
-              </div>
-            </div>
-          </div> */}
-
-          <div className="mb-6 md:mb-8">
-            <MiniMap registrationHotspots={registrationHotspots} />
           </div>
         </div>
-      </div>
 
-      <FloatingActionButton onClick={handleRegisterCat} />
+
+
+
+      </div>
+      <FloatingActionButton onClick={() => navigate('/cat-registration-form')} />
     </>);
 
 };

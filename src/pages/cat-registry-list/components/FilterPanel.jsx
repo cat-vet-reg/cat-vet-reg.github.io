@@ -7,9 +7,9 @@ const FilterPanel = ({
   filters, 
   onFilterChange, 
   onClearFilters,
-  genderOptions,
-  colorOptions,
-  locationOptions 
+  genderOptions = [],
+  colorOptions = [],
+  locationOptions = [],
 }) => {
   return (
     <div className="bg-card rounded-lg p-4 md:p-6 shadow-warm mb-4 md:mb-6">
