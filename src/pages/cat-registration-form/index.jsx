@@ -640,6 +640,29 @@ const handleSubmit = (e) => {
                   </div>
                 </FormSection>
 
+                <FormSection title="Дата на кастрация">
+                  <Input
+                    type="date"
+                    value={formData?.neuteringDate || ''}
+                    onChange={(e) => handleInputChange("neuteringDate", e?.target?.value)}
+                    error={errors?.neuteringDate}
+                  />
+
+                  <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 mb-2 block text-foreground">
+                    Котката беше ли вече кастрирана?
+                  </label>
+
+                  <Checkbox
+                    label="да"
+                    onChange={(e) => onCheckLocation("neuter_yes")}
+                    checked={livingConditions.has("neuter_yes")}
+                  />
+                  <Checkbox
+                    label="не"
+                    onChange={(e) => onCheckLocation("neuter_no")}
+                    checked={livingConditions.has("neuter_no")}
+                  />
+                </FormSection>
                 
                 <FormSection title="Усложнения">
                   <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 mb-2 block text-foreground">

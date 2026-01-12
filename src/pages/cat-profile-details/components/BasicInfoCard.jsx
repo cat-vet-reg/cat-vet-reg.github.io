@@ -4,8 +4,8 @@ import Icon from '../../../components/AppIcon';
 const BasicInfoCard = ({ cat }) => {
 
     const genderOptions = [
-      { value: "male"   , label: "Мъжки" },
-      { value: "female" , label: "Женски" },
+      { value: "male"       , label: "Мъжки" },
+      { value: "female"     , label: "Женски" },
     ];
 
   const colorOptions = [
@@ -29,6 +29,11 @@ const BasicInfoCard = ({ cat }) => {
     { value: 'fawn'         , label: 'Бежова' },
   ];
 
+  const ageUnitOptions = [
+    { value: "months"       , label: "Месеца" },
+    { value: "years"        , label: "Години" },
+  ];
+
   const infoItems = [
     {
       icon: 'User',
@@ -40,18 +45,42 @@ const BasicInfoCard = ({ cat }) => {
       icon: 'Palette',
       label: 'Цвят',
       value: colorOptions.find(opt => opt.value === cat?.color)?.label || cat?.color || 'Неизвестен',
-      color: 'text-accent'
+      color: cat?.gender === 'male' ? 'text-primary' : 'text-secondary'
     },
     {
       icon: 'Weight',
       label: 'Тегло',
       value: `${cat?.weight} кг`,
-      color: 'text-success'
+      color: 'text-warning'
+    },
+    {
+      icon: 'Sprout',
+      label: 'Възраст',
+      value: `${cat?.age_value} ${ageUnitOptions.find(opt => opt.value === cat?.age_unit)?.label || cat?.age_unit || 'Неизвестен'}`,
+      color: 'text-warning'
     },
     {
       icon: 'MapPin',
       label: 'Локация',
       value: cat?.foundLocation,
+      color: 'text-success'
+    },
+    {
+      icon: 'House',
+      label: 'Къде живее:',
+      value: cat?.living_condition,
+      color: 'text-success'
+    },
+    {
+      icon: 'Calendar',
+      label: 'Дата на кастрация',
+      value: cat?.neuterDate,
+      color: 'text-warning'
+    },
+    {
+      icon: 'AlertTriangle',
+      label: 'Усложнения',
+      value: cat?.complications,
       color: 'text-warning'
     }
   ];

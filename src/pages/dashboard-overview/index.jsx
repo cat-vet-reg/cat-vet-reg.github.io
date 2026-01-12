@@ -69,7 +69,7 @@ const loadData = async () => {
     value: stats.recent.toString(),
     change: `+${stats.recent}`,
     changeType: "positive",
-    trend: "тази седмица",
+    trend: "този месец",
     icon: "TrendingUp",
     iconColor: "var(--color-success)"
   },

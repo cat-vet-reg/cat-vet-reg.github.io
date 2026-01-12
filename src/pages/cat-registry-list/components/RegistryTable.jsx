@@ -1,9 +1,9 @@
-import React        from 'react';
-import Icon         from '../../../components/AppIcon';
-import Button       from '../../../components/ui/Button';
-import { Checkbox } from '../../../components/ui/Checkbox';
-
-import {convertDate} from '../../../utils/date'
+import React              from 'react';
+import Icon               from '../../../components/AppIcon';
+import Button             from '../../../components/ui/Button';
+import { Checkbox }       from '../../../components/ui/Checkbox';
+import { AlertTriangle }  from "lucide-react";
+import {convertDate}      from '../../../utils/date'
 
   const colorOptions = [
     // Patterns
@@ -141,6 +141,9 @@ const RegistryTable = ({
                   <Icon name={getSortIcon('registrationDate')} size={16} />
                 </button>
               </th>
+              <th className="px-4 py-3 text-center">
+                <span className="font-semibold text-sm text-foreground">Усложнения</span>
+              </th>
               <th className="px-4 py-3 text-right">
                 <span className="font-semibold text-sm text-foreground">Действия</span>
               </th>
@@ -196,6 +199,15 @@ const RegistryTable = ({
                 </td>                
                 <td className="hidden md:table-cell px-4 py-3">
                   <span className="text-sm text-muted-foreground data-text">{convertDate(cat?.created_at)}</span>
+                </td>
+                <td className="px-4 py-3 text-center">
+                  {cat?.complications === 'complications_yes' ? (
+                    <div className="flex items-center justify-center text-destructive" title="Настъпило усложнение">
+                      <AlertTriangle size={20} strokeWidth={2.5} />
+                    </div>
+                  ) : (
+                    <span className="text-xs text-muted-foreground/30">—</span>
+                  )}
                 </td>
                 <td className="px-4 py-3">
                   <div className="flex items-center justify-end gap-2">
