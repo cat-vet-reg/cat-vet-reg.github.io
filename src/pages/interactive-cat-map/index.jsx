@@ -25,7 +25,7 @@ const createCustomIcon = (color = '#2563EB') => {
 const createClusterIcon = (count) => {
   return L.divIcon({
     className: 'custom-marker-cluster',
-    html: `<div style="background-color: #f59e0b; width: 32px; height: 32px; border-radius: 50%; border: 3px solid white; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; box-shadow: 0 2px 8px rgba(0,0,0,0.3); font-size: 14px;">${count}</div>`,
+    html: `<div style="background-color: #e64072; width: 32px; height: 32px; border-radius: 50%; border: 3px solid white; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; box-shadow: 0 2px 8px rgba(0,0,0,0.3); font-size: 14px;">${count}</div>`,
     iconSize: [32, 32],
     iconAnchor: [16, 16]
   });
@@ -113,7 +113,7 @@ const InteractiveCatMap = () => {
                   position={[group[0].map_coordinates.lat, group[0].map_coordinates.lng]}
                   icon={group.length > 1 
                     ? createClusterIcon(group.length)
-                    : createCustomIcon(group[0].gender === 'male' ? '#2563EB' : '#e64072')
+                    : createCustomIcon('#2563EB')
                   }
                 >
                   <Popup>
