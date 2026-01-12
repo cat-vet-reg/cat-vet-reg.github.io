@@ -1,67 +1,67 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import Icon from '../../../components/AppIcon';
-import Image from '../../../components/AppImage';
 import Button from '../../../components/ui/Button';
 
-const MapMarkerPopup = ({ cat }) => {
+const MapMarkerPopup = ({ cats }) => {
   const navigate = useNavigate();
+  const STORAGE_URL = "https://gxnhbymgifwnkipdraye.supabase.co/storage/v1/object/public/protocol_images";
 
-  const handleViewProfile = () => {
-    navigate('/cat-profile-details', { state: { catId: cat?.id } });
+  // Функция за навигация
+  const goToProfile = (id) => {
+    navigate(`/cat-profile-details/${id}`);
   };
 
+  // СЛУЧАЙ 1: МНОГО КОТКИ
+  if (cats.length > 1) {
+    return (
+      <div className="w-64 p-1 max-h-80 overflow-y-auto overflow-x-hidden">
+        <h3 className="font-bold text-sm mb-3 border-b pb-1">Котки тук ({cats.length})</h3>
+        <div className="space-y-2">
+          {cats.map(cat => (
+            <div key={cat.id} className="flex items-center justify-between gap-2 p-2 bg-muted/30 rounded">
+              <div className="flex items-center gap-2 truncate">
+                <span className="text-sm font-medium truncate">{cat.name}</span>
+              </div>
+              <Button size="sm" variant="ghost" className="h-7 w-7 p-0" onClick={() => goToProfile(cat.id)}>
+                <Icon name="ExternalLink" size={14} />
+              </Button>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  // СЛУЧАЙ 2: САМО ЕДНА КОТКА
+  const cat = cats[0];
   return (
     <div className="w-64 bg-card rounded-lg overflow-hidden">
-      <div className="relative h-40 bg-muted">
-        <Image
-          src={cat?.image}
-          alt={cat?.imageAlt}
+      <div className="relative h-32 bg-muted">
+        <img
+          src={`${STORAGE_URL}/records/${cat.id}/avatar.png?t=${new Date(cat.updated_at || cat.created_at).getTime()}`}
+          alt={cat?.name}
           className="w-full h-full object-cover"
+          onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'flex'; }}
         />
+        <div style={{ display: 'none' }} className="w-full h-full items-center justify-center bg-muted">
+           <Icon name="Cat" size={32} className="text-muted-foreground" />
+        </div>
       </div>
-      <div className="p-4 space-y-3">
-        <div>
-          <h4 className="text-lg font-semibold text-foreground mb-1">{cat?.name}</h4>
-          <p className="text-sm text-muted-foreground line-clamp-2">{cat?.address}</p>
-        </div>
-
-        <div className="grid grid-cols-2 gap-2 text-sm">
+      <div className="p-3 space-y-2">
+        <h4 className="text-base font-semibold text-foreground">{cat?.name}</h4>
+        <div className="grid grid-cols-1 gap-1 text-xs text-muted-foreground">
           <div className="flex items-center gap-2">
-            <Icon 
-              name={cat?.gender === 'male' ? 'Mars' : 'Venus'} 
-              size={16} 
-              className="text-muted-foreground" 
-            />
-            <span className="text-foreground capitalize">{cat?.gender}</span>
+            <Icon name={cat?.gender === 'male' ? 'Mars' : 'Venus'} size={14} />
+            <span>{cat?.gender === 'male' ? 'Мъжки' : 'Женски'}</span>
           </div>
           <div className="flex items-center gap-2">
-            <Icon name="Palette" size={16} className="text-muted-foreground" />
-            <span className="text-foreground capitalize">{cat?.color}</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <Icon name="Weight" size={16} className="text-muted-foreground" />
-            <span className="text-foreground">{cat?.weight} кг</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <Icon name="Phone" size={16} className="text-muted-foreground" />
-            <span className="text-foreground">{cat?.ownerPhone}</span>
+            <Icon name="MapPin" size={14} />
+            <span className="truncate">{cat?.location_address || 'Няма адрес'}</span>
           </div>
         </div>
-
-        <div className="pt-2 border-t border-border">
-          <p className="text-sm text-muted-foreground mb-2">Собственик</p>
-          <p className="text-sm font-medium text-foreground">{cat?.ownerName}</p>
-        </div>
-
-        <Button
-          variant="default"
-          fullWidth
-          onClick={handleViewProfile}
-          iconName="ExternalLink"
-          iconPosition="right"
-        >
-          Виж подробна информация
+        <Button variant="default" fullWidth size="sm" onClick={() => goToProfile(cat.id)} iconName="ExternalLink" iconPosition="right">
+          Детайли
         </Button>
       </div>
     </div>

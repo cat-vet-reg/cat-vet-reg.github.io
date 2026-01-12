@@ -8,24 +8,47 @@ import FilterPanel from './components/FilterPanel';
 import RegistryTable from './components/RegistryTable';
 import BulkActionsBar from './components/BulkActionsBar';
 import Icon from '../../components/AppIcon';
-
-// Използваме директния импорт на supabase
 import supabase from '../../utils/supabase'; 
 
 const CatRegistryList = () => {
   const navigate = useNavigate();
 
-  // Стейт за данните от базата
   const [catCollection, setCatCollection] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Стейтове за филтри и сортиране
   const [filters, setFilters] = useState({
     search: '',
     gender: '',
     color: '',
     location: ''
   });
+
+    const genderOptions = [
+    { value: '', label: 'Всички полове' },
+    { value: 'male', label: 'Мъжки' },
+    { value: 'female', label: 'Женски' }
+  ];
+
+  const colorOptions = [
+    // Patterns
+    { value: 'tabby'        , label: 'Таби (тигрова)' },
+
+    // Bi-color & multi-color
+    { value: 'tabby_white'  , label: 'Таби-бяла (бяла с тигрово)' },
+    { value: 'calico'       , label: 'Калико (трицветна)' },
+    { value: 'tortoiseshell', label: 'Костенуркова' },
+    { value: 'tuxedo'       , label: 'Черно-бяла' },
+    { value: 'orange_white' , label: 'Рижо-бяла' },
+
+    // Solid colors
+    { value: 'orange'       , label: 'Рижа' },
+    { value: 'black'        , label: 'Черна' },
+    { value: 'white'        , label: 'Бяла' },
+    { value: 'gray'         , label: 'Сива (Синя)' },
+    { value: 'brown'        , label: 'Кафява' },
+    { value: 'cinnamon'     , label: 'Светлокафява' },
+    { value: 'fawn'         , label: 'Бежова' },
+  ];
 
   const [sortConfig, setSortConfig] = useState({
     column: 'created_at',
@@ -39,7 +62,6 @@ const CatRegistryList = () => {
     async function fetchData() {
       try {
         setIsLoading(true);
-        // Използваме твоя изглед (view) в Supabase
         const { data, error } = await supabase
           .from('td_records')
           .select(`
@@ -65,7 +87,6 @@ const CatRegistryList = () => {
   const filteredAndSortedCats = useMemo(() => {
     let result = [...catCollection];
 
-    // Търсене по име, име на собственик или адрес
     if (filters.search) {
       const searchLower = filters.search.toLowerCase();
       result = result.filter(cat =>
@@ -75,17 +96,14 @@ const CatRegistryList = () => {
       );
     }
 
-    // Филтър за пол
     if (filters.gender) {
       result = result.filter(cat => cat.gender === filters.gender);
     }
 
-    // Филтър за цвят
     if (filters.color) {
       result = result.filter(cat => cat.color === filters.color);
     }
-
-    // Сортиране
+    
     result.sort((a, b) => {
       let aValue = a[sortConfig.column];
       let bValue = b[sortConfig.column];
@@ -98,7 +116,6 @@ const CatRegistryList = () => {
     return result;
   }, [catCollection, filters, sortConfig]);
 
-  // Функции за управление
   const handleFilterChange = (key, value) => {
     setFilters(prev => ({ ...prev, [key]: value }));
   };
@@ -117,16 +134,13 @@ const CatRegistryList = () => {
     );
   };
 
-  // ВАЖНО: Навигация към страницата с детайли с реално ID
   const handleViewDetails = (catId) => {
     navigate(`/cat-profile-details/${catId}`);
   };
 
-// В твоя index.jsx (този със списъка/таблицата)
-const handleEdit = (cat) => {
-  // Вече използваме "cat", който идва от параметъра
-  navigate('/cat-registration-form', { state: { catData: cat, isEditing: true } });
-};
+  const handleEdit = (cat) => {
+    navigate('/cat-registration-form', { state: { catData: cat, isEditing: true } });
+  };
 
   const breadcrumbItems = [
     { label: 'Табло', path: '/dashboard-overview' },
@@ -163,11 +177,15 @@ const handleEdit = (cat) => {
           filters={filters}
           onFilterChange={handleFilterChange}
           onClearFilters={handleClearFilters}
+          genderOptions={genderOptions} // Добави това
+          colorOptions={colorOptions}   // Добави това
+          // Ако имаш локации, можеш да подадеш и тях, или празен масив за сега
+          locationOptions={[]}          
         />
 
         <div className="mt-8">
           <RegistryTable
-            cats={filteredAndSortedCats} // Подаваме филтрираните данни
+            cats={filteredAndSortedCats}
             selectedCats={selectedCats}
             onSelectCat={handleSelectCat}
             onSort={handleSort}

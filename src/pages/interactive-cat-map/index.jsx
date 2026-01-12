@@ -1,19 +1,16 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import L from 'leaflet';
-
 import 'leaflet/dist/leaflet.css';
+
 import Header from '../../components/ui/Header';
 import Breadcrumb from '../../components/ui/Breadcrumb';
 import FloatingActionButton from '../../components/ui/FloatingActionButton';
-import Button from '../../components/ui/Button';
 import MapFilterPanel from './components/MapFilterPanel';
 import MapMarkerPopup from './components/MapMarkerPopup';
 import MapControls from './components/MapControls';
 import MapLegend from './components/MapLegend';
-
-// Използваме твоя нов сервиз
 import { $apiGetCats } from '../../services/create_new_record';
 
 const createCustomIcon = (color = '#2563EB') => {
@@ -25,14 +22,21 @@ const createCustomIcon = (color = '#2563EB') => {
   });
 };
 
+const createClusterIcon = (count) => {
+  return L.divIcon({
+    className: 'custom-marker-cluster',
+    html: `<div style="background-color: #f59e0b; width: 32px; height: 32px; border-radius: 50%; border: 3px solid white; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; box-shadow: 0 2px 8px rgba(0,0,0,0.3); font-size: 14px;">${count}</div>`,
+    iconSize: [32, 32],
+    iconAnchor: [16, 16]
+  });
+};
+
 const MapBoundsUpdater = ({ cats }) => {
   const map = useMap();
   useEffect(() => {
-    // Твоите координати в базата са в полето map_coordinates
     const validPoints = cats
       .filter(c => c.map_coordinates?.lat && c.map_coordinates?.lng)
       .map(c => [c.map_coordinates.lat, c.map_coordinates.lng]);
-    
     if (validPoints.length > 0) {
       const bounds = L.latLngBounds(validPoints);
       map.fitBounds(bounds, { padding: [50, 50] });
@@ -50,28 +54,39 @@ const InteractiveCatMap = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [filters, setFilters] = useState({ gender: '', color: '' });
 
-  // 1. Вземане на данните чрез твоята функция $apiGetCats
   useEffect(() => {
     const loadData = async () => {
-      setIsLoading(true);
-      const response = await $apiGetCats();
-      setRealCats(response.data || []);
-      setIsLoading(false);
+      try {
+        setIsLoading(true);
+        const response = await $apiGetCats();
+        setRealCats(response.data || []);
+      } catch (e) {
+        console.error("Грешка при зареждане на картата:", e);
+      } finally {
+        setIsLoading(false);
+      }
     };
     loadData();
   }, []);
 
-  // 2. Филтриране
   useEffect(() => {
     let result = realCats.filter(cat => 
       cat.map_coordinates?.lat != null && cat.map_coordinates?.lng != null
     );
-
     if (filters.gender) result = result.filter(c => c.gender === filters.gender);
     if (filters.color) result = result.filter(c => c.color === filters.color);
-
     setFilteredCats(result);
   }, [filters, realCats]);
+
+  const groupedCats = useMemo(() => {
+    const groups = {};
+    filteredCats.forEach(cat => {
+      const key = `${cat.map_coordinates.lat},${cat.map_coordinates.lng}`;
+      if (!groups[key]) groups[key] = [];
+      groups[key].push(cat);
+    });
+    return Object.values(groups);
+  }, [filteredCats]);
 
   const tileLayerUrl = mapType === 'satellite' 
     ? 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}' 
@@ -92,19 +107,20 @@ const InteractiveCatMap = () => {
           ) : (
             <MapContainer center={[42.1441, 24.7481]} zoom={13} style={{ height: '100%' }}>
               <TileLayer url={tileLayerUrl} />
-              
-              {filteredCats.map((cat) => (
+              {groupedCats.map((group, idx) => (
                 <Marker 
-                  key={cat.id} 
-                  position={[cat.map_coordinates.lat, cat.map_coordinates.lng]}
-                  icon={createCustomIcon(cat.gender === 'male' ? '#2563EB' : '#e64072')}
+                  key={idx} 
+                  position={[group[0].map_coordinates.lat, group[0].map_coordinates.lng]}
+                  icon={group.length > 1 
+                    ? createClusterIcon(group.length)
+                    : createCustomIcon(group[0].gender === 'male' ? '#2563EB' : '#e64072')
+                  }
                 >
                   <Popup>
-                    <MapMarkerPopup cat={cat} />
+                    <MapMarkerPopup cats={group} />
                   </Popup>
                 </Marker>
               ))}
-              
               <MapBoundsUpdater cats={filteredCats} />
             </MapContainer>
           )}
@@ -112,13 +128,7 @@ const InteractiveCatMap = () => {
           <MapLegend totalCats={realCats.length} filteredCats={filteredCats.length} />
         </div>
       </main>
-      
-      <MapFilterPanel 
-        isOpen={isFilterPanelOpen} 
-        onClose={() => setIsFilterPanelOpen(false)} 
-        onFilterChange={setFilters} 
-      />
-      
+      <MapFilterPanel isOpen={isFilterPanelOpen} onClose={() => setIsFilterPanelOpen(false)} onFilterChange={setFilters} />
       <FloatingActionButton onClick={() => navigate('/cat-registration-form')} label="Нова котка" />
     </div>
   );

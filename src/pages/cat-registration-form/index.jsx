@@ -97,9 +97,6 @@ useEffect(() => {
   const [showSuccessModal     , setShowSuccessModal     ] = useState(false);
   const [registeredCatData    , setRegisteredCatData    ] = useState(null);
   const [livingConditions     , setLivingConditions     ] = useState(new Set());
-  
-  // Промени заглавието на страницата динамично
-  const pageTitle = isEditing ? `Редактиране на ${editingData?.name}` : "Регистрация на животно";
 
   const genderOptions = [
     { value: "male"   , label: "Мъжки" },
@@ -108,23 +105,23 @@ useEffect(() => {
 
   const colorOptions = [
     // Patterns
-    { value: "tabby", label: "Таби (тигрова)" },
+    { value: "tabby"        , label: "Таби (тигрова)" },
 
     // Bi-color & multi-color
     { value: 'tabby_white'  , label: 'Таби-бяла (бяла с тигрово)' },
-    { value: "calico", label: "Калико (трицветна)" },
-    { value: "tortoiseshell", label: "Костенуркова" },
-    { value: "tuxedo", label: "Черно-бяла" },
-    { value: "orange_white", label: "Рижо-бяла" },
+    { value: 'calico'       , label: 'Калико (трицветна)' },
+    { value: 'tortoiseshell', label: 'Костенуркова' },
+    { value: 'tuxedo'       , label: 'Черно-бяла' },
+    { value: 'orange_white' , label: 'Рижо-бяла' },
 
     // Solid colors
-    { value: "orange", label: "Рижа" },
-    { value: "black", label: "Черна" },
-    { value: "white", label: "Бяла" },
-    { value: "gray", label: "Сива (Синя)" },
-    { value: "brown", label: "Кафява" },
-    { value: "cinnamon", label: "Светлокафява" },
-    { value: "fawn", label: "Бежова" },
+    { value: 'orange'       , label: 'Рижа' },
+    { value: 'black'        , label: 'Черна' },
+    { value: 'white'        , label: 'Бяла' },
+    { value: 'gray'         , label: 'Сива (Синя)' },
+    { value: 'brown'        , label: 'Кафява' },
+    { value: 'cinnamon'     , label: 'Светлокафява' },
+    { value: 'fawn'         , label: 'Бежова' },
   ];
 
   const ageUnitOptions = [

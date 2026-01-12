@@ -16,20 +16,32 @@ const ProfileHeader = ({ cat }) => {
       minute: '2-digit'
     });
   };
+const STORAGE_URL = "https://gxnhbymgifwnkipdraye.supabase.co/storage/v1/object/public/protocol_images";
 
     return (
     <div className="bg-card rounded-xl shadow-warm p-4 md:p-6 lg:p-8 mb-4 md:mb-6">
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 md:gap-6">
         <div className="flex items-start gap-4 md:gap-6">
-          <div className="flex-shrink-0 w-16 h-16 md:w-20 md:h-20 lg:w-24 lg:h-24 bg-primary/10 rounded-xl flex items-center justify-center overflow-hidden">
-            {cat?.image_url ? (
-              <img
-                src={cat.image_url}
-                alt={cat?.name}
-                className="w-full h-full object-cover" // object-cover е по-добре за снимки на животни
-              />
+          <div className="flex-shrink-0 w-16 h-16 md:w-20 md:h-20 lg:w-24 lg:h-24 bg-primary/10 rounded-xl flex items-center justify-center overflow-hidden relative">
+            {cat?.id ? (
+              <>
+                <img
+                  src={`${STORAGE_URL}/records/${cat.id}/avatar.png?t=${new Date(cat.updated_at || cat.created_at).getTime()}`}
+                  alt={cat?.name}
+                  className="w-full h-full object-cover"
+                  onError={(e) => {
+                    // Ако в Storage НЯМА снимка, скриваме счупеното изображение и показваме иконата
+                    e.target.style.display = 'none';
+                    e.target.nextSibling.style.display = 'flex';
+                  }}
+                />
+                {/* Тази икона ще е скрита първоначално и ще се покаже само при грешка (onError) */}
+                <div style={{ display: 'none' }} className="w-full h-full items-center justify-center">
+                  <Icon name="Cat" size={40} color="var(--color-primary)" />
+                </div>
+              </>
             ) : (
-              <Icon name="Cat" size={40} color="var(--color-primary)" className="md:w-12 md:h-12 lg:w-14 lg:h-14" />
+              <Icon name="Cat" size={40} color="var(--color-primary)" />
             )}
           </div>
           

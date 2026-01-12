@@ -176,11 +176,11 @@ const RegistryTable = ({
                   <div className="flex items-center gap-2">
                     <div 
                       className="w-4 h-4 rounded-full border border-border"
-                      // Тук можеш да добавиш логика за автоматичен цвят, ако имаш colorHex в базата
-                      style={{ background: colorStyles[cat?.color] || '#ccc' }} 
+                      style={{ background: colorStyles[cat?.color] || '#ccc',
+                               border: '1px solid #000000'
+                       }} 
                     />
                     <span className="text-sm text-muted-foreground">
-                      {/* ТУК Е ПРОМЯНАТА: */}
                       {colorOptions.find(opt => opt.value === cat?.color)?.label || cat?.color}
                     </span>
                   </div>

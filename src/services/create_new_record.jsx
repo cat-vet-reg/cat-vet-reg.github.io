@@ -33,7 +33,17 @@ export async function $apiCreateNewRecord(formData, isEditing = false, catId = n
         return await supabase
             .from('td_records')
             .update({
-                // ... твоите полета за име, цвят и т.н.
+                        name             : formData?.recordName, // записваме каквото е въвел потребителя
+                    notes            : formData?.recordNotes,
+                    gender           : formData?.gender,
+                    weight: formData.weight ? Number(formData.weight) : null,
+                    age_value: formData.ageValue ? Number(formData.ageValue) : null,
+                    age_unit         : formData.ageUnit,
+                    color            : formData.color,
+                    location_address : formData?.address,
+                    location_city    : formData?.recordCity,
+                    living_condition: formData.livingCondition ? Array.from(formData.livingCondition) : [],
+                    map_coordinates  : formData?.coords,
                 owner_id: finalOwnerId
             })
             .eq('id', catId);
