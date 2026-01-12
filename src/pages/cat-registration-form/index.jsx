@@ -40,12 +40,18 @@ const CatRegistrationForm = () => {
     ownerName       : editingData?.owner?.name || "",
     ownerPhone      : editingData?.owner?.phone || "",
     livingCondition : editingData?.living_condition || "",
-    coords          : editingData?.map_coordinates || null
+    coords          : editingData?.map_coordinates || null,
+    hasComplications : editingData?.has_complications,
+    recordComplications : editingData?.record_complications
   });
 
 useEffect(() => {
   
   if (editingData) {
+
+    console.log("@@@============");
+    console.log(formData);
+    console.log("@@@============");
 
 
     const { data } = supabase
@@ -79,7 +85,9 @@ useEffect(() => {
       ownerPhone      : editingData.owner?.phone || editingData.owner_phone || "",
       livingCondition : editingData.living_condition || "",
       coords          : foundCoords,
-      imagePreview    : data.publicUrl || ""
+      imagePreview    : data.publicUrl || "",
+      hasComplications : editingData?.has_complications,
+      recordComplications : editingData?.record_complications
     });
     
     console.log("Данни за редактиране:", editingData);
@@ -384,6 +392,22 @@ const handleSubmit = (e) => {
     });
   };
 
+  /**
+   * 
+   * @param {*} key 
+   * @param {*} value 
+   */
+  const processRadio = (key, value) => {
+
+    console.log(key);
+    console.log(value);
+
+    setFormData((prev) => ({
+      ...prev,
+      [key]: value,
+    }));
+  }
+
   return (
     <>
       <Header />
@@ -669,16 +693,25 @@ const handleSubmit = (e) => {
                     Имаше ли усложнения?
                   </label>
 
-                  <Checkbox
+                  <div>{ formData.hasComplications || 'AAA' }</div>
+                  <Input
+                    type="radio"
+                    name="a"
                     label="да"
-                    onChange={(e) => onCheckLocation("complications_yes")}
-                    checked={livingConditions.has("complications_yes")}
-                  />
-                  <Checkbox
+                    description="Да"
+                    onChange={(e) => processRadio("hasComplications", "Y")}
+                    checked={formData.hasComplications == 'Y'}
+                  /> <span>Да наблюдават се</span>
+                  <br></br>
+                  <Input
+                    type="radio"
+                    name="a"
                     label="не"
-                    onChange={(e) => onCheckLocation("complications_no")}
-                    checked={livingConditions.has("complications_no")}
-                  />
+                    description="Не"
+                    onChange={(e) => processRadio("hasComplications", "N")}
+                    checked={formData.hasComplications == 'N'}
+                  /> 
+                  <span>Не не се наблюдават</span>
 
                   <Input
                     label="Опиши усложненията:"

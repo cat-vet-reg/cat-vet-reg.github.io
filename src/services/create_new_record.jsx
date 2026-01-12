@@ -44,7 +44,9 @@ export async function $apiCreateNewRecord(formData, isEditing = false, catId = n
                 location_city       : formData?.recordCity,
                 living_condition    : formData.livingCondition ? Array.from(formData.livingCondition) : [],
                 map_coordinates     : formData?.coords,
-                owner_id            : finalOwnerId
+                owner_id            : finalOwnerId,
+
+                has_complications : formData?.hasComplications
             })
             .eq('id', catId);
     } else {
