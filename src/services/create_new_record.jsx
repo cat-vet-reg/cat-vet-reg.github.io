@@ -31,18 +31,18 @@ export async function $apiCreateNewRecord(
         return await supabase
             .from('td_records')
             .update({
-                name: formData.recordName,
-                notes: formData.recordNotes,
-                gender: formData.gender,
-                weight: formData.weight,
-                age_value: formData.ageValue,
-                age_unit: formData.ageUnit,
-                color: formData.color,
-                location_address: formData.address,
-                location_city: formData.recordCity,
-                living_condition: formData.livingCondition,
-                map_coordinates: formData.coords,
-                owner_id: finalOwnerId
+                name                : formData.recordName,
+                notes               : formData.recordNotes,
+                gender              : formData.gender,
+                weight              : formData.weight,
+                age_value           : formData.ageValue,
+                age_unit            : formData.ageUnit,
+                color               : formData.color,
+                location_address    : formData.address,
+                location_city       : formData.recordCity,
+                living_condition    : formData.livingCondition,
+                map_coordinates     : formData.coords,
+                owner_id            : finalOwnerId
             })
             .eq('id', catId);
     } else {
@@ -59,18 +59,21 @@ export async function $apiCreateNewRecord(
 async function recordAnimal(formData, ownerId) {
     // 1. Първо създаваме записа
     const tdRecordsResponse = await supabase.from('td_records').insert({
-        name             : formData?.recordName, // записваме каквото е въвел потребителя
-        notes            : formData?.recordNotes,
-        gender           : formData?.gender,
-        weight           : formData?.weight,
-        age_value        : formData.ageValue,
-        age_unit         : formData.ageUnit,
-        color            : formData.color,
-        location_address : formData?.address,
-        location_city    : formData?.recordCity,
-        living_condition : formData?.livingCondition,
-        map_coordinates  : formData?.coords,
-        owner_id         : ownerId
+        name                    : formData?.recordName,
+        notes                   : formData?.recordNotes,
+        gender                  : formData?.gender,
+        weight                  : formData?.weight,
+        age_value               : formData.ageValue,
+        age_unit                : formData.ageUnit,
+        color                   : formData.color,
+        location_address        : formData?.address,
+        location_city           : formData?.recordCity,
+        living_condition        : formData?.livingCondition,
+        map_coordinates         : formData?.coords,
+        owner_id                : ownerId,
+        
+        has_complications       : formData.hasComplications,
+        record_complications    : formData.recordComplications
     }).select();
 
     const newCat = tdRecordsResponse.data[0];
