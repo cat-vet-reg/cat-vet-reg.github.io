@@ -634,7 +634,7 @@ const handleSubmit = (e) => {
                     description="Да"
                     onChange={(e) => processRadio("hasComplications", "Y")}
                     checked={formData.hasComplications == 'Y'}
-                  /> <span>Да наблюдават се</span>
+                  /> <span>Да, наблюдават се</span>
                   <br></br>
                   <Input
                     type="radio"
@@ -644,7 +644,7 @@ const handleSubmit = (e) => {
                     onChange={(e) => processRadio("hasComplications", "N")}
                     checked={formData.hasComplications == 'N'}
                   /> 
-                  <span>Не не се наблюдават</span>
+                  <span>Не, не се наблюдават</span>
 
                   <Input
                     label="Опиши усложненията:"

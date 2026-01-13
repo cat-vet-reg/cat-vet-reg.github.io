@@ -30,31 +30,50 @@ const loadData = async () => {
       }
     };
 
-    loadData(); // Извикваме я
-
-    const timer = setInterval(() => {
-      // Можеш да добавиш логика тук, ако ти трябва текущо време
-    }, 60000);
+    loadData();
   }, []);
 
   // 2. Изчисляване на динамичните статистики (useMemo ги преизчислява само при промяна на realCats)
   const stats = useMemo(() => {
     const total = realCats.length;
-    
-    // Филтър за последния месец
+    const now = new Date();
+    const oneWeekAgo = new Date();
+    oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
     const monthAgo = new Date();
     monthAgo.setMonth(monthAgo.getMonth() - 1);
     
     const recent = realCats.filter(cat => new Date(cat.created_at) > monthAgo).length;
     
-    // Броене на уникални локации
-    const locations = new Set(realCats.map(cat => cat.location_address).filter(Boolean)).size;
+    // 1. Всички уникални локации до момента
+    const allLocations = new Set(realCats.map(cat => cat.location_address).filter(Boolean));
+    const totalLocationsCount = allLocations.size;
 
-    // Усложнения (ако нямаш такова поле, временно слагаме 0 или примерен процент)
-    const hasComplications = realCats.filter(cat => cat.health_status === 'complication').length;
-    const rate = total > 0 ? ((hasComplications / total) * 100).toFixed(1) : 0;
+    // 2. Локации, които са съществували ПРЕДИ миналата седмица
+    const oldLocations = new Set(
+      realCats
+        .filter(cat => new Date(cat.created_at) < oneWeekAgo)
+        .map(cat => cat.location_address)
+        .filter(Boolean)
+    );
 
-    return { total, recent, locations, rate };
+    // 3. Локации на котки, регистрирани ПРЕЗ последната седмица
+    const recentLocations = new Set(
+      realCats
+        .filter(cat => new Date(cat.created_at) >= oneWeekAgo)
+        .map(cat => cat.location_address)
+        .filter(Boolean)
+    );
+
+    // 4. НОВИ ЛОКАЦИИ: Тези, които ги има в скорошните, но ги е нямало в старите
+    const newLocationsCount = [...recentLocations].filter(loc => !oldLocations.has(loc)).length;
+
+    const hasComplicationsCount = realCats.filter(cat => {
+      const val = cat?.hasComplications || cat?.has_complications || cat?.complications;
+      return val?.toString().toUpperCase() === 'Y';
+    }).length;
+    const rate = total > 0 ? ((hasComplicationsCount / total) * 100).toFixed(1) : 0;
+
+    return { total, recent, locations: totalLocationsCount, newLocations: newLocationsCount, rate };
   }, [realCats]);
 
   const statsData = [
@@ -76,9 +95,9 @@ const loadData = async () => {
   {
     title: "Активни локации",
     value: stats.locations.toString(),
-    change: "+3",
+    change: `+${stats.newLocations}`,
     changeType: "positive",
-    trend: "нови локации",
+    trend: "от миналата седмица",
     icon: "MapPin",
     iconColor: "var(--color-secondary)"
   },
