@@ -28,31 +28,26 @@ const CatRegistrationForm = () => {
   const isEditing = !!location.state?.isEditing;
 
   const [formData, setFormData] = useState({
-    recordName      : editingData?.name || "",
-    recordCity      : editingData?.location_city || "",
-    gender          : editingData?.gender || "",
-    weight          : editingData?.weight || "",
-    ageValue        : editingData?.age_value || "",
-    ageUnit         : editingData?.age_unit || "months",
-    recordNotes     : editingData?.notes || "",
-    color           : editingData?.color || "",
-    address         : editingData?.location_address || "",
-    ownerName       : editingData?.owner?.name || "",
-    ownerPhone      : editingData?.owner?.phone || "",
-    livingCondition : editingData?.living_condition || "",
-    coords          : editingData?.map_coordinates || null,
-    hasComplications : editingData?.has_complications,
+    recordName          : editingData?.name || "",
+    recordCity          : editingData?.location_city || "",
+    gender              : editingData?.gender || "",
+    weight              : editingData?.weight || "",
+    ageValue            : editingData?.age_value || "",
+    ageUnit             : editingData?.age_unit || "months",
+    recordNotes         : editingData?.notes || "",
+    color               : editingData?.color || "",
+    address             : editingData?.location_address || "",
+    ownerName           : editingData?.owner?.name || "",
+    ownerPhone          : editingData?.owner?.phone || "",
+    livingCondition     : editingData?.living_condition || "",
+    coords              : editingData?.map_coordinates || null,
+    hasComplications    : editingData?.has_complications,
     recordComplications : editingData?.record_complications
   });
 
 useEffect(() => {
   
   if (editingData) {
-
-    console.log("@@@============");
-    console.log(formData);
-    console.log("@@@============");
-
 
     const { data } = supabase
       .storage
@@ -600,70 +595,6 @@ const handleSubmit = (e) => {
                   />
                 </FormSection>
 
-                <FormSection title="Снимка на животното">
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-center w-full">
-                      <label className="flex flex-col items-center justify-center w-full h-64 border-2 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100 border-muted-foreground/25">
-                        {formData.imagePreview ? (
-                          <img
-                            src={formData.imagePreview}
-                            alt="Preview"
-                            className="h-full w-full object-contain rounded-lg"
-                          />
-                        ) : (
-                          <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                            <svg
-                              className="w-8 h-8 mb-4 text-muted-foreground"
-                              fill="none"
-                              stroke="currentColor"
-                              viewBox="0 0 24 24"
-                            >
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth="2"
-                                d="M12 4v16m8-8H4"
-                              />
-                            </svg>
-                            <p className="mb-2 text-sm text-muted-foreground">
-                              <span className="font-semibold">
-                                Кликни за качване
-                              </span>{" "}
-                              или влачи снимка
-                            </p>
-                            <p className="text-xs text-muted-foreground">
-                              PNG, JPG или WebP
-                            </p>
-                          </div>
-                        )}
-
-                        <input
-                          type="file"
-                          className="hidden"
-                          accept="image/*"
-                          onChange={handleImageChange}
-                        />
-                      </label>
-                    </div>
-
-                    {formData.imagePreview && (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() =>
-                          setFormData((prev) => ({
-                            ...prev,
-                            image: null,
-                            imagePreview: "",
-                          }))
-                        }
-                      >
-                        Премахни снимката
-                      </Button>
-                    )}
-                  </div>
-                </FormSection>
-
                 <FormSection title="Дата на кастрация">
                   <Input
                     type="date"
@@ -692,8 +623,7 @@ const handleSubmit = (e) => {
                   <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 mb-2 block text-foreground">
                     Имаше ли усложнения?
                   </label>
-
-                  <div>{ formData.hasComplications || 'AAA' }</div>
+                  
                   <Input
                     type="radio"
                     name="a"
@@ -762,6 +692,71 @@ const handleSubmit = (e) => {
                     isValidating={isValidatingAddress}
                   />
                 </FormSection>
+
+                <FormSection title="Снимка на животното">
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-center w-full">
+                      <label className="flex flex-col items-center justify-center w-full h-64 border-2 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100 border-muted-foreground/25">
+                        {formData.imagePreview ? (
+                          <img
+                            src={formData.imagePreview}
+                            alt="Preview"
+                            className="h-full w-full object-contain rounded-lg"
+                          />
+                        ) : (
+                          <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                            <svg
+                              className="w-8 h-8 mb-4 text-muted-foreground"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth="2"
+                                d="M12 4v16m8-8H4"
+                              />
+                            </svg>
+                            <p className="mb-2 text-sm text-muted-foreground">
+                              <span className="font-semibold">
+                                Кликни за качване
+                              </span>{" "}
+                              или влачи снимка
+                            </p>
+                            <p className="text-xs text-muted-foreground">
+                              PNG, JPG или WebP
+                            </p>
+                          </div>
+                        )}
+
+                        <input
+                          type="file"
+                          className="hidden"
+                          accept="image/*"
+                          onChange={handleImageChange}
+                        />
+                      </label>
+                    </div>
+
+                    {formData.imagePreview && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() =>
+                          setFormData((prev) => ({
+                            ...prev,
+                            image: null,
+                            imagePreview: "",
+                          }))
+                        }
+                      >
+                        Премахни снимката
+                      </Button>
+                    )}
+                  </div>
+                </FormSection>
+
               </div>
             </div>
           </form>
