@@ -62,7 +62,7 @@ const RegistryTable = ({
       sortConfig?.column === column && sortConfig?.direction === 'asc' ?'desc' :'asc';
     onSort(column, direction);
   };
-
+console.log("Данни за първата котка:", cats[0]);
   return (
     <div className="bg-card rounded-lg shadow-warm">
       <div className="overflow-x-auto scrollbar-custom">
@@ -189,7 +189,9 @@ const RegistryTable = ({
                   </div>
                 </td>
                 <td className="hidden md:table-cell px-4 py-3">
-                  <span className="text-sm text-muted-foreground data-text">{cat?.weight} кг</span>
+                  <span className="text-sm text-muted-foreground data-text">
+                    {cat?.weight ? `${cat?.weight} кг` : '—'}
+                  </span>
                 </td>
                 <td className="px-4 py-3">
                   <span className="text-sm text-muted-foreground">{cat?.owner?.name || cat?.owner_name || "—"}</span>
@@ -201,13 +203,18 @@ const RegistryTable = ({
                   <span className="text-sm text-muted-foreground data-text">{convertDate(cat?.created_at)}</span>
                 </td>
                 <td className="px-4 py-3 text-center">
-                  {cat?.complications === 'complications_yes' ? (
-                    <div className="flex items-center justify-center text-destructive" title="Настъпило усложнение">
-                      <AlertTriangle size={20} strokeWidth={2.5} />
-                    </div>
-                  ) : (
-                    <span className="text-xs text-muted-foreground/30">—</span>
-                  )}
+                  {(() => {
+                    const value = cat?.hasComplications || cat?.has_complications || cat?.complications;
+                    if (value?.toString().toUpperCase() === 'Y') {
+                      return (
+                        <div className="flex items-center justify-center text-destructive" title="Настъпило усложнение">
+                          <AlertTriangle size={20} strokeWidth={2.5} />
+                        </div>
+                      );
+                    }
+                    
+                    return <span className="text-muted-foreground/20">—</span>;
+                  })()}
                 </td>
                 <td className="px-4 py-3">
                   <div className="flex items-center justify-end gap-2">
