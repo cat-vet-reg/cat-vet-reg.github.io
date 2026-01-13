@@ -42,7 +42,8 @@ const CatRegistrationForm = () => {
     livingCondition     : editingData?.living_condition || "",
     coords              : editingData?.map_coordinates || null,
     hasComplications    : editingData?.has_complications,
-    recordComplications : editingData?.record_complications
+    recordComplications : editingData?.record_complications,
+    castratedAt         : editingData?.castrated_at
   });
 
 useEffect(() => {
@@ -67,22 +68,23 @@ useEffect(() => {
     }
 
     setFormData({
-      recordName      : editingData.name || "",
-      recordCity      : editingData.location_city || "",
-      gender          : editingData.gender || "",
-      weight          : editingData.weight || "",
-      ageValue        : editingData.age_value || "",
-      ageUnit         : editingData.age_unit || "months",
-      recordNotes     : editingData.notes || "",
-      color           : editingData.color || "",
-      address         : editingData.location_address || "",
-      ownerName       : editingData.owner?.name || editingData.owner_name || "",
-      ownerPhone      : editingData.owner?.phone || editingData.owner_phone || "",
-      livingCondition : editingData.living_condition || "",
-      coords          : foundCoords,
-      imagePreview    : data.publicUrl || "",
-      hasComplications : editingData?.has_complications,
-      recordComplications : editingData?.record_complications
+      recordName          : editingData.name || "",
+      recordCity          : editingData.location_city || "",
+      gender              : editingData.gender || "",
+      weight              : editingData.weight || "",
+      ageValue            : editingData.age_value || "",
+      ageUnit             : editingData.age_unit || "months",
+      recordNotes         : editingData.notes || "",
+      color               : editingData.color || "",
+      address             : editingData.location_address || "",
+      ownerName           : editingData.owner?.name || editingData.owner_name || "",
+      ownerPhone          : editingData.owner?.phone || editingData.owner_phone || "",
+      livingCondition     : editingData.living_condition || "",
+      coords              : foundCoords,
+      imagePreview        : data.publicUrl || "",
+      hasComplications    : editingData?.has_complications,
+      recordComplications : editingData?.record_complications,
+      castratedAt         : editingData?.castrated_at
     });
     
     console.log("Данни за редактиране:", editingData);
@@ -156,6 +158,7 @@ useEffect(() => {
 
   // В CatRegistrationForm (index.jsx)
   const handleInputChange = (field, value) => {
+
     setFormData((prev) => ({
       ...prev,
       [field]: value,
@@ -598,9 +601,9 @@ const handleSubmit = (e) => {
                 <FormSection title="Дата на кастрация">
                   <Input
                     type="date"
-                    value={formData?.neuteringDate || ''}
-                    onChange={(e) => handleInputChange("neuteringDate", e?.target?.value)}
-                    error={errors?.neuteringDate}
+                    value={formData?.castratedAt || ''}
+                    onChange={(e) => handleInputChange("castratedAt", e?.target?.value)}
+                    error={errors?.castratedAt}
                   />
 
                   <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 mb-2 block text-foreground">

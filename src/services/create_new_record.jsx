@@ -46,7 +46,8 @@ export async function $apiCreateNewRecord(formData, isEditing = false, catId = n
                 map_coordinates     : formData?.coords,
                 owner_id            : finalOwnerId,
 
-                has_complications : formData?.hasComplications
+                has_complications   : formData?.hasComplications,
+                castrated_at        : formData?.castratedAt
             })
             .eq('id', catId);
     } else {
@@ -60,6 +61,8 @@ export async function $apiCreateNewRecord(formData, isEditing = false, catId = n
  * @returns 
  */
 async function recordAnimal(formData, ownerId) {
+    
+    
     // 1. Първо създаваме записа
     const tdRecordsResponse = await supabase.from('td_records').insert({
         name                    : formData?.recordName,
@@ -75,7 +78,8 @@ async function recordAnimal(formData, ownerId) {
         map_coordinates         : formData?.coords,
         owner_id                : ownerId,
         has_complications       : formData.hasComplications,
-        record_complications    : formData.recordComplications
+        record_complications    : formData.recordComplications,
+        castrated_at            : formData?.castratedAt
     }).select();
 
     // ПРОВЕРКА: Ако има грешка, не продължавай надолу
