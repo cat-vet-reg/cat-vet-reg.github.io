@@ -137,7 +137,7 @@ console.log("Данни за първата котка:", cats[0]);
                   onClick={() => handleSort('registrationDate')}
                   className="flex items-center gap-2 font-semibold text-sm text-foreground hover:text-primary transition-smooth"
                 >
-                  Регистрирана на
+                  Кастрирана на
                   <Icon name={getSortIcon('registrationDate')} size={16} />
                 </button>
               </th>
@@ -200,7 +200,9 @@ console.log("Данни за първата котка:", cats[0]);
                   <span className="text-sm text-muted-foreground">{cat?.owner?.phone || cat?.owner_phone || "—"}</span>
                 </td>                
                 <td className="hidden md:table-cell px-4 py-3">
-                  <span className="text-sm text-muted-foreground data-text">{convertDate(cat?.created_at)}</span>
+                  <span className="text-sm text-muted-foreground data-text">
+                    {convertDate(cat?.castrated_at || cat?.castratedAt || "—")}
+                  </span>
                 </td>
                 <td className="px-4 py-3 text-center">
                   {(() => {
