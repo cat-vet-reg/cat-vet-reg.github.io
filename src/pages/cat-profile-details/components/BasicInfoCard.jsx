@@ -119,8 +119,20 @@ const BasicInfoCard = ({ cat }) => {
     {
       icon: 'AlertTriangle',
       label: 'Усложнения',
-      value: cat?.hasComp? 'Да' : 'Не',
+      value: hasComp? 'Да' : 'Не',
       color: 'text-warning'
+    },
+    {
+      icon: 'FileText',
+      label: 'Бележки',
+      value: cat?.notes || '—',
+      color: 'text-primary'
+    },
+    {
+      icon: 'Stethoscope',
+      label: 'Усложнения (оп.):',
+      value: cat?.record_complications || '—',
+      color: 'text-destructive'
     }
   ];
 
