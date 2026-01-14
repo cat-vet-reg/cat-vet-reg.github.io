@@ -1,5 +1,6 @@
-import React from 'react';
-import Icon from '../../../components/AppIcon';
+import React          from 'react';
+import Icon           from '../../../components/AppIcon';
+import {convertDate}  from '../../../utils/date'
 
 const BasicInfoCard = ({ cat }) => {
 
@@ -36,6 +37,8 @@ const BasicInfoCard = ({ cat }) => {
 
   const rawValue = cat?.hasComplications || cat?.has_complications || cat?.complications;
   const hasComp = rawValue?.toString().toUpperCase() === 'Y';
+  const neuterDate = convertDate(cat?.castrated_at);
+
 
   // 1. Речник за местообитанията
   const habitatMap = {
@@ -113,7 +116,7 @@ const BasicInfoCard = ({ cat }) => {
     {
       icon: 'Calendar',
       label: 'Дата на кастрация',
-      value: cat?.neuterDate,
+      value: neuterDate,
       color: 'text-warning'
     },
     {
