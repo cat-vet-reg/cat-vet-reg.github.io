@@ -47,6 +47,7 @@ const CatRegistrationForm = () => {
     castratedAt          : editingData?.castrated_at,
 
     inductionDose        : editingData?.induction_dose || "",
+    timeToSleep          : editingData?.time_to_sleep || "",
     hasInductionAdd      : editingData?.has_induction_add || false,
     inductionAddAmount   : editingData?.induction_add_amount || "",
     propofolUsed         : editingData?.propofol_used || false,
@@ -150,22 +151,23 @@ useEffect(() => {
 
   const complicationOptions = {
     female: [
-      { id: "intra_hem"         , label: "Интраоперативна хеморагия" },
-      { id: "ureter_trauma"     , label: "Ятрогенна травма на уретерите" },
-      { id: "post_hem"          , label: "Постоперативна хеморагия / Хемоабдомен" },
-      { id: "dehiscence"        , label: "Отваряне на раната (Dehiscence)" },
-      { id: "infection"         , label: "Инфекция на оперативната рана" },
-      { id: "stump_granuloma"   , label: "Синусни канали/ Грануломи на чукана (Sinus Tracts / Stump Granulomas)" },
-      { id: "remnant_syndrome"  , label: "Синдром на остатъчния яйчник" },
+      { id: "intra_hem"           , label: "Интраоперативна хеморагия" },
+      { id: "ureter_trauma"       , label: "Ятрогенна травма на уретерите" },
+      { id: "post_hem"            , label: "Постоперативна хеморагия / Хемоабдомен" },
+      { id: "dehiscence"          , label: "Отваряне на раната (Dehiscence)" },
+      { id: "infection"           , label: "Инфекция на оперативната рана" },
+      { id: "stump_granuloma"     , label: "Синусни канали/ Грануломи на чукана (Sinus Tracts / Stump Granulomas)" },
+      { id: "remnant_syndrome"    , label: "Синдром на остатъчния яйчник" },
+      { id: "mammary_hyperplasia" , label: "Хиперплазия на млечните жлези" },
     ],
     male: [
-      { id: "scrotal_swelling"  , label: "Подуване/контузия/хеморагия на скротума" },
-      { id: "abd_hem"           , label: "Абдоминална хеморагия" },
-      { id: "urethra_prostate"  , label: "Ятрогенна травма на уретрата/простатата" },
+      { id: "scrotal_swelling"    , label: "Подуване/контузия/хеморагия на скротума" },
+      { id: "abd_hem"             , label: "Абдоминална хеморагия" },
+      { id: "urethra_prostate"    , label: "Ятрогенна травма на уретрата/простатата" },
     ],
     general: [
-      { id: "lung_edema"        , label: "Белодробен оток" },
-      { id: "anesthesia_reac"   , label: "Алергична реакция към упойка" }
+      { id: "lung_edema"          , label: "Белодробен оток" },
+      { id: "anesthesia_reac"     , label: "Алергична реакция към упойка" }
     ]
   };
 
@@ -700,6 +702,16 @@ const handleSubmit = (e) => {
                       placeholder="Напр. 0.11"
                       value={formData.inductionDose}
                       onChange={(e) => handleInputChange("inductionDose", e.target.value)}
+                    />
+
+
+                    <Input
+                      label="След колко минути заспа котката?"
+                      type="number"
+                      step="0.5"
+                      placeholder="Напр. 5 мин"
+                      value={formData.timeToSleep}
+                      onChange={(e) => handleInputChange("timeToSleep", e.target.value)}
                     />
 
                     <Checkbox
