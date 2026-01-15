@@ -28,22 +28,31 @@ const CatRegistrationForm = () => {
   const isEditing = !!location.state?.isEditing;
 
   const [formData, setFormData] = useState({
-    recordName          : editingData?.name || "",
-    recordCity          : editingData?.location_city || "",
-    gender              : editingData?.gender || "",
-    weight              : editingData?.weight || "",
-    ageValue            : editingData?.age_value || "",
-    ageUnit             : editingData?.age_unit || "months",
-    recordNotes         : editingData?.notes || "",
-    color               : editingData?.color || "",
-    address             : editingData?.location_address || "",
-    ownerName           : editingData?.owner?.name || "",
-    ownerPhone          : editingData?.owner?.phone || "",
-    livingCondition     : editingData?.living_condition || "",
-    coords              : editingData?.map_coordinates || null,
-    hasComplications    : editingData?.has_complications,
-    recordComplications : editingData?.record_complications,
-    castratedAt         : editingData?.castrated_at
+    recordName           : editingData?.name || "",
+    recordCity           : editingData?.location_city || "",
+    gender               : editingData?.gender || "",
+    weight               : editingData?.weight || "",
+    ageValue             : editingData?.age_value || "",
+    ageUnit              : editingData?.age_unit || "months",
+    recordNotes          : editingData?.notes || "",
+    color                : editingData?.color || "",
+    address              : editingData?.location_address || "",
+    ownerName            : editingData?.owner?.name || "",
+    ownerPhone           : editingData?.owner?.phone || "",
+    livingCondition      : editingData?.living_condition || "",
+    coords               : editingData?.map_coordinates || null,
+    hasComplications     : editingData?.has_complications || "N",
+    selectedComplications: editingData?.selected_complications || [], // Добави това
+    recordComplications  : editingData?.record_complications || "",
+    castratedAt          : editingData?.castrated_at,
+
+    inductionDose        : editingData?.induction_dose || "",
+    hasInductionAdd      : editingData?.has_induction_add || false,
+    inductionAddAmount   : editingData?.induction_add_amount || "",
+    propofolUsed         : editingData?.propofol_used || false,
+    propofolTotalMl      : editingData?.propofol_total_ml || "",
+    propofolFirstMin     : editingData?.propofol_first_min || "",
+    surgeryDuration      : editingData?.surgery_duration || ""
   });
 
 useEffect(() => {
@@ -130,14 +139,35 @@ useEffect(() => {
   ];
 
   const ageUnitOptions = [
-    { value: "months", label: "Месеца" },
-    { value: "years", label: "Години" },
+    { value: "months" , label: "Месеца" },
+    { value: "years"  , label: "Години" },
   ];
 
   const breadcrumbItems = [
-    { label: "Табло", path: "/dashboard-overview" },
+    { label: "Табло"            , path: "/dashboard-overview" },
     { label: "Регистрирай котка", path: "/cat-registration-form" },
   ];
+
+  const complicationOptions = {
+    female: [
+      { id: "intra_hem"         , label: "Интраоперативна хеморагия" },
+      { id: "ureter_trauma"     , label: "Ятрогенна травма на уретерите" },
+      { id: "post_hem"          , label: "Постоперативна хеморагия / Хемоабдомен" },
+      { id: "dehiscence"        , label: "Отваряне на раната (Dehiscence)" },
+      { id: "infection"         , label: "Инфекция на оперативната рана" },
+      { id: "stump_granuloma"   , label: "Синусни канали/ Грануломи на чукана (Sinus Tracts / Stump Granulomas)" },
+      { id: "remnant_syndrome"  , label: "Синдром на остатъчния яйчник" },
+    ],
+    male: [
+      { id: "scrotal_swelling"  , label: "Подуване/контузия/хеморагия на скротума" },
+      { id: "abd_hem"           , label: "Абдоминална хеморагия" },
+      { id: "urethra_prostate"  , label: "Ятрогенна травма на уретрата/простатата" },
+    ],
+    general: [
+      { id: "lung_edema"        , label: "Белодробен оток" },
+      { id: "anesthesia_reac"   , label: "Алергична реакция към упойка" }
+    ]
+  };
 
   const handleImageChange = (e) => {
 
@@ -622,7 +652,7 @@ const handleSubmit = (e) => {
                   />
                 </FormSection>
                 
-                <FormSection title="Усложнения">
+                {/* <FormSection title="Усложнения">
                   <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 mb-2 block text-foreground">
                     Имаше ли усложнения?
                   </label>
@@ -656,6 +686,135 @@ const handleSubmit = (e) => {
                     }
                     error={errors?.recordComplications}
                   />
+                </FormSection> */}
+
+                <FormSection title="Анестезиологичен протокол">
+                  {/* ИНДУКЦИЯ */}
+                  <div className="space-y-4 p-4 border rounded-lg bg-slate-50/50">
+                    <h3 className="font-medium text-sm text-slate-700 uppercase tracking-wider">Индукция (TMB - Коктейл)</h3>
+                    
+                    <Input
+                      label="Индукционна доза (ml)"
+                      type="number"
+                      step="0.05"
+                      placeholder="Напр. 0.11"
+                      value={formData.inductionDose}
+                      onChange={(e) => handleInputChange("inductionDose", e.target.value)}
+                    />
+
+                    <Checkbox
+                      label="Наложи ли се добавяне на индукция (ре-индукция)?"
+                      checked={formData.hasInductionAdd}
+                      onChange={() => handleInputChange("hasInductionAdd", !formData.hasInductionAdd)}
+                    />
+
+                    {formData.hasInductionAdd && (
+                      <Input
+                        label="Колко мл бе добавката?"
+                        type="number"
+                        step="0.05"
+                        placeholder="Допълнително количество в мл"
+                        value={formData.inductionAddAmount}
+                        onChange={(e) => handleInputChange("inductionAddAmount", e.target.value)}
+                      />
+                    )}
+                  </div>
+
+                  {/* ПОДДРЪЖКА */}
+                  <div className="space-y-4 p-4 border rounded-lg bg-blue-50/30">
+                    <h3 className="font-medium text-sm text-blue-700 uppercase tracking-wider">Поддръжка (Пропофол)</h3>
+                    
+                    <Checkbox
+                      label="Използван ли е Пропофол по време на операция?"
+                      checked={formData.propofolUsed}
+                      onChange={() => handleInputChange("propofolUsed", !formData.propofolUsed)}
+                    />
+
+                    {formData.propofolUsed && (
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 animate-in fade-in duration-300">
+                        <Input
+                          label="Общо Пропофол (ml)"
+                          type="number"
+                          step="0.1"
+                          placeholder="Общо мл"
+                          value={formData.propofolTotalMl}
+                          onChange={(e) => handleInputChange("propofolTotalMl", e.target.value)}
+                        />
+                        <Input
+                          label="Първо добавяне (мин)"
+                          type="number"
+                          placeholder="На коя минута?"
+                          value={formData.propofolFirstMin}
+                          onChange={(e) => handleInputChange("propofolFirstMin", e.target.value)}
+                        />
+                      </div>
+                    )}
+                  </div>
+
+                  {/* ВРЕМЕТРАЕНЕ - Ключово за анализа */}
+                  <Input
+                    label="Продължителност на операцията (минути)"
+                    type="number"
+                    placeholder="От първия разрез до последния шев"
+                    value={formData.surgeryDuration}
+                    onChange={(e) => handleInputChange("surgeryDuration", e.target.value)}
+                    iconName="Clock"
+                  />
+                </FormSection>
+
+                <FormSection title="Медицински усложнения">
+                  <label className="text-sm font-medium mb-3 block text-foreground">
+                    Имаше ли усложнения?
+                  </label>
+                  
+                  <div className="flex gap-4 mb-4">
+                    <button
+                      type="button"
+                      onClick={() => handleInputChange("hasComplications", "N")}
+                      className={`px-4 py-2 rounded-md border transition-colors ${formData.hasComplications === 'N' ? 'bg-green-100 border-green-500 text-green-700' : 'bg-white text-slate-600'}`}
+                    >
+                      Не
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleInputChange("hasComplications", "Y")}
+                      className={`px-4 py-2 rounded-md border transition-colors ${formData.hasComplications === 'Y' ? 'bg-red-100 border-red-500 text-red-700' : 'bg-white text-slate-600'}`}
+                    >
+                      Да
+                    </button>
+                  </div>
+
+                  {formData.hasComplications === 'Y' && (
+                    <div className="space-y-4 animate-in fade-in slide-in-from-top-2 duration-300">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                        {/* ВНИМАНИЕ: Тук е фиксът - ползваме .general, а не целия обект */}
+                        {[...(complicationOptions[formData.gender] || []), ...complicationOptions.general].map((comp) => (
+                          <label key={comp.id} className="flex items-center space-x-2 p-3 border rounded-lg hover:bg-slate-50 cursor-pointer transition-colors">
+                            <input
+                              type="checkbox"
+                              checked={(formData.selectedComplications || []).includes(comp.id)}
+                              onChange={(e) => {
+                                const current = formData.selectedComplications || [];
+                                const updated = e.target.checked 
+                                  ? [...current, comp.id] 
+                                  : current.filter(item => item !== comp.id);
+                                handleInputChange("selectedComplications", updated);
+                              }}
+                              className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                            />
+                            <span className="text-sm font-medium text-slate-700">{comp.label}</span>
+                          </label>
+                        ))}
+                      </div>
+
+                      <Input
+                        label="Допълнителни бележки към усложненията"
+                        placeholder="Опишете детайли (напр. колко мл кръв, как е овладяно)..."
+                        value={formData.recordComplications}
+                        onChange={(e) => handleInputChange("recordComplications", e.target.value)}
+                      />
+                    </div>
+                  )}
                 </FormSection>
 
 
