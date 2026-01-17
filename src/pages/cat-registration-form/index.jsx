@@ -28,32 +28,49 @@ const CatRegistrationForm = () => {
   const isEditing = !!location.state?.isEditing;
 
   const [formData, setFormData] = useState({
-    recordName           : editingData?.name || "",
-    recordCity           : editingData?.location_city || "",
-    gender               : editingData?.gender || "",
-    weight               : editingData?.weight || "",
-    ageValue             : editingData?.age_value || "",
-    ageUnit              : editingData?.age_unit || "months",
-    recordNotes          : editingData?.notes || "",
-    color                : editingData?.color || "",
-    address              : editingData?.location_address || "",
-    ownerName            : editingData?.owner?.name || "",
-    ownerPhone           : editingData?.owner?.phone || "",
-    livingCondition      : editingData?.living_condition || "",
-    coords               : editingData?.map_coordinates || null,
-    hasComplications     : editingData?.has_complications || "N",
-    selectedComplications: editingData?.selected_complications || [], // Добави това
-    recordComplications  : editingData?.record_complications || "",
-    castratedAt          : editingData?.castrated_at,
+    ownerName             : editingData?.owner?.name || "",
+    ownerPhone            : editingData?.owner?.phone || "",
+    donation              : editingData?.donation || "N",
 
-    inductionDose        : editingData?.induction_dose || "",
-    timeToSleep          : editingData?.time_to_sleep || "",
-    hasInductionAdd      : editingData?.has_induction_add || false,
-    inductionAddAmount   : editingData?.induction_add_amount || "",
-    propofolUsed         : editingData?.propofol_used || false,
-    propofolTotalMl      : editingData?.propofol_total_ml || "",
-    propofolFirstMin     : editingData?.propofol_first_min || "",
-    surgeryDuration      : editingData?.surgery_duration || ""
+    // Данни на КТ
+    recordName            : editingData?.name || "",
+    gender                : editingData?.gender || "",
+    weight                : editingData?.weight || "",
+    ageValue              : editingData?.age_value || "",
+    ageUnit               : editingData?.age_unit || "months",
+    color                 : editingData?.color || "",
+    recordNotes           : editingData?.notes || "",
+    recordCity            : editingData?.location_city || "",
+    address               : editingData?.location_address || "",
+    livingCondition       : editingData?.living_condition || "",
+    coords                : editingData?.map_coordinates || null,
+    
+    castratedAt           : editingData?.castrated_at,
+    isAlreadyCastrated    : editingData?.is_already_castrated || "N",
+
+    // Усложнения
+    hasComplications      : editingData?.has_complications || "N",
+    selectedComplications : editingData?.selected_complications || [],
+    recordComplications   : editingData?.record_complications || "",
+
+    // Анестезиология
+    inductionDose         : editingData?.induction_dose || "",
+    timeToSleep           : editingData?.time_to_sleep || "",
+    hasInductionAdd       : editingData?.has_induction_add || false,
+    inductionAddAmount    : editingData?.induction_add_amount || "",
+    propofolUsed          : editingData?.propofol_used || false,
+    propofolTotalMl       : editingData?.propofol_total_ml || "",
+    propofolFirstMin      : editingData?.propofol_first_min || "",
+    surgeryDuration       : editingData?.surgery_duration || "",
+
+    // Сегашен статус, репродуктивен статус
+    status                : editingData?.status || "received",
+    staffReceived         : editingData?.staff_received || "",
+    staffSurgeon          : editingData?.staff_surgeon || "",
+    staffReleased         : editingData?.staff_released || "",
+    earStatus             : editingData?.ear_status || "marked",
+    parasites             : editingData?.parasites || "none",
+    reproductiveStatus    : editingData?.reproductive_status || "none_visible"
   });
 
 useEffect(() => {
@@ -78,23 +95,50 @@ useEffect(() => {
     }
 
     setFormData({
+      ownerName           : editingData.owner?.name || editingData.owner_name || "",
+      ownerPhone          : editingData.owner?.phone || editingData.owner_phone || "",
+      donation            : editingData.donation || "",
+      
       recordName          : editingData.name || "",
-      recordCity          : editingData.location_city || "",
       gender              : editingData.gender || "",
       weight              : editingData.weight || "",
       ageValue            : editingData.age_value || "",
       ageUnit             : editingData.age_unit || "months",
-      recordNotes         : editingData.notes || "",
       color               : editingData.color || "",
+      recordNotes         : editingData.notes || "",
+      recordCity          : editingData.location_city || "",
       address             : editingData.location_address || "",
-      ownerName           : editingData.owner?.name || editingData.owner_name || "",
-      ownerPhone          : editingData.owner?.phone || editingData.owner_phone || "",
       livingCondition     : editingData.living_condition || "",
       coords              : foundCoords,
+
       imagePreview        : data.publicUrl || "",
-      hasComplications    : editingData?.has_complications,
-      recordComplications : editingData?.record_complications,
-      castratedAt         : editingData?.castrated_at
+      
+      castratedAt         : editingData?.castrated_at || "",
+      isAlreadyCastrated  : editingData?.is_already_castrated || "N",
+    
+      hasComplications      : editingData?.has_complications || "N",
+      selectedComplications : editingData?.selected_complications || [],
+      recordComplications   : editingData?.record_complications || "",
+    
+    // Сегашен статус, репродуктивен статус
+      status              : editingData?.status || "received",
+      staffReceived       : editingData?.staff_received || "",
+      staffSurgeon        : editingData?.staff_surgeon || "",
+      staffReleased       : editingData?.staff_released || "",
+      earStatus           : editingData?.ear_status || "marked",
+      parasites           : editingData?.parasites || "none",
+      reproductiveStatus  : editingData?.reproductive_status || "none_visible",
+      
+      // Анестезиология
+      inductionDose       : editingData?.induction_dose || "",
+      timeToSleep         : editingData?.time_to_sleep || "",
+      hasInductionAdd     : editingData?.has_induction_add || false,
+      inductionAddAmount  : editingData?.induction_add_amount || "",
+      propofolUsed        : editingData?.propofol_used || false,
+      propofolTotalMl     : editingData?.propofol_total_ml || "",
+      propofolFirstMin    : editingData?.propofol_first_min || "",
+      surgeryDuration     : editingData?.surgery_duration || ""
+    
     });
     
     console.log("Данни за редактиране:", editingData);
@@ -103,6 +147,24 @@ useEffect(() => {
     }
   }
 }, [editingData]);
+
+useEffect(() => {
+  // Проверяваме дали сме в режим на нова регистрация (няма редактиране) 
+  // ИЛИ ако полето за доза е празно в момента.
+  // Така не прецакваме старите записи при отваряне за преглед.
+  if (!isEditing || !formData.inductionDose) {
+    if (formData.gender === "female") {
+      handleInputChange("inductionDose", "0.11");
+    } else if (formData.gender === "male") {
+      handleInputChange("inductionDose", "0.12");
+    }
+  }
+  if (formData.gender === "female") {
+     handleInputChange("reproductiveStatus", "none_visible");
+  } else if (formData.gender === "male") {
+     handleInputChange("reproductiveStatus", ""); // Или стойност по подразбиране за мъжки
+  }
+}, [formData.gender]);
 
   const [coordinates, setCoordinates] = useState(editingData?.map_coordinates || null);
 
@@ -120,7 +182,7 @@ useEffect(() => {
 
   const colorOptions = [
     // Patterns
-    { value: "tabby"        , label: "Таби (тигрова)" },
+    { value: "tabby", label: "Таби (тигрова)" },
 
     // Bi-color & multi-color
     { value: 'tabby_white'  , label: 'Таби-бяла (бяла с тигрово)' },
@@ -130,13 +192,13 @@ useEffect(() => {
     { value: 'orange_white' , label: 'Рижо-бяла' },
 
     // Solid colors
-    { value: 'orange'       , label: 'Рижа' },
-    { value: 'black'        , label: 'Черна' },
-    { value: 'white'        , label: 'Бяла' },
-    { value: 'gray'         , label: 'Сива (Синя)' },
-    { value: 'brown'        , label: 'Кафява' },
-    { value: 'cinnamon'     , label: 'Светлокафява' },
-    { value: 'fawn'         , label: 'Бежова' },
+    { value: 'orange'   , label: 'Рижа' },
+    { value: 'black'    , label: 'Черна' },
+    { value: 'white'    , label: 'Бяла' },
+    { value: 'gray'     , label: 'Сива (Синя)' },
+    { value: 'brown'    , label: 'Кафява' },
+    { value: 'cinnamon' , label: 'Светлокафява' },
+    { value: 'fawn'     , label: 'Бежова' },
   ];
 
   const ageUnitOptions = [
@@ -145,8 +207,8 @@ useEffect(() => {
   ];
 
   const breadcrumbItems = [
-    { label: "Табло"            , path: "/dashboard-overview" },
-    { label: "Регистрирай котка", path: "/cat-registration-form" },
+    { label: "Табло"              , path: "/dashboard-overview" },
+    { label: "Регистрирай котка"  , path: "/cat-registration-form" },
   ];
 
   const complicationOptions = {
@@ -159,6 +221,7 @@ useEffect(() => {
       { id: "stump_granuloma"     , label: "Синусни канали/ Грануломи на чукана (Sinus Tracts / Stump Granulomas)" },
       { id: "remnant_syndrome"    , label: "Синдром на остатъчния яйчник" },
       { id: "mammary_hyperplasia" , label: "Хиперплазия на млечните жлези" },
+      { id: "mammary_hyperplasia" , label: "Хиперплазия на млечните жлези" },
     ],
     male: [
       { id: "scrotal_swelling"    , label: "Подуване/контузия/хеморагия на скротума" },
@@ -170,6 +233,38 @@ useEffect(() => {
       { id: "anesthesia_reac"     , label: "Алергична реакция към упойка" }
     ]
   };
+
+  const staffOptions = [
+    { value: "dr_taneva"        , label: "д-р Танева" },
+    { value: "dr_dimitrova"     , label: "д-р Димитрова" },
+    { value: "yana"             , label: "Яна Янкова" },
+  ];
+
+  const reproductiveOptions = {
+    female: [
+      { value: "baby"             , label: "Бебешка матка" },
+      { value: "heat"             , label: "Разгонена" },
+      { value: "early_pregnancy"  , label: "Начална бременност" },
+      { value: "late_pregnancy"   , label: "Напреднала бременност" },
+      { value: "post_pregnancy"   , label: "След бременност (кърмеща/родила)" },
+      { value: "none_visible"     , label: "Няма следи от бременност" },
+      { value: "mucometra"        , label: "Мукометра" },
+      { value: "pyometra"         , label: "Пиометра" },
+      { value: "ovarian_cyst"     , label: "Киста на яйчника" },
+    ],
+    male: [
+      { value: "unilateral_cryptorchidism"  , label: "Едностранен крипторхизъм" },
+      { value: "bilateral_cryptorchidism"   , label: "Двустранен крипторхизъм" },
+      { value: "monorchidism"               , label: "Монорхидизъм" }
+    ]
+  };
+
+  const parasiteOptions = [
+    { id: 'fleas' , label: 'Бълхи' },
+    { id: 'ticks' , label: 'Кърлежи' },
+    { id: 'worms' , label: 'Глисти' },
+    { id: 'none'  , label: 'Няма видими' },
+  ];
 
   const handleImageChange = (e) => {
 
@@ -241,20 +336,32 @@ useEffect(() => {
     }
   };
 
+  const handleParasiteChange = (parasiteId) => {
+  let currentParasites = Array.isArray(formData.parasites) ? [...formData.parasites] : [];
+  
+  // Ако изберем "Няма видими", изчистваме всичко останало
+  if (parasiteId === 'none') {
+    currentParasites = ['none'];
+  } else {
+    // Ако изберем нещо друго, махаме "Няма видими" от списъка
+    currentParasites = currentParasites.filter(p => p !== 'none');
+    
+    if (currentParasites.includes(parasiteId)) {
+      currentParasites = currentParasites.filter(p => p !== parasiteId);
+    } else {
+      currentParasites.push(parasiteId);
+    }
+  }
+  
+  handleInputChange("parasites", currentParasites);
+};
+
   const validateForm = () => {
     const newErrors = {};
 
     if (!formData?.gender) {
       newErrors.gender = "Изберете пол";
     }
-
-    // if (!formData?.weight) {
-    //   newErrors.weight = 'Теглото е задължително';
-    // } else if (parseFloat(formData?.weight) <= 0) {
-    //   newErrors.weight = 'Теглото трябва да е по-голямо от 0';
-    // } else if (parseFloat(formData?.weight) > 50) {
-    //   newErrors.weight = 'Тегло';
-    // }
 
     if (!formData?.ageValue) {
       newErrors.ageValue = "Въведете възраст";
@@ -283,52 +390,9 @@ useEffect(() => {
       newErrors.recordCity = "Изберете населено място";
     }
 
-    // if (!formData?.ownerName?.trim()) {
-    //   newErrors.ownerName = 'Въведете име на собственик';
-    // }
-
-    // if (!formData?.ownerPhone?.trim()) {
-    //   newErrors.ownerPhone = 'Въведете телефон за контакт';
-    // }
-    // else if (!/^\+?[\d\s\-()]{10,}$/?.test(formData?.ownerPhone)) {
-    //   newErrors.ownerPhone = 'Please enter a valid phone number';
-    // }
-
     setErrors(newErrors);
     return Object.keys(newErrors)?.length === 0;
   };
-
-  // const handleSubmit = (e) => {
-  //   e?.preventDefault();
-
-  //   if (!validateForm()) {
-  //     return;
-  //   }
-
-  //   setIsSubmitting(true);
-
-  //   setTimeout(async () => {
-  //     const finalColor = formData?.color === "custom" ? formData?.customColor : formData?.color;
-
-  //     setRegisteredCatData({
-  //       gender        : formData?.gender,
-  //       weight        : formData?.weight,
-  //       ageValue      : formData.ageValue,
-  //       ageUnit       : formData.ageUnit,
-  //       color         : finalColor,
-  //       address       : formData?.address,
-  //       ownerName     : formData?.ownerName,
-  //       ownerPhone    : formData?.ownerPhone,
-  //       coordinates   : coordinates,
-  //       registeredAt  : new Date()?.toISOString(),
-  //     });
-
-  //     setIsSubmitting(false);
-  //     setShowSuccessModal(true);
-      
-  //     await $apiCreateNewRecord(formData);
-  //   }, 2000);
-  // };
 
 const handleSubmit = (e) => {
   e?.preventDefault();
@@ -368,6 +432,7 @@ const handleSubmit = (e) => {
         address     : "",
         ownerName   : "",
         ownerPhone  : "",
+        donation    : "N",
         recordNotes : "",
       });
 
@@ -485,6 +550,28 @@ const handleSubmit = (e) => {
                     }
                     error={errors?.ownerPhone}
                   />
+
+                  <label className="text-sm font-medium mb-3 block text-foreground">
+                    Оставено ли бе дарение?
+                  </label>
+                  
+                  <div className="flex gap-4 mb-4">
+                    <button
+                      type="button"
+                      onClick={() => handleInputChange("donation", "N")}
+                      className={`px-4 py-2 rounded-md border transition-colors ${formData.donation === 'N' ? 'bg-green-100 border-green-500 text-green-700' : 'bg-white text-slate-600'}`}
+                    >
+                      Не
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleInputChange("donation", "Y")}
+                      className={`px-4 py-2 rounded-md border transition-colors ${formData.donation === 'Y' ? 'bg-red-100 border-red-500 text-red-700' : 'bg-white text-slate-600'}`}
+                    >
+                      Да
+                    </button>
+                  </div>
+
                 </FormSection>
 
                 <FormSection title="Основна информация">
@@ -560,7 +647,7 @@ const handleSubmit = (e) => {
                   <Input
                     label="Бележки"
                     type="text"
-                    placeholder="Открити заболявания, усложнения и др..."
+                    placeholder="Открити заболявания, недъзи и др..."
                     value={formData?.recordNotes}
                     onChange={(e) =>
                       handleInputChange("recordNotes", e?.target?.value)
@@ -642,63 +729,42 @@ const handleSubmit = (e) => {
                     Котката беше ли вече кастрирана?
                   </label>
 
-                  <Checkbox
-                    label="да"
-                    onChange={(e) => onCheckLocation("neuter_yes")}
-                    checked={livingConditions.has("neuter_yes")}
-                  />
-                  <Checkbox
-                    label="не"
-                    onChange={(e) => onCheckLocation("neuter_no")}
-                    checked={livingConditions.has("neuter_no")}
-                  />
+                  <div className="flex gap-4 mb-4">
+                    <button
+                      type="button"
+                      onClick={() => handleInputChange("isAlreadyCastrated", "N")}
+                      className={`px-6 py-2 rounded-md border transition-all ${
+                        formData.isAlreadyCastrated === 'N' 
+                          ? 'bg-slate-100 border-slate-500 text-slate-700 font-bold' 
+                          : 'bg-white text-slate-400 border-slate-200'
+                      }`}
+                    >
+                      Не
+                    </button>
+                    
+                    <button
+                      type="button"
+                      onClick={() => handleInputChange("isAlreadyCastrated", "Y")}
+                      className={`px-6 py-2 rounded-md border transition-all ${
+                        formData.isAlreadyCastrated === 'Y' 
+                          ? 'bg-blue-100 border-blue-500 text-blue-700 font-bold' 
+                          : 'bg-white text-slate-400 border-slate-200'
+                      }`}
+                    >
+                      Да
+                    </button>
+                  </div>
                 </FormSection>
                 
-                {/* <FormSection title="Усложнения">
-                  <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 mb-2 block text-foreground">
-                    Имаше ли усложнения?
-                  </label>
-                  
-                  <Input
-                    type="radio"
-                    name="a"
-                    label="да"
-                    description="Да"
-                    onChange={(e) => processRadio("hasComplications", "Y")}
-                    checked={formData.hasComplications == 'Y'}
-                  /> <span>Да, наблюдават се</span>
-                  <br></br>
-                  <Input
-                    type="radio"
-                    name="a"
-                    label="не"
-                    description="Не"
-                    onChange={(e) => processRadio("hasComplications", "N")}
-                    checked={formData.hasComplications == 'N'}
-                  /> 
-                  <span>Не, не се наблюдават</span>
-
-                  <Input
-                    label="Опиши усложненията:"
-                    type="text"
-                    placeholder="Периоперативни, постоперативни и др..."
-                    value={formData?.recordComplications}
-                    onChange={(e) =>
-                      handleInputChange("recordComplications", e?.target?.value)
-                    }
-                    error={errors?.recordComplications}
-                  />
-                </FormSection> */}
-
                 <FormSection title="Анестезиологичен протокол">
                   {/* ИНДУКЦИЯ */}
                   <div className="space-y-4 p-4 border rounded-lg bg-slate-50/50">
                     <h3 className="font-medium text-sm text-slate-700 uppercase tracking-wider">Индукция (TMB - Коктейл)</h3>
                     
                     <Input
-                      label="Индукционна доза (ml)"
+                      label="Индукционна доза (мл)"
                       type="number"
-                      step="0.05"
+                      step="0.01"
                       placeholder="Напр. 0.11"
                       value={formData.inductionDose}
                       onChange={(e) => handleInputChange("inductionDose", e.target.value)}
@@ -772,6 +838,83 @@ const handleSubmit = (e) => {
                     onChange={(e) => handleInputChange("surgeryDuration", e.target.value)}
                     iconName="Clock"
                   />
+                </FormSection>
+
+                <FormSection title="Сегашен статус и отчетност">
+                  {/* СТАТУС В РЕАЛНО ВРЕМЕ */}
+                  <div className="mb-6">
+                    <label className="text-sm font-medium mb-3 block text-foreground">Статус на животното</label>
+                    <div className="flex flex-wrap gap-2">
+                      {[
+                        { id: 'received'  , label: 'Прието'         , color: 'bg-slate-100 text-slate-700' },
+                        { id: 'prep'      , label: 'Подготовка'     , color: 'bg-blue-100 text-blue-700' },
+                        { id: 'surgery'   , label: 'В операция'     , color: 'bg-red-100 text-red-700' },
+                        { id: 'recovery'  , label: 'Възстановяване' , color: 'bg-amber-100 text-amber-700' },
+                        { id: 'released'  , label: 'Върнато'        , color: 'bg-green-100 text-green-700' }
+                      ].map((s) => (
+                        <button
+                          key={s.id}
+                          type="button"
+                          onClick={() => handleInputChange("status", s.id)}
+                          className={`px-3 py-1.5 rounded-full text-xs font-bold border transition-all ${
+                            formData.status === s.id ? `${s.color} border-current ring-2 ring-offset-1 ring-current` : 'bg-white border-slate-200 text-slate-400'
+                          }`}
+                        >
+                          {s.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* ПЕРСОНАЛ */}
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                    <Select
+                      label="Приел"
+                      options={staffOptions}
+                      value={formData.staffReceived}
+                      onChange={(val) => handleInputChange("staffReceived", val)}
+                    />
+                    <Select
+                      label="Оперирал"
+                      options={staffOptions}
+                      value={formData.staffSurgeon}
+                      onChange={(val) => handleInputChange("staffSurgeon", val)}
+                    />
+                    <Select
+                      label="Издал"
+                      options={staffOptions}
+                      value={formData.staffReleased}
+                      onChange={(val) => handleInputChange("staffReleased", val)}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium block">Паразити</label>
+                    <div className="grid grid-cols-2 gap-2 border p-3 rounded-md bg-slate-50/50">
+                      {parasiteOptions.map((opt) => (
+                        <Checkbox 
+                          key={opt.id}
+                          label={opt.label} 
+                          checked={Array.isArray(formData.parasites) && formData.parasites.includes(opt.id)} 
+                          onChange={() => handleParasiteChange(opt.id)} 
+                        />
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* ПОЛОВ СТАТУС - Динамичен спрямо пола */}
+                    {(formData.gender === 'female' || formData.gender === 'male') && (
+                      <div className="animate-in slide-in-from-right-2 duration-300">
+                        <Select
+                          label="Репродуктивен статус"
+                          // Тук вземаме списъка според избрания пол: female или male
+                          options={reproductiveOptions[formData.gender]} 
+                          value={formData.reproductiveStatus}
+                          onChange={(val) => handleInputChange("reproductiveStatus", val)}
+                          placeholder="Изберете статус..."
+                        />
+                      </div>
+                    )}
                 </FormSection>
 
                 <FormSection title="Медицински усложнения">
