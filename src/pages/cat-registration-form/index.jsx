@@ -36,6 +36,7 @@ const CatRegistrationForm = () => {
     recordName            : editingData?.name || "",
     gender                : editingData?.gender || "",
     weight                : editingData?.weight || "",
+    bcsScore              : editingData?.bcs_score || "5",
     ageValue              : editingData?.age_value || "",
     ageUnit               : editingData?.age_unit || "months",
     color                 : editingData?.color || "",
@@ -162,7 +163,7 @@ useEffect(() => {
   if (formData.gender === "female") {
      handleInputChange("reproductiveStatus", "none_visible");
   } else if (formData.gender === "male") {
-     handleInputChange("reproductiveStatus", ""); // Или стойност по подразбиране за мъжки
+     handleInputChange("reproductiveStatus", "none_visible"); // Или стойност по подразбиране за мъжки
   }
 }, [formData.gender]);
 
@@ -204,6 +205,14 @@ useEffect(() => {
   const ageUnitOptions = [
     { value: "months" , label: "Месеца" },
     { value: "years"  , label: "Години" },
+  ];
+
+  const bcsOptions = [
+    { value: "1", label: "1 - Силно измършавяла", color: "bg-red-500" },
+    { value: "3", label: "3 - Поднормено тегло", color: "bg-yellow-400" },
+    { value: "5", label: "5 - Идеално тегло", color: "bg-green-500" },
+    { value: "7", label: "7 - Наднормено тегло", color: "bg-orange-400" },
+    { value: "9", label: "9 - Затлъстяване", color: "bg-red-600" },
   ];
 
   const breadcrumbItems = [
@@ -253,9 +262,10 @@ useEffect(() => {
       { value: "ovarian_cyst"     , label: "Киста на яйчника" },
     ],
     male: [
-      { value: "unilateral_cryptorchidism"  , label: "Едностранен крипторхизъм" },
-      { value: "bilateral_cryptorchidism"   , label: "Двустранен крипторхизъм" },
-      { value: "monorchidism"               , label: "Монорхидизъм" }
+      { value: "none_visible"       , label: "Нормален" },
+      { value: "unilateral_crypto"  , label: "Едностранен крипторхизъм" },
+      { value: "bilateral_crypto"   , label: "Двустранен крипторхизъм" },
+      { value: "monorchidism"       , label: "Монорхидизъм" }
     ]
   };
 
@@ -609,6 +619,33 @@ const handleSubmit = (e) => {
                     }
                     error={errors?.weight}
                   />
+                  
+                  <label>Телесно състояние (BCS 1-9)</label>
+                    <div className="space-y-4">
+                      <div className="flex justify-between items-center gap-1">
+                        {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((score) => (
+                          <button
+                            key={score}
+                            type="button"
+                            onClick={() => handleInputChange("bcsScore", score.toString())}
+                            className={`flex-1 py-3 text-sm font-bold rounded-md transition-all ${
+                              formData.bcsScore === score.toString()
+                                ? "bg-primary text-white ring-2 ring-offset-2 ring-primary scale-110"
+                                : "bg-slate-100 text-slate-500 hover:bg-slate-200"
+                            }`}
+                          >
+                            {score}
+                          </button>
+                        ))}
+                      </div>
+                      
+                      {/* Описание на избраното състояние */}
+                      <div className="p-3 rounded-lg bg-slate-50 border border-slate-200 text-center">
+                        {formData.bcsScore <= 3 && <p className="text-yellow-700 font-medium">⚠️ Поднормено: Видими ребра, без мазнини.</p>}
+                        {(formData.bcsScore == 4 || formData.bcsScore == 5) && <p className="text-green-700 font-medium">✅ Идеално: Ребрата се палпират, ясна талия.</p>}
+                        {formData.bcsScore >= 6 && <p className="text-red-700 font-medium">⚠️ Наднормено: Трудно палпируеми ребра, липса на талия.</p>}
+                      </div>
+                    </div>
 
                   <div className="grid grid-cols-2 gap-4">
                     <Input
@@ -886,6 +923,22 @@ const handleSubmit = (e) => {
                       value={formData.staffReleased}
                       onChange={(val) => handleInputChange("staffReleased", val)}
                     />
+                  </div>
+
+                  <div>
+                    <label className="text-sm font-medium mb-2 block">Маркировка на ухото</label>
+                    <div className="grid grid-cols-2 gap-2 border p-3 rounded-md bg-slate-50/50">
+                      <Checkbox 
+                        label="Маркирано (V-образно)" 
+                        checked={formData.earStatus === 'marked'} 
+                        onChange={() => handleInputChange("earStatus", "marked")} 
+                      />
+                      <Checkbox 
+                        label="Немаркирано" 
+                        checked={formData.earStatus === 'unmarked'} 
+                        onChange={() => handleInputChange("earStatus", "unmarked")} 
+                      />
+                    </div>
                   </div>
 
                   <div className="space-y-2">
