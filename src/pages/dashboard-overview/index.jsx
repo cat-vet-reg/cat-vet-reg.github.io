@@ -10,7 +10,45 @@ import MiniMap from './components/MiniMap';
 import SearchBar from './components/SearchBar';
 import Icon from '../../components/AppIcon';
 import { $apiGetCats } from '../../services/create_new_record';
+import { complicationOptions } from '../../constants/formOptions';
 
+// Можеш да ползваш обикновен div с прогрес барове, ако не искаш външни библиотеки веднага
+const ComplicationsSimpleChart = ({ data }) => {
+  // Ако няма данни, показваме съобщение вместо нищо
+  if (!data || data.length === 0) {
+    return (
+      <div className="bg-card rounded-xl shadow-warm p-6 mb-8 border border-dashed border-slate-300">
+        <h2 className="text-xl font-semibold mb-2 text-foreground">Топ усложнения</h2>
+        <p className="text-muted-foreground text-sm italic">В момента няма записани специфични усложнения в базата данни.</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="bg-card rounded-xl shadow-warm p-6 mb-8 border border-destructive/10">
+      <h2 className="text-xl font-semibold mb-4 text-foreground flex items-center gap-2">
+        <span className="w-2 h-6 bg-destructive rounded-full"></span>
+        Анализ на усложненията
+      </h2>
+      <div className="space-y-4">
+        {data.slice(0, 5).map((item, index) => (
+          <div key={index}>
+            <div className="flex justify-between text-sm mb-1">
+              <span className="text-muted-foreground font-medium">{item.name}</span>
+              <span className="text-foreground">{item.count} случая</span>
+            </div>
+            <div className="w-full bg-slate-100 rounded-full h-2 text-[0px]">
+              <div 
+                className="bg-destructive h-2 rounded-full transition-all duration-500" 
+                style={{ width: `${Math.max((item.count / 10) * 100, 5)}%` }} // Минимум 5% за да се вижда
+              ></div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
 
 const DashboardOverview = () => {
   const navigate = useNavigate();
@@ -19,19 +57,27 @@ const DashboardOverview = () => {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-const loadData = async () => {
-      try {
-        const response = await $apiGetCats();
-        setRealCats(response.data || []);
-      } catch (err) {
-        console.error("Грешка при зареждане на таблото:", err);
-      } finally {
-        setIsLoading(false);
-      }
-    };
+    const loadData = async () => {
+          try {
+            const response = await $apiGetCats();
+            setRealCats(response.data || []);
+          } catch (err) {
+            console.error("Грешка при зареждане на таблото:", err);
+          } finally {
+            setIsLoading(false);
+          }
+        };
 
-    loadData();
+        loadData();
   }, []);
+
+
+  useEffect(() => {
+    if (realCats.length > 0) {
+      console.log("Първа котка от базата:", realCats[0]);
+      console.log("Усложнения на първата котка:", realCats[0].selected_complications);
+    }
+  }, [realCats]);
 
   // 2. Изчисляване на динамичните статистики (useMemo ги преизчислява само при промяна на realCats)
   const stats = useMemo(() => {
@@ -73,7 +119,51 @@ const loadData = async () => {
     }).length;
     const rate = total > 0 ? ((hasComplicationsCount / total) * 100).toFixed(1) : 0;
 
-    return { total, recent, locations: totalLocationsCount, newLocations: newLocationsCount, rate };
+
+    // --- ДАННИ ЗА ДИАГРАМА ---
+    const counts = {};
+    
+    realCats.forEach(cat => {
+      // 1. Проверяваме всички възможни имена на полето, които видяхме в твоя код
+      const selected = cat?.selected_complications || cat?.selectedComplications || [];
+      
+      // 2. Уверяваме се, че работим с масив
+      let complicationsArray = [];
+      if (Array.isArray(selected)) {
+        complicationsArray = selected;
+      } else if (typeof selected === 'string' && selected.startsWith('[')) {
+        try {
+          complicationsArray = JSON.parse(selected);
+        } catch (e) {
+          complicationsArray = [];
+        }
+      }
+
+      // 3. Броим
+      complicationsArray.forEach(id => {
+        if (id) {
+          counts[id] = (counts[id] || 0) + 1;
+        }
+      });
+    });
+
+    // Взимаме етикетите от formOptions
+    const allOptions = [
+      ...(complicationOptions?.female || []),
+      ...(complicationOptions?.male || []),
+      ...(complicationOptions?.general || [])
+    ];
+
+    const complicationsChartData = Object.keys(counts).map(id => {
+      const option = allOptions.find(opt => opt.id === id);
+      return { 
+        name: option ? option.label : id, 
+        count: counts[id] 
+      };
+    }).sort((a, b) => b.count - a.count);
+
+    // ВАЖНО: Ако масивът е празен, връщаме празен масив за компонента
+    return { total, recent, locations: totalLocationsCount, newLocations: newLocationsCount, rate, complicationsChartData };
   }, [realCats]);
 
   const statsData = [
@@ -110,7 +200,6 @@ const loadData = async () => {
       iconColor: stats.rate > 5 ? "var(--color-destructive)" : "var(--color-warning)"
   }];
 
-
   const quickActions = [
   {
     title: "Регистрирай Нова Котка",
@@ -133,7 +222,6 @@ const loadData = async () => {
     iconColor: "var(--color-accent)",
     path: "/cat-registry-list"
   }];
-
 
   const registrationHotspots = [
   { area: "Пловдив", count: 89, color: "var(--color-primary)" },
@@ -174,6 +262,7 @@ const loadData = async () => {
             )}
           </div>
 
+          <ComplicationsSimpleChart data={stats.complicationsChartData} />
          
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
             <div className="lg:col-span-2">
