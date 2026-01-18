@@ -49,13 +49,13 @@ const CatRegistrationForm = () => {
   const [formData, setFormData] = useState({
     ownerName             : editingData?.owner?.name || "",
     ownerPhone            : editingData?.owner?.phone || "",
-    donation              : editingData?.donation || "N",
+    donation              : editingData?.data?.donation || "N",
 
     // Данни на КТ
     recordName            : editingData?.name || "",
     gender                : editingData?.gender || "",
     weight                : editingData?.weight || "",
-    bcsScore              : editingData?.bcs_score || "5",
+    bcsScore              : editingData?.data?.bcsScore || "5",
     ageValue              : editingData?.age_value || "",
     ageUnit               : editingData?.age_unit || "months",
     color                 : editingData?.color || "",
@@ -65,11 +65,11 @@ const CatRegistrationForm = () => {
     livingCondition       : editingData?.living_condition || "",
     coords                : editingData?.map_coordinates || null,
     
-    breed                 : editingData?.breed || "european",
-    outdoorAccess         : editingData?.outdoor_access || "Y", 
-    origin                : editingData?.origin || "street", 
-    generalCondition      : editingData?.general_condition || "good",
-    discoverySource       : editingData?.discovery_source || "friends",
+    breed                 : editingData?.data?.breed || "european",
+    outdoorAccess         : editingData?.data?.outdoorAccess || "Y", 
+    origin                : editingData?.data?.origin || "street", 
+    generalCondition      : editingData?.data?.generalCondition || "good",
+    discoverySource       : editingData?.data?.discoverySource || "friends",
 
     castratedAt           : editingData?.castrated_at,
     isAlreadyCastrated    : editingData?.is_already_castrated || "N",
@@ -80,23 +80,23 @@ const CatRegistrationForm = () => {
     recordComplications   : editingData?.record_complications || "",
 
     // Анестезиология
-    inductionDose         : editingData?.induction_dose || "",
-    timeToSleep           : editingData?.time_to_sleep || "",
-    hasInductionAdd       : editingData?.has_induction_add || false,
-    inductionAddAmount    : editingData?.induction_add_amount || "",
-    propofolUsed          : editingData?.propofol_used || false,
-    propofolTotalMl       : editingData?.propofol_total_ml || "",
-    propofolFirstMin      : editingData?.propofol_first_min || "",
-    surgeryDuration       : editingData?.surgery_duration || "",
+    inductionDose         : editingData?.data?.inductionDose || "",
+    timeToSleep           : editingData?.data?.timeToSleep || "",
+    hasInductionAdd       : editingData?.data?.hasInductionAdd || false,
+    inductionAddAmount    : editingData?.data?.inductionAddAmount || "",
+    propofolUsed          : editingData?.data?.propofolUsed || false,
+    propofolTotalMl       : editingData?.data?.propofolTotalMl || "",
+    propofolFirstMin      : editingData?.data?.propofolFirstMin || "",
+    surgeryDuration       : editingData?.data?.surgeryDuration || "",
 
     // Сегашен статус, репродуктивен статус
-    status                : editingData?.status || "recorded",
-    staffReceived         : editingData?.staff_received || "",
-    staffSurgeon          : editingData?.staff_surgeon || "",
-    staffReleased         : editingData?.staff_released || "",
-    earStatus             : editingData?.ear_status || "",
-    parasites             : editingData?.parasites || "none",
-    reproductiveStatus    : editingData?.reproductive_status || "none_visible"
+    status                : editingData?.data?.status || "recorded",
+    staffReceived         : editingData?.data?.staffReceived || "",
+    staffSurgeon          : editingData?.data?.staffSurgeon || "",
+    staffReleased         : editingData?.data?.staffReleased || "",
+    earStatus             : editingData?.data?.earStatus || "",
+    parasites             : editingData?.data?.parasites || "none",
+    reproductiveStatus    : editingData?.data?.reproductiveStatus || "none_visible"
   });
 
 useEffect(() => {
@@ -123,48 +123,55 @@ useEffect(() => {
     setFormData({
       ownerName           : editingData.owner?.name || editingData.owner_name || "",
       ownerPhone          : editingData.owner?.phone || editingData.owner_phone || "",
-      donation            : editingData.donation || "",
+      donation            : editingData?.data?.donation || "",
       
-      recordName          : editingData.name || "",
-      gender              : editingData.gender || "",
-      weight              : editingData.weight || "",
-      ageValue            : editingData.age_value || "",
-      ageUnit             : editingData.age_unit || "months",
-      color               : editingData.color || "",
-      recordNotes         : editingData.notes || "",
-      recordCity          : editingData.location_city || "",
-      address             : editingData.location_address || "",
-      livingCondition     : editingData.living_condition || "",
+      recordName          : editingData.name              || "",
+      gender              : editingData.gender            || "",
+      weight              : editingData.weight            || "",
+      bcsScore            : editingData?.data?.bcsScore   || "",
+      ageValue            : editingData.age_value         || "",
+      ageUnit             : editingData.age_unit          || "months",
+      color               : editingData.color             || "",
+      recordNotes         : editingData.notes             || "",
+      recordCity          : editingData.location_city     || "",
+      address             : editingData.location_address  || "",
+      livingCondition     : editingData.living_condition  || "",
       coords              : foundCoords,
+
+
+      origin              : editingData?.data?.origin, 
+      breed               : editingData?.data?.breed,
+      outdoorAccess       : editingData?.data?.outdoorAccess, 
+      generalCondition    : editingData?.data?.generalCondition,
+      discoverySource     : editingData?.data?.discoverySource,
 
       imagePreview        : data.publicUrl || "",
       
-      castratedAt         : editingData?.castrated_at || "",
-      isAlreadyCastrated  : editingData?.is_already_castrated || "N",
+      castratedAt         : editingData?.castrated_at             || "",
+      isAlreadyCastrated  : editingData?.data?.isAlreadyCastrated       || "N",
     
-      hasComplications      : editingData?.has_complications || "N",
-      selectedComplications : editingData?.selected_complications || [],
-      recordComplications   : editingData?.record_complications || "",
+      hasComplications      : editingData?.data?.has_complications      || "N",
+      selectedComplications : editingData?.data?.selected_complications || [],
+      recordComplications   : editingData?.data?.record_complications   || "",
     
     // Сегашен статус, репродуктивен статус
-      status              : editingData?.status || "received",
-      staffReceived       : editingData?.staff_received || "",
-      staffSurgeon        : editingData?.staff_surgeon || "",
-      staffReleased       : editingData?.staff_released || "",
-      earStatus           : editingData?.ear_status || "marked",
-      parasites           : editingData?.parasites || "none",
-      reproductiveStatus  : editingData?.reproductive_status || "none_visible",
+      status              : editingData?.data?.status             || "received",
+      staffReceived       : editingData?.data?.staffReceived      || "",
+      staffSurgeon        : editingData?.data?.staffSurgeon       || "",
+      staffReleased       : editingData?.data?.staffReleased      || "",
+      earStatus           : editingData?.data?.earStatus          || "marked",
+      parasites           : editingData?.data?.parasites          || "none",
+      reproductiveStatus  : editingData?.data?.reproductiveStatus || "none_visible",
       
       // Анестезиология
-      inductionDose       : editingData?.induction_dose || "",
-      timeToSleep         : editingData?.time_to_sleep || "",
-      hasInductionAdd     : editingData?.has_induction_add || false,
-      inductionAddAmount  : editingData?.induction_add_amount || "",
-      propofolUsed        : editingData?.propofol_used || false,
-      propofolTotalMl     : editingData?.propofol_total_ml || "",
-      propofolFirstMin    : editingData?.propofol_first_min || "",
-      surgeryDuration     : editingData?.surgery_duration || ""
-    
+      inductionDose       : editingData?.data?.inductionDose      || "",
+      timeToSleep         : editingData?.data?.timeToSleep        || "",
+      hasInductionAdd     : editingData?.data?.hasInductionAdd    || false,
+      inductionAddAmount  : editingData?.data?.inductionAddAmount || "",
+      propofolUsed        : editingData?.data?.propofolUsed       ,
+      propofolTotalMl     : editingData?.data?.propofolTotalMl    || "",
+      propofolFirstMin    : editingData?.data?.propofolFirstMin   || "",
+      surgeryDuration     : editingData?.data?.surgeryDuration    || ""
     });
     
     console.log("Данни за редактиране:", editingData);

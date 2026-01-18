@@ -47,7 +47,8 @@ export async function $apiCreateNewRecord(formData, isEditing = false, catId = n
                 owner_id            : finalOwnerId,
 
                 has_complications   : formData?.hasComplications,
-                castrated_at        : formData?.castratedAt
+                castrated_at        : formData?.castratedAt,
+                data                : formData
             })
             .eq('id', catId);
     } else {
@@ -79,7 +80,10 @@ async function recordAnimal(formData, ownerId) {
         owner_id                : ownerId,
         has_complications       : formData.hasComplications,
         record_complications    : formData.recordComplications,
-        castrated_at            : formData?.castratedAt
+        castrated_at            : formData?.castratedAt,
+
+        // record all of the fields into a generic JSON column
+        data                    : formData
     }).select();
 
     // ПРОВЕРКА: Ако има грешка, не продължавай надолу
