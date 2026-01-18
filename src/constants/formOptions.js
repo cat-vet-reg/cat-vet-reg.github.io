@@ -3,6 +3,13 @@ export const genderOptions = [
     { value: "female" , label: "Женски" },
   ];
 
+export const spicyOptions = [
+{ id: "mild", label: "MILD", icon: "🟡", desc: "Спокойна", color: "border-yellow-400", bg: "bg-yellow-50", active: "bg-yellow-400" },
+  { id: "medium", label: "MEDIUM", icon: "🟠", desc: "Любопитна", color: "border-orange-400", bg: "bg-orange-50", active: "bg-orange-400" },
+  { id: "spicy", label: "SPICY", icon: "🔴", desc: "Нервна", color: "border-red-500", bg: "bg-red-50", active: "bg-red-500" },
+  { id: "extra_spicy", label: "EXTRA SPICY", icon: "🌶️", desc: "Агресивна", color: "border-red-800", bg: "bg-red-100", active: "bg-red-800" }
+];
+
 export const bcsScores = [1, 2, 3, 4, 5, 6, 7, 8, 9];
 
 export const getBcsDescription = (score) => {
