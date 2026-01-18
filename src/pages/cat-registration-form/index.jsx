@@ -12,10 +12,29 @@ import { Checkbox }             from "../../components/ui/Checkbox";
 import FormSection              from "./components/FormSection";
 import MapPreview               from "./components/MapPreview";
 import SuccessModal             from "./components/SuccessModal";
-import { cityOptions          } from "./components/city_options";
+import { cityOptions          } from "../../constants/city_options";
+import { breedOptions         } from "../../constants/breed_options";
+import InformedConsent          from "./components/informed_consent";
 
 import { getCoordinates       } from "../../utils/geocoding";
 import { $apiCreateNewRecord  } from "../../services/create_new_record";
+import {  genderOptions, 
+          bcsScores,
+          getBcsDescription,
+          ageUnitOptions, 
+          colorOptions,
+          habitat,
+          origin,
+          generalConditionOptions, 
+          statusOptions, 
+          complicationOptions,
+          staffOptions,
+          earStatusOptions,
+          parasiteOptions,
+          discoverySourceOptions,
+          reproductiveOptions 
+          } from "../../constants/formOptions";
+
 
 import supabase from "utils/supabase";
 
@@ -46,6 +65,12 @@ const CatRegistrationForm = () => {
     livingCondition       : editingData?.living_condition || "",
     coords                : editingData?.map_coordinates || null,
     
+    breed                 : editingData?.breed || "european",
+    outdoorAccess         : editingData?.outdoor_access || "Y", 
+    origin                : editingData?.origin || "street", 
+    generalCondition      : editingData?.general_condition || "good",
+    discoverySource       : editingData?.discovery_source || "friends",
+
     castratedAt           : editingData?.castrated_at,
     isAlreadyCastrated    : editingData?.is_already_castrated || "N",
 
@@ -65,11 +90,11 @@ const CatRegistrationForm = () => {
     surgeryDuration       : editingData?.surgery_duration || "",
 
     // Сегашен статус, репродуктивен статус
-    status                : editingData?.status || "received",
+    status                : editingData?.status || "recorded",
     staffReceived         : editingData?.staff_received || "",
     staffSurgeon          : editingData?.staff_surgeon || "",
     staffReleased         : editingData?.staff_released || "",
-    earStatus             : editingData?.ear_status || "marked",
+    earStatus             : editingData?.ear_status || "",
     parasites             : editingData?.parasites || "none",
     reproductiveStatus    : editingData?.reproductive_status || "none_visible"
   });
@@ -167,6 +192,8 @@ useEffect(() => {
   }
 }, [formData.gender]);
 
+  const [isPrinting, setIsPrinting] = useState(false);
+
   const [coordinates, setCoordinates] = useState(editingData?.map_coordinates || null);
 
   const [errors               , setErrors               ] = useState({});
@@ -176,104 +203,9 @@ useEffect(() => {
   const [registeredCatData    , setRegisteredCatData    ] = useState(null);
   const [livingConditions     , setLivingConditions     ] = useState(new Set());
 
-  const genderOptions = [
-    { value: "male"   , label: "Мъжки" },
-    { value: "female" , label: "Женски" },
-  ];
-
-  const colorOptions = [
-    // Patterns
-    { value: "tabby", label: "Таби (тигрова)" },
-
-    // Bi-color & multi-color
-    { value: 'tabby_white'  , label: 'Таби-бяла (бяла с тигрово)' },
-    { value: 'calico'       , label: 'Калико (трицветна)' },
-    { value: 'tortoiseshell', label: 'Костенуркова' },
-    { value: 'tuxedo'       , label: 'Черно-бяла' },
-    { value: 'orange_white' , label: 'Рижо-бяла' },
-
-    // Solid colors
-    { value: 'orange'   , label: 'Рижа' },
-    { value: 'black'    , label: 'Черна' },
-    { value: 'white'    , label: 'Бяла' },
-    { value: 'gray'     , label: 'Сива (Синя)' },
-    { value: 'brown'    , label: 'Кафява' },
-    { value: 'cinnamon' , label: 'Светлокафява' },
-    { value: 'fawn'     , label: 'Бежова' },
-  ];
-
-  const ageUnitOptions = [
-    { value: "months" , label: "Месеца" },
-    { value: "years"  , label: "Години" },
-  ];
-
-  const bcsOptions = [
-    { value: "1", label: "1 - Силно измършавяла", color: "bg-red-500" },
-    { value: "3", label: "3 - Поднормено тегло", color: "bg-yellow-400" },
-    { value: "5", label: "5 - Идеално тегло", color: "bg-green-500" },
-    { value: "7", label: "7 - Наднормено тегло", color: "bg-orange-400" },
-    { value: "9", label: "9 - Затлъстяване", color: "bg-red-600" },
-  ];
-
   const breadcrumbItems = [
     { label: "Табло"              , path: "/dashboard-overview" },
     { label: "Регистрирай котка"  , path: "/cat-registration-form" },
-  ];
-
-  const complicationOptions = {
-    female: [
-      { id: "intra_hem"           , label: "Интраоперативна хеморагия" },
-      { id: "ureter_trauma"       , label: "Ятрогенна травма на уретерите" },
-      { id: "post_hem"            , label: "Постоперативна хеморагия / Хемоабдомен" },
-      { id: "dehiscence"          , label: "Отваряне на раната (Dehiscence)" },
-      { id: "infection"           , label: "Инфекция на оперативната рана" },
-      { id: "stump_granuloma"     , label: "Синусни канали/ Грануломи на чукана (Sinus Tracts / Stump Granulomas)" },
-      { id: "remnant_syndrome"    , label: "Синдром на остатъчния яйчник" },
-      { id: "mammary_hyperplasia" , label: "Хиперплазия на млечните жлези" },
-      { id: "mammary_hyperplasia" , label: "Хиперплазия на млечните жлези" },
-    ],
-    male: [
-      { id: "scrotal_swelling"    , label: "Подуване/контузия/хеморагия на скротума" },
-      { id: "abd_hem"             , label: "Абдоминална хеморагия" },
-      { id: "urethra_prostate"    , label: "Ятрогенна травма на уретрата/простатата" },
-    ],
-    general: [
-      { id: "lung_edema"          , label: "Белодробен оток" },
-      { id: "anesthesia_reac"     , label: "Алергична реакция към упойка" }
-    ]
-  };
-
-  const staffOptions = [
-    { value: "dr_taneva"        , label: "д-р Танева" },
-    { value: "dr_dimitrova"     , label: "д-р Димитрова" },
-    { value: "yana"             , label: "Яна Янкова" },
-  ];
-
-  const reproductiveOptions = {
-    female: [
-      { value: "baby"             , label: "Бебешка матка" },
-      { value: "heat"             , label: "Разгонена" },
-      { value: "early_pregnancy"  , label: "Начална бременност" },
-      { value: "late_pregnancy"   , label: "Напреднала бременност" },
-      { value: "post_pregnancy"   , label: "След бременност (кърмеща/родила)" },
-      { value: "none_visible"     , label: "Няма следи от бременност" },
-      { value: "mucometra"        , label: "Мукометра" },
-      { value: "pyometra"         , label: "Пиометра" },
-      { value: "ovarian_cyst"     , label: "Киста на яйчника" },
-    ],
-    male: [
-      { value: "none_visible"       , label: "Нормален" },
-      { value: "unilateral_crypto"  , label: "Едностранен крипторхизъм" },
-      { value: "bilateral_crypto"   , label: "Двустранен крипторхизъм" },
-      { value: "monorchidism"       , label: "Монорхидизъм" }
-    ]
-  };
-
-  const parasiteOptions = [
-    { id: 'fleas' , label: 'Бълхи' },
-    { id: 'ticks' , label: 'Кърлежи' },
-    { id: 'worms' , label: 'Глисти' },
-    { id: 'none'  , label: 'Няма видими' },
   ];
 
   const handleImageChange = (e) => {
@@ -471,13 +403,6 @@ const handleSubmit = (e) => {
 
   const isFormValid = () => {
     return true;
-    // return (formData?.gender &&
-    // formData?.weight &&
-    // parseFloat(formData?.weight) > 0 &&
-    // formData?.color &&
-    // (formData?.color !== 'custom' || formData?.customColor?.trim()) &&
-    // formData?.address?.trim()?.length >= 10 &&
-    // formData?.ownerName?.trim()?.length >= 2 && /^\+?[\d\s\-()]{10,}$/?.test(formData?.ownerPhone));
   };
 
   const onCheckLocation = (id) => {
@@ -621,31 +546,33 @@ const handleSubmit = (e) => {
                   />
                   
                   <label>Телесно състояние (BCS 1-9)</label>
-                    <div className="space-y-4">
-                      <div className="flex justify-between items-center gap-1">
-                        {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((score) => (
-                          <button
-                            key={score}
-                            type="button"
-                            onClick={() => handleInputChange("bcsScore", score.toString())}
-                            className={`flex-1 py-3 text-sm font-bold rounded-md transition-all ${
-                              formData.bcsScore === score.toString()
-                                ? "bg-primary text-white ring-2 ring-offset-2 ring-primary scale-110"
-                                : "bg-slate-100 text-slate-500 hover:bg-slate-200"
-                            }`}
-                          >
-                            {score}
-                          </button>
-                        ))}
-                      </div>
-                      
-                      {/* Описание на избраното състояние */}
-                      <div className="p-3 rounded-lg bg-slate-50 border border-slate-200 text-center">
-                        {formData.bcsScore <= 3 && <p className="text-yellow-700 font-medium">⚠️ Поднормено: Видими ребра, без мазнини.</p>}
-                        {(formData.bcsScore == 4 || formData.bcsScore == 5) && <p className="text-green-700 font-medium">✅ Идеално: Ребрата се палпират, ясна талия.</p>}
-                        {formData.bcsScore >= 6 && <p className="text-red-700 font-medium">⚠️ Наднормено: Трудно палпируеми ребра, липса на талия.</p>}
-                      </div>
+                 <div className="space-y-4">
+                  <div className="flex justify-between items-center gap-1">
+                    {bcsScores.map((score) => (
+                      <button
+                        key={score}
+                        type="button"
+                        onClick={() => handleInputChange("bcsScore", score.toString())}
+                        className={`flex-1 py-3 text-sm font-bold rounded-md transition-all ${
+                          formData.bcsScore === score.toString()
+                            ? "bg-primary text-white ring-2 ring-offset-2 ring-primary scale-110"
+                            : "bg-slate-100 text-slate-500 hover:bg-slate-200"
+                        }`}
+                      >
+                        {score}
+                      </button>
+                    ))}
+                  </div>
+                  
+                  {/* Описанието вече се генерира от функцията в formOptions */}
+                  {formData.bcsScore && (
+                    <div className="p-3 rounded-lg bg-slate-50 border border-slate-200 text-center">
+                      <p className={`font-medium ${getBcsDescription(formData.bcsScore).class}`}>
+                        {getBcsDescription(formData.bcsScore).text}
+                      </p>
                     </div>
+                  )}
+                </div>
 
                   <div className="grid grid-cols-2 gap-4">
                     <Input
@@ -670,6 +597,16 @@ const handleSubmit = (e) => {
                       onChange={(value) => handleInputChange("ageUnit", value)}
                     />
                   </div>
+
+                  <Select
+                    label="Порода на котката"
+                    placeholder="Изберете порода"
+                    searchable
+                    options={breedOptions}
+                    value={formData.breed}
+                    onChange={(value) => handleInputChange("breed", value)}
+                    error={errors?.breed}
+                  />
 
                   <Select
                     label="Цвят на козината"
@@ -751,6 +688,154 @@ const handleSubmit = (e) => {
                     label="в дома"
                     onChange={(e) => onCheckLocation("indoor")}
                     checked={livingConditions.has("indoor")}
+                  />
+
+                  {/* Достъп навън */}
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium block text-foreground">Има ли достъп навън?</label>
+                    <div className="flex gap-4">
+                      {[{ v: "Y", l: "Да" }, { v: "N", l: "Не" }].map((opt) => (
+                        <button
+                          key={opt.v}
+                          type="button"
+                          onClick={() => handleInputChange("outdoorAccess", opt.v)}
+                          className={`flex-1 py-2 rounded-md border transition-all ${
+                            formData.outdoorAccess === opt.v 
+                            ? "bg-primary text-white border-primary shadow-sm" 
+                            : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50"
+                          }`}
+                        >
+                          {opt.l}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Произход */}
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium block text-foreground">Откъде е котката?</label>
+                    <div className="flex gap-4">
+                      {origin.map((opt) => (
+                        <button
+                          key={opt.value}
+                          type="button"
+                          onClick={() => handleInputChange("origin", opt.value)}
+                          className={`flex-1 py-2 rounded-md border transition-all ${
+                            formData.origin === opt.value 
+                            ? "bg-primary text-white border-primary shadow-sm" 
+                            : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50"
+                          }`}
+                        >
+                          {opt.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                </FormSection>
+                
+                <FormSection title="Сегашен статус и отчетност">
+
+                  {/* Общо състояние */}
+                  <Select
+                    label="Общо състояние"
+                    options={generalConditionOptions}
+                    value={formData.generalCondition}
+                    onChange={(value) => handleInputChange("generalCondition", value)}
+                  />
+
+                  {/* СТАТУС В РЕАЛНО ВРЕМЕ */}
+                  <div className="mb-6">
+                    <label className="text-sm font-medium mb-3 block text-foreground">Статус на животното</label>
+                    <div className="flex flex-wrap gap-2">
+                        {statusOptions.map((s) => (
+                        <button
+                          key={s.id}
+                          type="button"
+                          onClick={() => handleInputChange("status", s.id)}
+                          className={`px-3 py-1.5 rounded-full text-xs font-bold border transition-all ${
+                            formData.status === s.id ? `${s.color} border-current ring-2 ring-offset-1 ring-current` : 'bg-white border-slate-200 text-slate-400'
+                          }`}
+                        >
+                          {s.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* ПЕРСОНАЛ */}
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                    <Select
+                      label="Приел"
+                      options={staffOptions}
+                      value={formData.staffReceived}
+                      onChange={(val) => handleInputChange("staffReceived", val)}
+                    />
+                    <Select
+                      label="Оперирал"
+                      options={staffOptions}
+                      value={formData.staffSurgeon}
+                      onChange={(val) => handleInputChange("staffSurgeon", val)}
+                    />
+                    <Select
+                      label="Издал"
+                      options={staffOptions}
+                      value={formData.staffReleased}
+                      onChange={(val) => handleInputChange("staffReleased", val)}
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-sm font-medium mb-2 block">Маркировка на ухото</label>
+                    <div className="grid grid-cols-2 gap-2 border p-3 rounded-md bg-slate-50/50">
+                      {earStatusOptions.map((opt) => (
+                        <Checkbox 
+                          key={opt.id}
+                          label={opt.label} 
+                          checked={formData.earStatus === opt.id} 
+                          onChange={() => handleInputChange("earStatus", opt.id)} 
+                        />
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium block">Паразити</label>
+                    <div className="grid grid-cols-2 gap-2 border p-3 rounded-md bg-slate-50/50">
+                      {parasiteOptions.map((opt) => (
+                        <Checkbox 
+                          key={opt.id}
+                          label={opt.label} 
+                          checked={Array.isArray(formData.parasites) && formData.parasites.includes(opt.id)} 
+                          onChange={() => handleParasiteChange(opt.id)} 
+                        />
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* ПОЛОВ СТАТУС - Динамичен спрямо пола */}
+                    {(formData.gender === 'female' || formData.gender === 'male') && (
+                      <div className="animate-in slide-in-from-right-2 duration-300">
+                        <Select
+                          label="Репродуктивен статус"
+                          // Тук вземаме списъка според избрания пол: female или male
+                          options={reproductiveOptions[formData.gender]} 
+                          value={formData.reproductiveStatus}
+                          onChange={(val) => handleInputChange("reproductiveStatus", val)}
+                          placeholder="Изберете статус..."
+                        />
+                      </div>
+                    )}
+                </FormSection>
+
+                <FormSection title="Откъде разбрахте за нас?">
+                  {/* Източник на информация */}
+                  <Select
+                    label="Откъде разбрахте за нас?"
+                    placeholder="Изберете източник"
+                    options={discoverySourceOptions}
+                    value={formData.discoverySource}
+                    onChange={(value) => handleInputChange("discoverySource", value)}
                   />
                 </FormSection>
 
@@ -877,99 +962,6 @@ const handleSubmit = (e) => {
                   />
                 </FormSection>
 
-                <FormSection title="Сегашен статус и отчетност">
-                  {/* СТАТУС В РЕАЛНО ВРЕМЕ */}
-                  <div className="mb-6">
-                    <label className="text-sm font-medium mb-3 block text-foreground">Статус на животното</label>
-                    <div className="flex flex-wrap gap-2">
-                      {[
-                        { id: 'received'  , label: 'Прието'         , color: 'bg-slate-100 text-slate-700' },
-                        { id: 'prep'      , label: 'Подготовка'     , color: 'bg-blue-100 text-blue-700' },
-                        { id: 'surgery'   , label: 'В операция'     , color: 'bg-red-100 text-red-700' },
-                        { id: 'recovery'  , label: 'Възстановяване' , color: 'bg-amber-100 text-amber-700' },
-                        { id: 'released'  , label: 'Върнато'        , color: 'bg-green-100 text-green-700' }
-                      ].map((s) => (
-                        <button
-                          key={s.id}
-                          type="button"
-                          onClick={() => handleInputChange("status", s.id)}
-                          className={`px-3 py-1.5 rounded-full text-xs font-bold border transition-all ${
-                            formData.status === s.id ? `${s.color} border-current ring-2 ring-offset-1 ring-current` : 'bg-white border-slate-200 text-slate-400'
-                          }`}
-                        >
-                          {s.label}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* ПЕРСОНАЛ */}
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                    <Select
-                      label="Приел"
-                      options={staffOptions}
-                      value={formData.staffReceived}
-                      onChange={(val) => handleInputChange("staffReceived", val)}
-                    />
-                    <Select
-                      label="Оперирал"
-                      options={staffOptions}
-                      value={formData.staffSurgeon}
-                      onChange={(val) => handleInputChange("staffSurgeon", val)}
-                    />
-                    <Select
-                      label="Издал"
-                      options={staffOptions}
-                      value={formData.staffReleased}
-                      onChange={(val) => handleInputChange("staffReleased", val)}
-                    />
-                  </div>
-
-                  <div>
-                    <label className="text-sm font-medium mb-2 block">Маркировка на ухото</label>
-                    <div className="grid grid-cols-2 gap-2 border p-3 rounded-md bg-slate-50/50">
-                      <Checkbox 
-                        label="Маркирано (V-образно)" 
-                        checked={formData.earStatus === 'marked'} 
-                        onChange={() => handleInputChange("earStatus", "marked")} 
-                      />
-                      <Checkbox 
-                        label="Немаркирано" 
-                        checked={formData.earStatus === 'unmarked'} 
-                        onChange={() => handleInputChange("earStatus", "unmarked")} 
-                      />
-                    </div>
-                  </div>
-
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium block">Паразити</label>
-                    <div className="grid grid-cols-2 gap-2 border p-3 rounded-md bg-slate-50/50">
-                      {parasiteOptions.map((opt) => (
-                        <Checkbox 
-                          key={opt.id}
-                          label={opt.label} 
-                          checked={Array.isArray(formData.parasites) && formData.parasites.includes(opt.id)} 
-                          onChange={() => handleParasiteChange(opt.id)} 
-                        />
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* ПОЛОВ СТАТУС - Динамичен спрямо пола */}
-                    {(formData.gender === 'female' || formData.gender === 'male') && (
-                      <div className="animate-in slide-in-from-right-2 duration-300">
-                        <Select
-                          label="Репродуктивен статус"
-                          // Тук вземаме списъка според избрания пол: female или male
-                          options={reproductiveOptions[formData.gender]} 
-                          value={formData.reproductiveStatus}
-                          onChange={(val) => handleInputChange("reproductiveStatus", val)}
-                          placeholder="Изберете статус..."
-                        />
-                      </div>
-                    )}
-                </FormSection>
-
                 <FormSection title="Медицински усложнения">
                   <label className="text-sm font-medium mb-3 block text-foreground">
                     Имаше ли усложнения?
@@ -1025,7 +1017,6 @@ const handleSubmit = (e) => {
                   )}
                 </FormSection>
 
-
                 <div className="flex flex-col sm:flex-row gap-3 pt-4">
                   <Button
                     type="submit"
@@ -1047,6 +1038,14 @@ const handleSubmit = (e) => {
                     disabled={isSubmitting}
                   >
                     Изчисти
+                  </Button>
+
+                  <Button 
+                    type="button" 
+                    variant="outline" 
+                    onClick={() => window.print()}
+                    >
+                    🖨️ Принтирай Протокол
                   </Button>
                 </div>
               </div>
@@ -1130,9 +1129,13 @@ const handleSubmit = (e) => {
               </div>
             </div>
           </form>
-        </div>
+        </div>      
       </div>
+
+      <InformedConsent data={{...formData, 
+    livingConditions: livingConditions}} />
       <FloatingActionButton onClick={handleSubmit} label="Регистрирай котка" />
+
       <SuccessModal
         isOpen={showSuccessModal}
         onClose={handleSuccessModalClose}
