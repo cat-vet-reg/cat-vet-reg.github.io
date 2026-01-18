@@ -1198,6 +1198,7 @@ const handleSubmit = (e) => {
 
       <InformedConsent data={{...formData, 
     livingConditions: livingConditions}} />
+
       <FloatingActionButton onClick={handleSubmit} label="Регистрирай котка" />
 
       <SuccessModal

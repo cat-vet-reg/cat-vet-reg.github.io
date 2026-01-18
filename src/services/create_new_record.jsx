@@ -30,6 +30,12 @@ export async function $apiCreateNewRecord(formData, isEditing = false, catId = n
 
     // 3. Сега вече имаме ID (старо или ново) и записваме/обновяваме котката
     if (isEditing && catId) {
+
+        console.log("AAA")
+        console.log(JSON.parse(JSON.stringify(formData)));
+        console.log(catId);
+        console.log("AAA")
+
         return await supabase
             .from('td_records')
             .update({
@@ -48,7 +54,32 @@ export async function $apiCreateNewRecord(formData, isEditing = false, catId = n
 
                 has_complications   : formData?.hasComplications,
                 castrated_at        : formData?.castratedAt,
-                data                : formData
+                data                : {
+                    "donation": formData?.donation,
+                    "bcsScore": Number(formData?.bcsScore),
+                    "breed": formData?.breed,
+                    "outdoorAccess": formData?.outdoorAccess,
+                    "origin": formData?.origin,
+                    "generalCondition": formData?.generalCondition,
+                    "discoverySource": formData?.discoverySource,
+                    "isAlreadyCastrated": formData?.isAlreadyCastrated,
+                    "selectedComplications": [],
+                    "inductionDose": formData?.inductionDose,
+                    "timeToSleep": formData?.timeToSleep,
+                    "hasInductionAdd": formData?.hasInductionAdd,
+                    "inductionAddAmount": formData?.inductionAddAmount,
+                    "propofolUsed": formData?.propofolUsed,
+                    "propofolTotalMl": formData?.propofolTotalMl,
+                    "propofolFirstMin": formData?.propofolFirstMin,
+                    "surgeryDuration": formData?.surgeryDuration,
+                    "status": formData?.status,
+                    "staffReceived": formData?.staffReceived,
+                    "staffSurgeon": formData?.staffSurgeon,
+                    "staffReleased": formData?.staffReleased,
+                    "earStatus": formData?.earStatus,
+                    "parasites": formData?.parasites,
+                    "reproductiveStatus": formData?.reproductiveStatus
+                }
             })
             .eq('id', catId);
     } else {
