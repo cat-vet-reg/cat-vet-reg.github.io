@@ -19,6 +19,7 @@ import InformedConsent          from "./components/informed_consent";
 import { getCoordinates       } from "../../utils/geocoding";
 import { $apiCreateNewRecord  } from "../../services/create_new_record";
 import {  genderOptions, 
+          spicyOptions,
           bcsScores,
           getBcsDescription,
           ageUnitOptions, 
@@ -56,6 +57,7 @@ const CatRegistrationForm = () => {
     gender                : editingData?.gender || "",
     weight                : editingData?.weight || "",
     bcsScore              : editingData?.data?.bcsScore || "5",
+    temperament           : editingData?.data?.temperament || "mild",
     ageValue              : editingData?.age_value || "",
     ageUnit               : editingData?.age_unit || "months",
     color                 : editingData?.color || "",
@@ -138,7 +140,7 @@ useEffect(() => {
       livingCondition     : editingData.living_condition  || "",
       coords              : foundCoords,
 
-
+      temperament         : editingData?.data?.temperament,
       origin              : editingData?.data?.origin, 
       breed               : editingData?.data?.breed,
       outdoorAccess       : editingData?.data?.outdoorAccess, 
@@ -214,6 +216,24 @@ useEffect(() => {
     { label: "Табло"              , path: "/dashboard-overview" },
     { label: "Регистрирай котка"  , path: "/cat-registration-form" },
   ];
+
+// const getTemperamentDisplay = (temp) => {
+//   const levels = {
+//     mild: { label: "MILD", icon: "🟡", desc: "Спокойна", color: "text-yellow-500" },
+//     medium: { label: "MEDIUM", icon: "🟠", desc: "Любопитна", color: "text-orange-500" },
+//     spicy: { label: "SPICY", icon: "🔴", desc: "Нервна", color: "text-red-600" },
+//     extra_spicy: { label: "EXTRA SPICY", icon: "🌶️", desc: "Агресивна", color: "text-red-800" }
+//   };
+
+//   const level = levels[temp] || levels.mild;
+
+//   return (
+//     <div className={`flex items-center gap-2 font-bold ${level.color}`}>
+//       <span>{level.icon}</span>
+//       <span>{level.label} ({level.desc})</span>
+//     </div>
+//   );
+// };
 
   const handleImageChange = (e) => {
 
@@ -553,33 +573,33 @@ const handleSubmit = (e) => {
                   />
                   
                   <label>Телесно състояние (BCS 1-9)</label>
-                 <div className="space-y-4">
-                  <div className="flex justify-between items-center gap-1">
-                    {bcsScores.map((score) => (
-                      <button
-                        key={score}
-                        type="button"
-                        onClick={() => handleInputChange("bcsScore", score.toString())}
-                        className={`flex-1 py-3 text-sm font-bold rounded-md transition-all ${
-                          formData.bcsScore === score.toString()
-                            ? "bg-primary text-white ring-2 ring-offset-2 ring-primary scale-110"
-                            : "bg-slate-100 text-slate-500 hover:bg-slate-200"
-                        }`}
-                      >
-                        {score}
-                      </button>
-                    ))}
-                  </div>
-                  
-                  {/* Описанието вече се генерира от функцията в formOptions */}
-                  {formData.bcsScore && (
-                    <div className="p-3 rounded-lg bg-slate-50 border border-slate-200 text-center">
-                      <p className={`font-medium ${getBcsDescription(formData.bcsScore).class}`}>
-                        {getBcsDescription(formData.bcsScore).text}
-                      </p>
+                  <div className="space-y-4">
+                    <div className="flex justify-between items-center gap-1">
+                      {bcsScores.map((score) => (
+                        <button
+                          key={score}
+                          type="button"
+                          onClick={() => handleInputChange("bcsScore", score.toString())}
+                          className={`flex-1 py-3 text-sm font-bold rounded-md transition-all ${
+                            formData.bcsScore === score.toString()
+                              ? "bg-primary text-white ring-2 ring-offset-2 ring-primary scale-110"
+                              : "bg-slate-100 text-slate-500 hover:bg-slate-200"
+                          }`}
+                        >
+                          {score}
+                        </button>
+                      ))}
                     </div>
-                  )}
-                </div>
+                    
+                    {/* Описанието вече се генерира от функцията в formOptions */}
+                    {formData.bcsScore && (
+                      <div className="p-3 rounded-lg bg-slate-50 border border-slate-200 text-center">
+                        <p className={`font-medium ${getBcsDescription(formData.bcsScore).class}`}>
+                          {getBcsDescription(formData.bcsScore).text}
+                        </p>
+                      </div>
+                    )}
+                  </div>
 
                   <div className="grid grid-cols-2 gap-4">
                     <Input
@@ -650,6 +670,43 @@ const handleSubmit = (e) => {
                       description="Provide a detailed description of the cat's color"
                     />
                   )}
+                </FormSection>
+                
+                <FormSection title="Темперамент (Spicy Scale)">
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                    {spicyOptions.map((opt) => {
+                      // Проверка дали този квадрат е избран в момента
+                      const isSelected = formData.temperament === opt.id;
+
+                      return (
+                        <button
+                          key={opt.id}
+                          type="button" // ЗАДЪЛЖИТЕЛНО: предотвратява презареждане на страницата
+                          onClick={() => handleInputChange("temperament", opt.id)}
+                          className={`relative flex flex-col items-center justify-center p-4 rounded-xl border-2 transition-all duration-200 h-32 cursor-pointer ${
+                            isSelected
+                              ? `${opt.color} ${opt.bg} shadow-md scale-105 ring-2 ring-offset-1 ring-opacity-50`
+                              : "border-slate-200 bg-white hover:border-slate-300 shadow-sm opacity-70 hover:opacity-100"
+                          }`}
+                        >
+                          <span className="text-3xl mb-2">{opt.icon}</span>
+                          <span className={`text-xs font-black ${isSelected ? "text-foreground" : "text-slate-500"}`}>
+                            {opt.label}
+                          </span>
+                          <span className="text-[10px] text-slate-400 uppercase mt-1 text-center">
+                            {opt.desc}
+                          </span>
+                          
+                          {/* Визуален индикатор за избор */}
+                          {isSelected && (
+                            <div className={`absolute -top-2 -right-2 w-6 h-6 rounded-full text-white flex items-center justify-center text-[10px] shadow-sm ${opt.active.replace('bg-', 'bg-')}`}>
+                              ✓
+                            </div>
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
                 </FormSection>
 
                 <FormSection title="Къде е намерено / отглеждано животното">
