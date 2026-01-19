@@ -1,0 +1,68 @@
+<app-header></app-header>
+<div class="min-h-screen bg-background">
+    <div class="container py-6">
+        <app-breadcrumb [items]="[{ label: 'Табло', path: '/dashboard-overview' }]"></app-breadcrumb>
+
+        <div class="mb-6 md:mb-8">
+            <h1 class="page-title">Текущо табло</h1>
+            <p class="page-description">
+                Добре дошли! На текущото табло е представено какво се случва с новорегистрираните котки.
+            </p>
+        </div>
+
+        <!-- Loading State -->
+        <div *ngIf="isLoading" class="p-10 text-center">Зареждане на таблото...</div>
+
+        <!-- Dashboard Content -->
+        <div *ngIf="!isLoading">
+            <!-- Stats Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-6 md:mb-8">
+                <div *ngFor="let stat of statsData" class="stat-card">
+                    <div class="stat-header">
+                        <span class="stat-title">{{ stat.title }}</span>
+                        <app-icon [name]="stat.icon" [size]="16" class="stat-icon"
+                            [style.color]="stat.iconColor"></app-icon>
+                    </div>
+                    <div class="stat-content">
+                        <div class="stat-value">{{ stat.value }}</div>
+                        <p *ngIf="stat.change" class="stat-change" [class.positive]="stat.changeType === 'positive'"
+                            [class.negative]="stat.changeType === 'negative'">
+                            {{ stat.change }}
+                            <span class="stat-trend">{{ stat.trend }}</span>
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Chart -->
+            <app-complications-simple-chart [data]="stats.complicationsChartData"></app-complications-simple-chart>
+
+            <!-- Bottom Grid -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+                <div class="lg:col-span-2">
+                    <!-- MiniMap placeholder or actual component -->
+                    <div
+                        class="bg-card rounded-lg p-6 shadow-warm h-full flex items-center justify-center border border-dashed border-input">
+                        <p class="text-muted-foreground">Карта (MiniMap ще бъде добавена тук)</p>
+                    </div>
+                </div>
+
+                <div class="bg-card rounded-lg p-6 shadow-warm">
+                    <h2 class="text-xl font-semibold mb-4">Бързи действия</h2>
+                    <div class="space-y-3">
+                        <a *ngFor="let action of quickActions" [routerLink]="action.path" class="quick-action-btn">
+                            <div class="quick-action-icon" [style.color]="action.iconColor">
+                                <app-icon [name]="action.icon" [size]="20"></app-icon>
+                            </div>
+                            <div class="quick-action-text">
+                                <div class="quick-action-title">{{ action.title }}</div>
+                                <div class="quick-action-desc">{{ action.description }}</div>
+                            </div>
+                            <app-icon name="ChevronRight" [size]="16" class="text-muted-foreground"></app-icon>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

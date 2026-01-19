@@ -1,0 +1,50 @@
+<header class="header">
+    <div class="header-container">
+        <div class="flex items-center gap-6">
+            <a routerLink="/dashboard-overview" class="logo-link" (click)="closeMobileMenu()">
+                <div class="logo-icon-wrapper">
+                    <div class="logo-icon-inner">
+                        <img src="logo.png" alt="CastraMap logo" class="logo-image" />
+                    </div>
+                </div>
+                <span class="logo-text hidden sm:block">CastraMap</span>
+            </a>
+
+            <nav class="desktop-nav hidden lg:flex">
+                <a *ngFor="let item of navigationItems" [routerLink]="item.path" routerLinkActive="active"
+                    class="nav-item">
+                    <app-icon [name]="item.icon" [size]="18"></app-icon>
+                    <span>{{ item.label }}</span>
+                </a>
+            </nav>
+        </div>
+
+        <div class="flex items-center gap-3">
+            <app-button variant="default" iconName="Plus" iconPosition="left" class="hidden sm:flex"
+                routerLink="/cat-registration-form">
+                Нова котка
+            </app-button>
+
+            <app-button variant="default" size="icon" iconName="Plus" class="sm:hidden"
+                routerLink="/cat-registration-form" aria-label="Регистрирай котка"></app-button>
+
+            <button (click)="toggleMobileMenu()" class="mobile-menu-btn lg:hidden" aria-label="Toggle menu"
+                [attr.aria-expanded]="isMobileMenuOpen">
+                <app-icon [name]="isMobileMenuOpen ? 'X' : 'Menu'" [size]="24"></app-icon>
+            </button>
+        </div>
+    </div>
+</header>
+
+<div *ngIf="isMobileMenuOpen" class="mobile-menu-overlay" (click)="closeMobileMenu()">
+    <div class="mobile-menu-content" (click)="$event.stopPropagation()">
+        <nav class="mobile-nav">
+            <a *ngFor="let item of navigationItems" [routerLink]="item.path" routerLinkActive="active"
+                (click)="closeMobileMenu()" class="mobile-nav-item">
+                <app-icon [name]="item.icon" [size]="20"></app-icon>
+                <span>{{ item.label }}</span>
+            </a>
+        </nav>
+    </div>
+</div>
+<div class="header-spacer"></div>

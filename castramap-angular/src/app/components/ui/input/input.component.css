@@ -1,0 +1,103 @@
+.input-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.input-label {
+    font-size: 0.875rem;
+    font-weight: 500;
+    line-height: 1;
+    color: var(--color-foreground);
+}
+
+.input-label.text-destructive {
+    color: var(--color-destructive);
+}
+
+.required-mark {
+    color: var(--color-destructive);
+    margin-left: 0.25rem;
+}
+
+.text-input {
+    display: flex;
+    height: 2.5rem;
+    width: 100%;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--color-input);
+    background-color: var(--color-background);
+    padding: 0.5rem 0.75rem;
+    font-size: 0.875rem;
+    color: var(--color-foreground);
+    outline: none;
+    transition: all 0.2s;
+}
+
+.text-input::placeholder {
+    color: var(--color-muted-foreground);
+}
+
+.text-input:focus-visible {
+    outline: 2px solid var(--color-ring);
+    outline-offset: 2px;
+}
+
+.text-input:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+}
+
+.text-input.input-error {
+    border-color: var(--color-destructive);
+}
+
+.text-input.input-error:focus-visible {
+    outline-color: var(--color-destructive);
+}
+
+.input-description {
+    font-size: 0.875rem;
+    color: var(--color-muted-foreground);
+    margin: 0;
+}
+
+.input-error-msg {
+    font-size: 0.875rem;
+    color: var(--color-destructive);
+    margin: 0;
+}
+
+/* Checkbox */
+.checkbox-input {
+    height: 1rem;
+    width: 1rem;
+    border-radius: 4px;
+    /* rounded */
+    border: 1px solid var(--color-input);
+    background-color: var(--color-background);
+    color: var(--color-primary);
+    align-self: flex-start;
+    /* If inside flex */
+}
+
+.checkbox-input:focus {
+    outline: 2px solid var(--color-ring);
+    outline-offset: 2px;
+}
+
+/* Radio */
+.radio-input {
+    height: 1rem;
+    width: 1rem;
+    border-radius: 9999px;
+    /* rounded-full */
+    border: 1px solid var(--color-input);
+    background-color: var(--color-background);
+    color: var(--color-primary);
+}
+
+.radio-input:focus {
+    outline: 2px solid var(--color-ring);
+    outline-offset: 2px;
+}
