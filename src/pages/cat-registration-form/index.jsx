@@ -38,6 +38,7 @@ import {  genderOptions,
 
 
 import supabase from "utils/supabase";
+import { mapRecordToForm, defaultFormData } from "./utils/formMapper";
 
 const CatRegistrationForm = () => {
 
@@ -47,141 +48,26 @@ const CatRegistrationForm = () => {
   const editingData = location.state?.catData;
   const isEditing = !!location.state?.isEditing;
 
-  const [formData, setFormData] = useState({
-    ownerName             : editingData?.owner?.name || "",
-    ownerPhone            : editingData?.owner?.phone || "",
-    donation              : editingData?.data?.donation || "N",
+  // Initial state derived from editingData (if present) or defaults
+  const [formData, setFormData] = useState(() => mapRecordToForm(editingData));
 
-    // Данни на КТ
-    recordName            : editingData?.name || "",
-    gender                : editingData?.gender || "",
-    weight                : editingData?.weight || "",
-    bcsScore              : editingData?.data?.bcsScore || "5",
-    temperament           : editingData?.data?.temperament || "mild",
-    ageValue              : editingData?.age_value || "",
-    ageUnit               : editingData?.age_unit || "months",
-    color                 : editingData?.color || "",
-    recordNotes           : editingData?.notes || "",
-    recordCity            : editingData?.location_city || "",
-    address               : editingData?.location_address || "",
-    livingCondition       : editingData?.living_condition || "",
-    coords                : editingData?.map_coordinates || null,
-    
-    breed                 : editingData?.data?.breed || "european",
-    outdoorAccess         : editingData?.data?.outdoorAccess || "Y", 
-    origin                : editingData?.data?.origin || "street", 
-    generalCondition      : editingData?.data?.generalCondition || "good",
-    discoverySource       : editingData?.data?.discoverySource || "friends",
+  useEffect(() => {
 
-    castratedAt           : editingData?.castrated_at,
-    isAlreadyCastrated    : editingData?.is_already_castrated || "N",
-
-    // Усложнения
-    hasComplications      : editingData?.has_complications || "N",
-    selectedComplications : editingData?.selected_complications || [],
-    recordComplications   : editingData?.record_complications || "",
-
-    // Анестезиология
-    inductionDose         : editingData?.data?.inductionDose || "",
-    timeToSleep           : editingData?.data?.timeToSleep || "",
-    hasInductionAdd       : editingData?.data?.hasInductionAdd || false,
-    inductionAddAmount    : editingData?.data?.inductionAddAmount || "",
-    propofolUsed          : editingData?.data?.propofolUsed || false,
-    propofolTotalMl       : editingData?.data?.propofolTotalMl || "",
-    propofolFirstMin      : editingData?.data?.propofolFirstMin || "",
-    surgeryDuration       : editingData?.data?.surgeryDuration || "",
-
-    // Сегашен статус, репродуктивен статус
-    status                : editingData?.data?.status || "recorded",
-    staffReceived         : editingData?.data?.staffReceived || "",
-    staffSurgeon          : editingData?.data?.staffSurgeon || "",
-    staffReleased         : editingData?.data?.staffReleased || "",
-    earStatus             : editingData?.data?.earStatus || "",
-    parasites             : editingData?.data?.parasites || "none",
-    reproductiveStatus    : editingData?.data?.reproductiveStatus || "none_visible"
-  });
-
-useEffect(() => {
-  
-  if (editingData) {
-
-    const { data } = supabase
-      .storage
-      .from('protocol_images')
-      .getPublicUrl(`records/${editingData.id}/avatar.png`)
-    
-    const lat = editingData.latitude || editingData.map_coordinates?.lat || editingData.coordinates?.lat;
-    const lng = editingData.longitude || editingData.map_coordinates?.lng || editingData.coordinates?.lng;
-    
-    const foundCoords = (lat && lng) ? { lat: Number(lat), lng: Number(lng) } : null;
-
-    const existingImageUrl = editingData.image_url || editingData.photo_url || "";
-    
-    const savedConditions = editingData.living_condition || [];
-    if (Array.isArray(savedConditions)) {
-      setLivingConditions(new Set(savedConditions));
+    if (editingData) {
+      const mappedData = mapRecordToForm(editingData);
+      setFormData(mappedData);
+      
+      if (mappedData.coords) {
+        setCoordinates(mappedData.coords);
+      }
+      
+      if (mappedData.livingCondition) {
+        setLivingConditions(new Set(mappedData.livingCondition));
+      }
+      
+      console.log("Данни за редактиране (mapped):", mappedData);
     }
-
-    setFormData({
-      ownerName           : editingData.owner?.name || editingData.owner_name || "",
-      ownerPhone          : editingData.owner?.phone || editingData.owner_phone || "",
-      donation            : editingData?.data?.donation || "",
-      
-      recordName          : editingData.name              || "",
-      gender              : editingData.gender            || "",
-      weight              : editingData.weight            || "",
-      bcsScore            : editingData?.data?.bcsScore   || "",
-      ageValue            : editingData.age_value         || "",
-      ageUnit             : editingData.age_unit          || "months",
-      color               : editingData.color             || "",
-      recordNotes         : editingData.notes             || "",
-      recordCity          : editingData.location_city     || "",
-      address             : editingData.location_address  || "",
-      livingCondition     : editingData.living_condition  || "",
-      coords              : foundCoords,
-
-      temperament         : editingData?.data?.temperament,
-      origin              : editingData?.data?.origin, 
-      breed               : editingData?.data?.breed,
-      outdoorAccess       : editingData?.data?.outdoorAccess, 
-      generalCondition    : editingData?.data?.generalCondition,
-      discoverySource     : editingData?.data?.discoverySource,
-
-      imagePreview        : data.publicUrl || "",
-      
-      castratedAt         : editingData?.castrated_at             || "",
-      isAlreadyCastrated  : editingData?.data?.isAlreadyCastrated       || "N",
-    
-      hasComplications      : editingData?.data?.has_complications      || "N",
-      selectedComplications : editingData?.data?.selected_complications || [],
-      recordComplications   : editingData?.data?.record_complications   || "",
-    
-    // Сегашен статус, репродуктивен статус
-      status              : editingData?.data?.status             || "received",
-      staffReceived       : editingData?.data?.staffReceived      || "",
-      staffSurgeon        : editingData?.data?.staffSurgeon       || "",
-      staffReleased       : editingData?.data?.staffReleased      || "",
-      earStatus           : editingData?.data?.earStatus          || "marked",
-      parasites           : editingData?.data?.parasites          || "none",
-      reproductiveStatus  : editingData?.data?.reproductiveStatus || "none_visible",
-      
-      // Анестезиология
-      inductionDose       : editingData?.data?.inductionDose      || "",
-      timeToSleep         : editingData?.data?.timeToSleep        || "",
-      hasInductionAdd     : editingData?.data?.hasInductionAdd    || false,
-      inductionAddAmount  : editingData?.data?.inductionAddAmount || "",
-      propofolUsed        : editingData?.data?.propofolUsed       ,
-      propofolTotalMl     : editingData?.data?.propofolTotalMl    || "",
-      propofolFirstMin    : editingData?.data?.propofolFirstMin   || "",
-      surgeryDuration     : editingData?.data?.surgeryDuration    || ""
-    });
-    
-    console.log("Данни за редактиране:", editingData);
-    if (foundCoords) {
-      setCoordinates(foundCoords);
-    }
-  }
-}, [editingData]);
+  }, [editingData]);
 
 useEffect(() => {
   // Проверяваме дали сме в режим на нова регистрация (няма редактиране) 
@@ -203,14 +89,14 @@ useEffect(() => {
 
   const [isPrinting, setIsPrinting] = useState(false);
 
-  const [coordinates, setCoordinates] = useState(editingData?.map_coordinates || null);
+  const [coordinates, setCoordinates] = useState(formData.coords || null);
 
   const [errors               , setErrors               ] = useState({});
   const [isValidatingAddress  , setIsValidatingAddress  ] = useState(false);
   const [isSubmitting         , setIsSubmitting         ] = useState(false);
   const [showSuccessModal     , setShowSuccessModal     ] = useState(false);
   const [registeredCatData    , setRegisteredCatData    ] = useState(null);
-  const [livingConditions     , setLivingConditions     ] = useState(new Set());
+  const [livingConditions     , setLivingConditions     ] = useState(new Set(formData.livingCondition || []));
 
   const breadcrumbItems = [
     { label: "Табло"              , path: "/dashboard-overview" },
@@ -390,35 +276,17 @@ const handleSubmit = (e) => {
 
     if (state == "close") {
 
-      setFormData({
-        recordName  : "",
-        gender      : "",
-        weight      : "",
-        ageValue    : "",
-        ageUnit     : "months",
-        color       : "",
-        customColor : "",
-        address     : "",
-        ownerName   : "",
-        ownerPhone  : "",
-        donation    : "N",
-        recordNotes : "",
-      });
+      setFormData(defaultFormData);
 
       setLivingConditions(new Set());
     }
 
     if (state == "same_owner") {
       setFormData({
-        recordName: "",
-        gender: "",
-        weight: "",
-        ageValue: "",
-        ageUnit: "months",
-        color: "",
-        customColor: "",
-        address: "",
-        recordNotes: "",
+        ...defaultFormData,
+        ownerName: formData.ownerName,
+        ownerPhone: formData.ownerPhone,
+        donation: formData.donation
       });
 
       setLivingConditions(new Set());

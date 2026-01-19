@@ -32,14 +32,14 @@ export async function $apiCreateNewRecord(formData, isEditing = false, catId = n
     if (isEditing && catId) {
 
         console.log("AAA")
-        console.log(JSON.parse(JSON.stringify(formData)));
-        console.log(catId);
+        console.log(formData);
         console.log("AAA")
 
         return await supabase
             .from('td_records')
-            .update({
-                name                : formData?.recordName, // записваме каквото е въвел потребителя
+            .upsert({
+                id : catId,
+                name                : formData?.recordName,
                 notes               : formData?.recordNotes,
                 gender              : formData?.gender,
                 weight              : formData.weight   ? Number(formData.weight) : null,
@@ -80,8 +80,8 @@ export async function $apiCreateNewRecord(formData, isEditing = false, catId = n
                     "parasites": formData?.parasites,
                     "reproductiveStatus": formData?.reproductiveStatus
                 }
-            })
-            .eq('id', catId);
+            });
+            //.eq('id', catId);
     } else {
         return await recordAnimal(formData, finalOwnerId);
     }
