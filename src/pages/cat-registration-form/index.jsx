@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 
 import Header                   from "../../components/ui/Header";
 import Breadcrumb               from "../../components/ui/Breadcrumb";
@@ -36,11 +36,11 @@ import {  genderOptions,
           reproductiveOptions 
           } from "../../constants/formOptions";
 
-
-import supabase from "utils/supabase";
 import { mapRecordToForm, defaultFormData } from "./utils/formMapper";
 
 const CatRegistrationForm = () => {
+
+  const navigate = useNavigate();
 
   const location = useLocation(); 
 
@@ -102,24 +102,6 @@ useEffect(() => {
     { label: "Табло"              , path: "/dashboard-overview" },
     { label: "Регистрирай котка"  , path: "/cat-registration-form" },
   ];
-
-// const getTemperamentDisplay = (temp) => {
-//   const levels = {
-//     mild: { label: "MILD", icon: "🟡", desc: "Спокойна", color: "text-yellow-500" },
-//     medium: { label: "MEDIUM", icon: "🟠", desc: "Любопитна", color: "text-orange-500" },
-//     spicy: { label: "SPICY", icon: "🔴", desc: "Нервна", color: "text-red-600" },
-//     extra_spicy: { label: "EXTRA SPICY", icon: "🌶️", desc: "Агресивна", color: "text-red-800" }
-//   };
-
-//   const level = levels[temp] || levels.mild;
-
-//   return (
-//     <div className={`flex items-center gap-2 font-bold ${level.color}`}>
-//       <span>{level.icon}</span>
-//       <span>{level.label} ({level.desc})</span>
-//     </div>
-//   );
-// };
 
   const handleImageChange = (e) => {
 
@@ -183,9 +165,16 @@ useEffect(() => {
             ...prev,
             coords: coords
           }));
-
-
         }
+
+        if(formData.hasComplications == 'N') {
+          console.log("Need to reset")
+          setFormData((prev) => ({
+            ...prev,
+            selectedComplications: []
+          }));
+        }
+
         setIsValidatingAddress(false);
       }, 1000);
     }
@@ -294,6 +283,10 @@ const handleSubmit = (e) => {
 
     setCoordinates(null);
     setRegisteredCatData(null);
+
+    if(state != "same_owner") {
+      navigate("/cat-registry-list");
+    }
   };
 
   const isFormValid = () => {
@@ -959,7 +952,8 @@ const handleSubmit = (e) => {
                     iconName="CheckCircle2"
                     iconPosition="left"
                   >
-                    {isSubmitting ? "Регистрираме..." : "Регистрирай котката"}
+                    {isEditing ? "Редактирай котката" : "Регистрирай котката"}
+                    {/* {isSubmitting ? "Регистрираме..." : "Регистрирай котката"} */}
                   </Button>
 
                   <Button

@@ -31,9 +31,11 @@ export async function $apiCreateNewRecord(formData, isEditing = false, catId = n
     // 3. Сега вече имаме ID (старо или ново) и записваме/обновяваме котката
     if (isEditing && catId) {
 
-        console.log("AAA")
+        console.log("@@@@@@@@@@@@@@")
+        console.log("@@@@@@@@@@@@@@")
         console.log(formData);
-        console.log("AAA")
+        console.log("@@@@@@@@@@@@@@")
+        console.log("@@@@@@@@@@@@@@")
 
         return await supabase
             .from('td_records')
@@ -53,35 +55,10 @@ export async function $apiCreateNewRecord(formData, isEditing = false, catId = n
                 owner_id            : finalOwnerId,
 
                 has_complications   : formData?.hasComplications,
+                record_complications: formData.recordComplications,
                 castrated_at        : formData?.castratedAt,
-                data                : {
-                    "donation": formData?.donation,
-                    "bcsScore": Number(formData?.bcsScore),
-                    "breed": formData?.breed,
-                    "outdoorAccess": formData?.outdoorAccess,
-                    "origin": formData?.origin,
-                    "generalCondition": formData?.generalCondition,
-                    "discoverySource": formData?.discoverySource,
-                    "isAlreadyCastrated": formData?.isAlreadyCastrated,
-                    "selectedComplications": [],
-                    "inductionDose": formData?.inductionDose,
-                    "timeToSleep": formData?.timeToSleep,
-                    "hasInductionAdd": formData?.hasInductionAdd,
-                    "inductionAddAmount": formData?.inductionAddAmount,
-                    "propofolUsed": formData?.propofolUsed,
-                    "propofolTotalMl": formData?.propofolTotalMl,
-                    "propofolFirstMin": formData?.propofolFirstMin,
-                    "surgeryDuration": formData?.surgeryDuration,
-                    "status": formData?.status,
-                    "staffReceived": formData?.staffReceived,
-                    "staffSurgeon": formData?.staffSurgeon,
-                    "staffReleased": formData?.staffReleased,
-                    "earStatus": formData?.earStatus,
-                    "parasites": formData?.parasites,
-                    "reproductiveStatus": formData?.reproductiveStatus
-                }
+                data                : formData
             });
-            //.eq('id', catId);
     } else {
         return await recordAnimal(formData, finalOwnerId);
     }
