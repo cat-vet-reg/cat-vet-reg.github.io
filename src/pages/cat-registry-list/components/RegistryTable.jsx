@@ -141,8 +141,14 @@ console.log("Данни за първата котка:", cats[0]);
                   <Icon name={getSortIcon('castrated_at')} size={16} />
                 </button>
               </th>
-              <th className="px-4 py-3 text-center">
-                <span className="font-semibold text-sm text-foreground">Усложнения</span>
+              <th className="px-4 py-3 text-left">
+                <button
+                  onClick={() => handleSort('has_complications')}
+                  className="flex items-center gap-2 font-semibold text-sm text-foreground hover:text-primary transition-smooth"
+                >
+                  Усложнения
+                  <Icon name={getSortIcon('has_complications')} size={16} />
+                </button>
               </th>
               <th className="px-4 py-3 text-right">
                 <span className="font-semibold text-sm text-foreground">Действия</span>

@@ -83,7 +83,6 @@ export const complicationOptions = {
       { id: "stump_granuloma"     , label: "Синусни канали/ Грануломи на чукана (Sinus Tracts / Stump Granulomas)" },
       { id: "remnant_syndrome"    , label: "Синдром на остатъчния яйчник" },
       { id: "mammary_hyperplasia" , label: "Хиперплазия на млечните жлези" },
-      { id: "mammary_hyperplasia" , label: "Хиперплазия на млечните жлези" },
     ],
     male: [
       { id: "scrotal_swelling"    , label: "Подуване/контузия/хеморагия на скротума" },

@@ -51,7 +51,7 @@ const CatRegistryList = () => {
   ];
 
   const [sortConfig, setSortConfig] = useState({
-    column: 'created_at',
+    column: 'castrated_at',
     direction: 'desc'
   });
 
@@ -105,7 +105,20 @@ const CatRegistryList = () => {
     }
     
     result.sort((a, b) => {
-  let aValue, bValue;
+    // 1. СПЕЦИАЛНО СОРТИРАНЕ ЗА УСЛОЖНЕНИЯ
+      if (sortConfig.column === 'has_complications' || sortConfig.column === 'hasComplications') {
+        const aValue = (a.has_complications || a.data?.has_complications || 'N').toString();
+        const bValue = (b.has_complications || b.data?.has_complications || 'N').toString();
+        
+        // При 'desc' (низходящо) 'Y' ще бъде преди 'N' (т.е. усложненията най-отгоре)
+        if (sortConfig.direction === 'desc') {
+          return bValue.localeCompare(aValue);
+        } else {
+          return aValue.localeCompare(bValue);
+        }
+      }
+    
+      let aValue, bValue;
 
     if (sortConfig.column === 'owner_name') {
       aValue = a.owner?.name || a.owner_name || '';
