@@ -114,31 +114,31 @@ console.log("Данни за първата котка:", cats[0]);
               </th>
               <th className="px-4 py-3 text-left">
                 <button
-                  onClick={() => handleSort('cat?.owner_name')}
+                  onClick={() => handleSort('owner_name')}
                   className="flex items-center gap-2 font-semibold text-sm text-foreground hover:text-primary transition-smooth"
                 >
                   Собственик
-                  <Icon name={getSortIcon('cat?.owner_name')} size={16} />
+                  <Icon name={getSortIcon('owner_name')} size={16} />
                 </button>
               </th>
 
               <th className="hidden md:table-cell px-4 py-3 text-left">
                 <button
-                  onClick={() => handleSort('cat?.owner_name')}
+                  onClick={() => handleSort('owner_phone')}
                   className="flex items-center gap-2 font-semibold text-sm text-foreground hover:text-primary transition-smooth"
                 >
                   Телефон
-                  <Icon name={getSortIcon('cat?.owner_name')} size={16} />
+                  <Icon name={getSortIcon('owner_phone')} size={16} />
                 </button>
               </th>
 
               <th className="hidden md:table-cell px-4 py-3 text-left">
                 <button
-                  onClick={() => handleSort('registrationDate')}
+                  onClick={() => handleSort('castrated_at')}
                   className="flex items-center gap-2 font-semibold text-sm text-foreground hover:text-primary transition-smooth"
                 >
                   Кастрирана на
-                  <Icon name={getSortIcon('registrationDate')} size={16} />
+                  <Icon name={getSortIcon('castrated_at')} size={16} />
                 </button>
               </th>
               <th className="px-4 py-3 text-center">

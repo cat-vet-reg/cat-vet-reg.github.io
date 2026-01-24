@@ -91,7 +91,7 @@ const CatRegistryList = () => {
       const searchLower = filters.search.toLowerCase();
       result = result.filter(cat =>
         cat.name?.toLowerCase().includes(searchLower) ||
-        cat.owner_name?.toLowerCase().includes(searchLower) ||
+        (cat.owner?.name || cat.owner_name)?.toLowerCase().includes(searchLower) ||
         cat.location_address?.toLowerCase().includes(searchLower)
       );
     }
@@ -105,16 +105,36 @@ const CatRegistryList = () => {
     }
     
     result.sort((a, b) => {
-      let aValue = a[sortConfig.column];
-      let bValue = b[sortConfig.column];
+  let aValue, bValue;
 
-      if (aValue < bValue) return sortConfig.direction === 'asc' ? -1 : 1;
-      if (aValue > bValue) return sortConfig.direction === 'asc' ? 1 : -1;
-      return 0;
-    });
+    if (sortConfig.column === 'owner_name') {
+      aValue = a.owner?.name || a.owner_name || '';
+      bValue = b.owner?.name || b.owner_name || '';
+    } else if (sortConfig.column === 'owner_phone') {
+      aValue = a.owner?.phone || a.owner_phone || '';
+      bValue = b.owner?.phone || b.owner_phone || '';
+    } else if (sortConfig.column === 'castrated_at') {
+      aValue = a.castrated_at ? new Date(a.castrated_at).getTime() : 0;
+      bValue = b.castrated_at ? new Date(b.castrated_at).getTime() : 0;
+    } else {
+      aValue = a[sortConfig.column] || '';
+      bValue = b[sortConfig.column] || '';
+    }
 
-    return result;
-  }, [catCollection, filters, sortConfig]);
+    // Сравнение за текст (Кирилица)
+    if (typeof aValue === 'string') {
+      const comparison = aValue.localeCompare(bValue, 'bg');
+      return sortConfig.direction === 'asc' ? comparison : -comparison;
+    }
+
+    // Сравнение за числа/дати
+    if (aValue < bValue) return sortConfig.direction === 'asc' ? -1 : 1;
+    if (aValue > bValue) return sortConfig.direction === 'asc' ? 1 : -1;
+    return 0;
+  });
+
+  return result;
+}, [catCollection, filters, sortConfig]);
 
   const handleFilterChange = (key, value) => {
     setFilters(prev => ({ ...prev, [key]: value }));
