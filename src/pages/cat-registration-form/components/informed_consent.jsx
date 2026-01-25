@@ -120,7 +120,8 @@ const getLivingConditionsLabel = (conditions) => {
 
       {/* Подписи */}
       <div className="mt-12 flex justify-between items-end border-t pt-4">
-        <p><strong>Дата:</strong> {currentDate}</p>
+        {/* <p><strong>Дата:</strong> {currentDate}</p> */}
+        <p><strong>Дата:</strong>...............</p>
         <div className="text-center">
           <p className="mb-1">...........................................</p>
           <p className="text-xs italic text-gray-500">Подпис на собственика</p>
