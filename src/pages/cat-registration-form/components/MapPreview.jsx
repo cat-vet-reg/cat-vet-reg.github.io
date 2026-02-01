@@ -3,6 +3,7 @@ import Icon from '../../../components/AppIcon';
 
 const MapPreview = ({ address, coordinates, isValidating }) => {
   const hasValidCoordinates = coordinates && coordinates?.lat && coordinates?.lng;
+  const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
 
   return (
     <div className="bg-card rounded-lg border border-border overflow-hidden h-64 md:h-80 lg:h-96">
@@ -23,7 +24,8 @@ const MapPreview = ({ address, coordinates, isValidating }) => {
             loading="lazy"
             title={`Map showing location: ${address}`}
             referrerPolicy="no-referrer-when-downgrade"
-            src={`https://www.google.com/maps?q=${coordinates?.lat},${coordinates?.lng}&z=14&output=embed`}
+            // Използваме директно адреса, който Maps Embed API изисква
+            src={`https://www.google.com/maps/embed/v1/view?key=${apiKey}&center=${coordinates.lat},${coordinates.lng}&zoom=15`}
             className="border-0"
           />
           <div className="absolute top-3 left-3 right-3 bg-background/95 backdrop-blur-sm rounded-md px-3 py-2 shadow-warm">

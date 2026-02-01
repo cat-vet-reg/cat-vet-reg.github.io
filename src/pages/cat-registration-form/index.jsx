@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation, useNavigate   } from "react-router-dom";
 
 import Header                   from "../../components/ui/Header";
 import Breadcrumb               from "../../components/ui/Breadcrumb";
@@ -16,7 +16,7 @@ import { cityOptions          } from "../../constants/city_options";
 import { breedOptions         } from "../../constants/breed_options";
 import InformedConsent          from "./components/informed_consent";
 
-import { getCoordinates       } from "../../utils/geocoding";
+// import { getCoordinates       } from "../../utils/geocoding";
 import { $apiCreateNewRecord  } from "../../services/create_new_record";
 import {  genderOptions, 
           spicyOptions,
@@ -37,6 +37,8 @@ import {  genderOptions,
           } from "../../constants/formOptions";
 
 import { mapRecordToForm, defaultFormData } from "./utils/formMapper";
+import Autocomplete                         from "react-google-autocomplete";
+import { usePlacesWidget }                  from "react-google-autocomplete";
 
 const CatRegistrationForm = () => {
 
@@ -86,6 +88,37 @@ useEffect(() => {
      handleInputChange("reproductiveStatus", "none_visible"); // Или стойност по подразбиране за мъжки
   }
 }, [formData.gender]);
+
+
+// Добави този нов useEffect след останалите
+useEffect(() => {
+  // 1. Проверяваме дали имаме град и адрес
+  if (!formData.recordCity || !formData.address) return;
+
+  // 2. Дебънс (debounce) - изчакваме 1 сек. след спиране на писането, 
+  // за да не хабим излишни заявки към Google при всяка буква
+  const timer = setTimeout(async () => {
+    
+    // Правим проверка: ако адресът е избран от Autocomplete, 
+    // той вече е сетнал координатите. Ако обаче са празни, значи е писано ръчно.
+    if (!coordinates || coordinates.address !== formData.address) {
+      setIsValidatingAddress(true);
+      
+      const coords = await getCoordinates(formData.recordCity, formData.address);
+      
+      if (coords) {
+        setCoordinates(coords);
+        // Записваме ги и в общия обект на формата
+        setFormData(prev => ({ ...prev, coords }));
+      }
+      
+      setIsValidatingAddress(false);
+    }
+  }, 1000); 
+
+  return () => clearTimeout(timer);
+}, [formData.address, formData.recordCity]); // Следи за промяна в адреса или града
+
 
   const [isPrinting, setIsPrinting] = useState(false);
 
@@ -137,47 +170,22 @@ useEffect(() => {
       });
     }
 
-    // 1. Вземаме актуалните стойности
-    const currentCityValue =
-      field === "recordCity" ? value : formData?.recordCity;
-    const currentAddress = field === "address" ? value : formData?.address;
+    // // 1. Вземаме актуалните стойности
+    // const currentCityValue =
+    //   field === "recordCity" ? value : formData?.recordCity;
+    // const currentAddress = field === "address" ? value : formData?.address;
 
-    // 2. Намираме името на града на кирилица от cityOptions
-    // Това е важно, защото Nominatim не разбира "plovdiv", но разбира "гр. Пловдив"
-    const cityObject = cityOptions.find(
-      (opt) => opt.value === currentCityValue,
-    );
-    const cityLabel = cityObject ? cityObject.label : "";
+    // // 2. Намираме името на града на кирилица от cityOptions
+    // // Това е важно, защото Nominatim не разбира "plovdiv", но разбира "гр. Пловдив"
+    // const cityObject = cityOptions.find(
+    //   (opt) => opt.value === currentCityValue,
+    // );
+    // const cityLabel = cityObject ? cityObject.label : "";
 
-    // 3. Условие за стартиране на търсенето
-    if (currentAddress?.length > 5 && cityLabel) {
-      setIsValidatingAddress(true);
-
-      const timer = setTimeout(async () => {
-        // Подаваме истинското име на града и адреса
-        const coords = await getCoordinates(cityLabel, currentAddress);
-
-        if (coords) {
-
-          setCoordinates(coords);
-
-          setFormData((prev) => ({
-            ...prev,
-            coords: coords
-          }));
-        }
-
-        if(formData.hasComplications == 'N') {
-          console.log("Need to reset")
-          setFormData((prev) => ({
-            ...prev,
-            selectedComplications: []
-          }));
-        }
-
-        setIsValidatingAddress(false);
-      }, 1000);
-    }
+    // // 3. Условие за стартиране на търсенето
+    // if (currentAddress?.length > 5 && cityLabel) {
+    //   setIsValidatingAddress(true);
+    // }
   };
 
   const handleParasiteChange = (parasiteId) => {
@@ -581,19 +589,48 @@ const handleSubmit = (e) => {
                     onChange={(value) => handleInputChange("recordCity", value)}
                     error={errors?.recordCity}
                   />
+                  <div className="space-y-2">
+                      <label className="text-sm font-medium text-foreground">Адрес</label>
+                        <Autocomplete
+                          apiKey="AIzaSyDmKHgYc8ZnPrcnXvNmT_sBfjN8sXZThQ4"
+                          onPlaceSelected={(place) => {
+  if (!place.geometry) return;
 
-                  <Input
-                    label="Адрес"
-                    type="text"
-                    placeholder="Въведете пълния адрес на животното"
-                    required
-                    value={formData?.address}
-                    onChange={(e) =>
-                      handleInputChange("address", e?.target?.value)
-                    }
-                    error={errors?.address}
-                    description="Информацията е необходима за картата, така че подробности като номер на сградата или улицата са важни. Формат: 'ул. Име 12'"
-                  />
+  const lat = place.geometry.location.lat();
+  const lng = place.geometry.location.lng();
+
+  // 1. Сетваме координатите веднага
+  setCoordinates({ lat, lng });
+  
+  // 2. Спираме лоудинг индикатора веднага
+  setIsValidatingAddress(false); 
+
+  // 3. Обновяваме формата
+  setFormData((prev) => ({
+    ...prev,
+    address: place.formatted_address,
+    coords: { lat, lng }
+  }));
+}}
+                          options={{
+                            componentRestrictions: { country: "bg" },
+                            types: ['geocode'], 
+                            fields: ["address_components", "geometry", "formatted_address"]
+                          }}
+                          // Тук ползваме твоите CSS класове за еднакъв дизайн
+                          className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                          placeholder="Започнете да пишете адрес..."
+                          defaultValue={formData?.address}
+                        />
+                    {errors?.address && <p className="text-xs text-destructive">{errors.address}</p>}
+                  </div>
+
+
+
+
+
+
+
 
                   <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 mb-2 block text-foreground">
                     Къде живее

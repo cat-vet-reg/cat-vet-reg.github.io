@@ -3,7 +3,7 @@ import supabase from "../../../utils/supabase";
 export const defaultFormData = {
     ownerName       : "",
     ownerPhone      : "",
-    donation        : "",
+    donation        : "N",
     
     // Данни на КТ
     recordName      : "",
