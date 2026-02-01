@@ -55,6 +55,32 @@ const CatRegistrationForm = () => {
   // Initial state derived from editingData (if present) or defaults
   const [formData, setFormData] = useState(() => mapRecordToForm(editingData));
 
+  const getCoordinates = async (city, address) => {
+    const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
+    const fullAddress = `${city}, ${address}`;
+    const url = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(fullAddress)}&key=${apiKey}`;
+
+    try {
+      const response = await fetch(url);
+      const data = await response.json();
+
+      if (data.status === 'OK') {
+        const location = data.results[0].geometry.location;
+        return { 
+          lat: location.lat, 
+          lng: location.lng,
+          address: address // Пазим адреса, за да знае useEffect кога да спре да търси
+        };
+      } else {
+        console.error("Geocoding Status Error:", data.status);
+        return null;
+      }
+    } catch (error) {
+      console.error("Грешка при връзка с Google Geocoding:", error);
+      return null;
+    }
+  };
+
   useEffect(() => {
 
     if (editingData) {
