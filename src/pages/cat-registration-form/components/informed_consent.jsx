@@ -18,7 +18,7 @@ import {  genderOptions,
           reproductiveOptions 
           } from "../../../constants/formOptions";
 
-const InformedConsent = ({ data }) => {
+const InformedConsent = ({ data, signature }) => {
   if (!data) return null;
 
   const getLabel = (options, value) => {
@@ -120,11 +120,21 @@ const getLivingConditionsLabel = (conditions) => {
 
       {/* Подписи */}
       <div className="mt-12 flex justify-between items-end border-t pt-4">
-        {/* <p><strong>Дата:</strong> {currentDate}</p> */}
-        <p><strong>Дата:</strong>...............</p>
+        <p><strong>Дата:</strong> {new Date().toLocaleDateString('bg-BG')}</p>
+        
         <div className="text-center">
-          <p className="mb-1">...........................................</p>
-          <p className="text-xs italic text-gray-500">Подпис на собственика</p>
+          <div className="h-16 flex items-end justify-center border-b">
+            {signature ? (
+              <img src={signature} alt="Sign" className="max-h-16" />
+            ) : (
+              <p>...........................................</p>
+            )}
+          </div>
+          
+          {/* Линията под подписа, ако има такъв */}
+          {signature && <div className="border-t w-48 mx-auto mt-1"></div>}
+          
+          <p className="text-xs italic text-gray-500 mt-1">Подпис на собственика</p>
         </div>
       </div>
 

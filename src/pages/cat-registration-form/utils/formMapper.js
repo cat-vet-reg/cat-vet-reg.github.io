@@ -54,7 +54,8 @@ export const defaultFormData = {
     parasites               : "none",
     reproductiveStatus      : "none_visible",
     
-    imagePreview            : ""
+    imagePreview            : "",
+    signature               : ""
 };
 
 /**
@@ -106,7 +107,8 @@ export const mapRecordToForm = (record) => {
         discoverySource : record.data?.discoverySource || "friends",
 
         imagePreview    : data?.publicUrl || "",
-
+        signature       : record.data?.signature || "",
+        
         castratedAt         : record.castrated_at || "",
         isAlreadyCastrated  : record.data?.isAlreadyCastrated || record.is_already_castrated || "N",
 

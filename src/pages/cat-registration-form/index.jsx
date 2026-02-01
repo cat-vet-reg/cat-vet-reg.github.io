@@ -16,7 +16,6 @@ import { cityOptions          } from "../../constants/city_options";
 import { breedOptions         } from "../../constants/breed_options";
 import InformedConsent          from "./components/informed_consent";
 
-// import { getCoordinates       } from "../../utils/geocoding";
 import { $apiCreateNewRecord  } from "../../services/create_new_record";
 import {  genderOptions, 
           spicyOptions,
@@ -39,6 +38,9 @@ import {  genderOptions,
 import { mapRecordToForm, defaultFormData } from "./utils/formMapper";
 import Autocomplete                         from "react-google-autocomplete";
 import { usePlacesWidget }                  from "react-google-autocomplete";
+import supabase                             from "../../utils/supabase";
+import SignatureCanvas                      from 'react-signature-canvas';
+import { useRef }                           from 'react';
 
 const CatRegistrationForm = () => {
 
@@ -120,6 +122,110 @@ useEffect(() => {
 }, [formData.address, formData.recordCity]); // Следи за промяна в адреса или града
 
 
+useEffect(() => {
+  // Търсим само ако е нова регистрация и телефонът е точно 10 цифри
+  if (!isEditing && formData.ownerPhone?.length === 10) {
+    const findExistingOwner = async () => {
+      try {
+        console.log("Търся собственик в td_owners с телефон:", formData.ownerPhone);
+        
+        const { data, error } = await supabase
+          .from('td_owners') // Търсим директно в таблицата за собственици
+          .select('name, id') // Вземаме името
+          .eq('phone', formData.ownerPhone)
+          .limit(1)
+          .single();
+
+        if (error) {
+          console.log("Инфо: Собственикът не е намерен или е нов.");
+          return;
+        }
+
+        if (data) {
+          console.log("Намерен собственик:", data.name);
+          
+          // Попълваме името автоматично
+          setFormData(prev => ({
+            ...prev,
+            ownerName: data.name
+          }));
+
+          // Ако искаш да намериш и последния адрес, използван от този собственик:
+          const { data: lastRecord } = await supabase
+            .from('td_records')
+            .select('location_city, location_address, latitude, longitude')
+            .eq('owner_id', data.id) // Предполагам, че има такава връзка
+            .order('created_at', { ascending: false })
+            .limit(1)
+            .single();
+
+          if (lastRecord) {
+            setFormData(prev => ({
+              ...prev,
+              recordCity: lastRecord.location_city || prev.recordCity,
+              address: lastRecord.location_address || prev.address
+            }));
+            
+            if (lastRecord.latitude && lastRecord.longitude) {
+              setCoordinates({ lat: lastRecord.latitude, lng: lastRecord.longitude });
+            }
+          }
+        }
+      } catch (err) {
+        console.error("Грешка при автоматично попълване:", err);
+      }
+    };
+
+    findExistingOwner();
+  }
+}, [formData.ownerPhone, isEditing]);
+
+  const SignatureSection = ({ onSaveSignature }) => {
+    const sigCanvas = useRef({});
+
+    // Вече няма handleEnd, който се вика автоматично
+    const confirmSignature = () => {
+      if (sigCanvas.current && !sigCanvas.current.isEmpty()) {
+        const data = sigCanvas.current.getCanvas().toDataURL('image/png');
+        onSaveSignature(data); // Записваме само когато натиснем бутона
+      }
+    };
+
+    const clear = () => {
+      sigCanvas.current.clear();
+      onSaveSignature(null);
+    };
+
+    return (
+      <div className="space-y-4">
+        <div className="border-2 border-dashed border-slate-300 rounded-md bg-white">
+          <SignatureCanvas 
+            ref={sigCanvas}
+            canvasProps={{
+              className: 'signature-canvas w-full h-40',
+            }} 
+          />
+        </div>
+        <div className="flex gap-2">
+          <button 
+            type="button" 
+            onClick={confirmSignature}
+            className="bg-green-600 text-white px-4 py-2 rounded-md text-sm font-bold hover:bg-green-700"
+          >
+            Потвърди подписа
+          </button>
+          <button 
+            type="button" 
+            onClick={clear}
+            className="bg-gray-200 text-gray-700 px-4 py-2 rounded-md text-sm"
+          >
+            Изчисти
+          </button>
+        </div>
+      </div>
+    );
+  };
+
   const [isPrinting, setIsPrinting] = useState(false);
 
   const [coordinates, setCoordinates] = useState(formData.coords || null);
@@ -153,15 +259,12 @@ useEffect(() => {
     }
   };
 
-  // В CatRegistrationForm (index.jsx)
   const handleInputChange = (field, value) => {
-
     setFormData((prev) => ({
       ...prev,
       [field]: value,
     }));
 
-    // ... (кода за изчистване на грешки)
     if (errors[field]) {
       setErrors((prev) => {
         const newErrors = { ...prev };
@@ -169,23 +272,6 @@ useEffect(() => {
         return newErrors;
       });
     }
-
-    // // 1. Вземаме актуалните стойности
-    // const currentCityValue =
-    //   field === "recordCity" ? value : formData?.recordCity;
-    // const currentAddress = field === "address" ? value : formData?.address;
-
-    // // 2. Намираме името на града на кирилица от cityOptions
-    // // Това е важно, защото Nominatim не разбира "plovdiv", но разбира "гр. Пловдив"
-    // const cityObject = cityOptions.find(
-    //   (opt) => opt.value === currentCityValue,
-    // );
-    // const cityLabel = cityObject ? cityObject.label : "";
-
-    // // 3. Условие за стартиране на търсенето
-    // if (currentAddress?.length > 5 && cityLabel) {
-    //   setIsValidatingAddress(true);
-    // }
   };
 
   const handleParasiteChange = (parasiteId) => {
@@ -226,21 +312,21 @@ useEffect(() => {
       newErrors.ageValue = "Невалидна възраст в месеци";
     }
 
-    if (!formData?.color) {
-      newErrors.color = "Изберете цвят";
-    }
+    // if (!formData?.color) {
+    //   newErrors.color = "Изберете цвят";
+    // }
 
-    if (formData?.color === "custom" && !formData?.customColor?.trim()) {
-      newErrors.customColor = "Въведете цвят";
-    }
+    // if (formData?.color === "custom" && !formData?.customColor?.trim()) {
+    //   newErrors.customColor = "Въведете цвят";
+    // }
 
     if (!formData?.address?.trim()) {
       newErrors.address = "Въведете адрес";
     }
 
-    if (!formData?.recordCity) {
-      newErrors.recordCity = "Изберете населено място";
-    }
+    // if (!formData?.recordCity) {
+    //   newErrors.recordCity = "Изберете населено място";
+    // }
 
     setErrors(newErrors);
     return Object.keys(newErrors)?.length === 0;
@@ -357,7 +443,7 @@ const handleSubmit = (e) => {
           <form onSubmit={handleSubmit} className="space-y-6 md:space-y-8">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-8">
               <div className="space-y-6 md:space-y-8">
-                <FormSection title="Лице за контакти / Собственик">
+                <FormSection title="Лице за контакти / Собственик" className="bg-[#e64072]/20 rounded-[20px] p-3">
                   <Input
                     label="Име"
                     type="text"
@@ -406,27 +492,29 @@ const handleSubmit = (e) => {
                 </FormSection>
 
                 <FormSection title="Основна информация">
-                  <Input
-                    label="Име на животното"
-                    type="text"
-                    placeholder="Как лицето за контакт нарича животното"
-                    value={formData?.recordName}
-                    onChange={(e) =>
-                      handleInputChange("recordName", e?.target?.value)
-                    }
-                    error={errors?.recordName}
-                  />
+                  <div className="bg-[#e64072]/20 rounded-[20px] p-3">
+                    <Input
+                      label="Име на животното"
+                      type="text"
+                      placeholder="Как лицето за контакт нарича животното"
+                      value={formData?.recordName}
+                      onChange={(e) =>
+                        handleInputChange("recordName", e?.target?.value)
+                      }
+                      error={errors?.recordName}
+                    />
 
-                  <Select
-                    label="Пол"
-                    placeholder="Мъжки / Женски"
-                    required
-                    options={genderOptions}
-                    value={formData?.gender}
-                    onChange={(value) => handleInputChange("gender", value)}
-                    error={errors?.gender}
-                  />
-
+                    <Select
+                      label="Пол"
+                      placeholder="Мъжки / Женски"
+                      required
+                      options={genderOptions}
+                      value={formData?.gender}
+                      onChange={(value) => handleInputChange("gender", value)}
+                      error={errors?.gender}
+                    />
+                  </div>
+                  
                   <Input
                     label="Тегло (в килограми)"
                     type="number"
@@ -470,8 +558,8 @@ const handleSubmit = (e) => {
                     )}
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4">
-                    <Input
+                  <div className="grid grid-cols-2 gap-4 bg-[#e64072]/20 rounded-[20px] p-3">
+                    <Input 
                       label="Възраст"
                       type="number"
                       placeholder="Напр. 4"
@@ -507,7 +595,6 @@ const handleSubmit = (e) => {
                   <Select
                     label="Цвят на козината"
                     placeholder="Изберете цвят"
-                    required
                     options={colorOptions}
                     value={formData?.color}
                     onChange={(value) => handleInputChange("color", value)}
@@ -578,7 +665,7 @@ const handleSubmit = (e) => {
                   </div>
                 </FormSection>
 
-                <FormSection title="Къде е намерено / отглеждано животното">
+                <FormSection title="Къде е намерено / отглеждано животното" className="bg-[#e64072]/20 rounded-[20px] p-3">
                   <Select
                     label="Град / село"
                     placeholder="Започнете да пишете град или село..."
@@ -594,24 +681,24 @@ const handleSubmit = (e) => {
                         <Autocomplete
                           apiKey={import.meta.env.VITE_GOOGLE_MAPS_API_KEY}
                           onPlaceSelected={(place) => {
-  if (!place.geometry) return;
+                            if (!place.geometry) return;
 
-  const lat = place.geometry.location.lat();
-  const lng = place.geometry.location.lng();
+                            const lat = place.geometry.location.lat();
+                            const lng = place.geometry.location.lng();
 
-  // 1. Сетваме координатите веднага
-  setCoordinates({ lat, lng });
-  
-  // 2. Спираме лоудинг индикатора веднага
-  setIsValidatingAddress(false); 
+                            // 1. Сетваме координатите веднага
+                            setCoordinates({ lat, lng });
+                            
+                            // 2. Спираме лоудинг индикатора веднага
+                            setIsValidatingAddress(false); 
 
-  // 3. Обновяваме формата
-  setFormData((prev) => ({
-    ...prev,
-    address: place.formatted_address,
-    coords: { lat, lng }
-  }));
-}}
+                            // 3. Обновяваме формата
+                            setFormData((prev) => ({
+                              ...prev,
+                              address: place.formatted_address,
+                              coords: { lat, lng }
+                            }));
+                          }}
                           options={{
                             componentRestrictions: { country: "bg" },
                             types: ['geocode'], 
@@ -624,13 +711,6 @@ const handleSubmit = (e) => {
                         />
                     {errors?.address && <p className="text-xs text-destructive">{errors.address}</p>}
                   </div>
-
-
-
-
-
-
-
 
                   <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 mb-2 block text-foreground">
                     Къде живее
@@ -728,6 +808,7 @@ const handleSubmit = (e) => {
                   {/* ПЕРСОНАЛ */}
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
                     <Select
+                      className="bg-[#e64072]/20 rounded-[20px] p-3"
                       label="Приел"
                       options={staffOptions}
                       value={formData.staffReceived}
@@ -979,6 +1060,16 @@ const handleSubmit = (e) => {
                   )}
                 </FormSection>
 
+                <FormSection title="Валидиране на протокола">
+                  <SignatureSection 
+                    // Използваме съществуващата функция за промяна на данни
+                    onSaveSignature={(data) => handleInputChange("signature", data)} 
+                  />
+                  {formData.signature && (
+                    <p className="text-xs text-green-600 mt-2">✓ Подписът е приет дигитално</p>
+                  )}
+                </FormSection>
+
                 <div className="flex flex-col sm:flex-row gap-3 pt-4">
                   <Button
                     type="submit"
@@ -1095,8 +1186,11 @@ const handleSubmit = (e) => {
         </div>      
       </div>
 
-      <InformedConsent data={{...formData, 
-    livingConditions: livingConditions}} />
+      <InformedConsent 
+        key={formData.signature ? 'signed' : 'empty'}
+        data={{...formData, livingConditions: livingConditions}} 
+        signature={formData.signature}
+      />
 
       <FloatingActionButton onClick={handleSubmit} label="Регистрирай котка" />
 
