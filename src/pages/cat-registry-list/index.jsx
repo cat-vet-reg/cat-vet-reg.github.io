@@ -70,7 +70,9 @@ const CatRegistryList = () => {
             name,
             phone
           )
-        `);
+        `)
+        .order('castrated_at', { ascending: false }) // Първо по дата
+        .order('id', { ascending: false });
         
         if (error) throw error;
         setCatCollection(data || []);
@@ -127,8 +129,19 @@ const CatRegistryList = () => {
       aValue = a.owner?.phone || a.owner_phone || '';
       bValue = b.owner?.phone || b.owner_phone || '';
     } else if (sortConfig.column === 'castrated_at') {
-      aValue = a.castrated_at ? new Date(a.castrated_at).getTime() : 0;
-      bValue = b.castrated_at ? new Date(b.castrated_at).getTime() : 0;
+      // Вземаме времето на кастрация
+      const aDate = a.castrated_at ? new Date(a.castrated_at).getTime() : 0;
+      const bDate = b.castrated_at ? new Date(b.castrated_at).getTime() : 0;
+
+      if (aDate !== bDate) {
+        // Ако датите са различни, сортираме по тях
+        return sortConfig.direction === 'asc' ? aDate - bDate : bDate - aDate;
+      } else {
+        // АКО ДАТИТЕ СА ЕДНАКВИ: Винаги слагаме по-голямото ID (най-новия запис) отгоре
+        const aId = Number(a.id) || 0;
+        const bId = Number(b.id) || 0;
+        return bId - aId; // Низходящ ред по ID за еднакви дати
+      }
     } else {
       aValue = a[sortConfig.column] || '';
       bValue = b[sortConfig.column] || '';

@@ -76,6 +76,19 @@ console.log("Данни за първата котка:", cats[0]);
                   onChange={(e) => onSelectAll(e?.target?.checked)}
                 />
               </th>
+
+
+              <th className="px-4 py-3 text-left">
+                <button
+                  onClick={() => handleSort('id')}
+                  className="flex items-center gap-2 font-semibold text-sm text-foreground hover:text-primary transition-smooth"
+                >
+                  #
+                  <Icon name={getSortIcon('id')} size={16} />
+                </button>
+              </th>
+
+
               <th className="px-4 py-3 text-left">
                 <button
                   onClick={() => handleSort('name')}
@@ -167,6 +180,13 @@ console.log("Данни за първата котка:", cats[0]);
                     checked={selectedCats?.includes(cat?.id)}
                     onChange={() => onSelectCat(cat?.id)}
                   />
+                </td>
+
+                <td className="px-4 py-3">
+                  
+                  <div className="flex items-center gap-2">
+                    <span className="font-medium text-foreground">{cat?.id}</span>
+                  </div>
                 </td>
 
                 <td className="px-4 py-3">
