@@ -592,7 +592,7 @@ const handleSubmit = (e) => {
                   <div className="space-y-2">
                       <label className="text-sm font-medium text-foreground">Адрес</label>
                         <Autocomplete
-                          apiKey="AIzaSyDmKHgYc8ZnPrcnXvNmT_sBfjN8sXZThQ4"
+                          apiKey={import.meta.env.VITE_GOOGLE_MAPS_API_KEY}
                           onPlaceSelected={(place) => {
   if (!place.geometry) return;
 

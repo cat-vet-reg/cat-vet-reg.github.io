@@ -5,7 +5,7 @@
 export const getCoordinates = async (city, address) => {
   if (!city) return null;
 
-  const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY; // Използвай ENV променлива!
+  const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
   
   // Формираме заявката
   const fullAddress = address && address.toLowerCase() !== city.toLowerCase()
