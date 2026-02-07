@@ -78,16 +78,15 @@ export const statusOptions = [
 
 export const complicationOptions = {
     female: [
-      { id: "intra_hem"                     , label: "Интраоперативна хеморагия" },
-      { id: "ureter_trauma"                 , label: "Ятрогенна травма на уретерите" },
-      { id: "post_hem"                      , label: "Постоперативна хеморагия / Хемоабдомен" },
-      { id: "dehiscence"                    , label: "Отваряне на раната (Dehiscence)" },
-      { id: "surgical_site_infection_sup"   , label: "Възпалена оперативна рана, повърхностно" },
-      { id: "surgical_site_infection_deep"  , label: "Възпалена оперативна рана, дълбоко" },
-      { id: "infection"                     , label: "Инфекция на оперативната рана" },
-      { id: "stump_granuloma"               , label: "Синусни канали/ Грануломи на чукана (Sinus Tracts / Stump Granulomas)" },
-      { id: "remnant_syndrome"              , label: "Синдром на остатъчния яйчник" },
-      { id: "mammary_hyperplasia"           , label: "Хиперплазия на млечните жлези" },
+      { id: "intra_hem"           , label: "Интраоперативна хеморагия" },
+      { id: "ureter_trauma"       , label: "Ятрогенна травма на уретерите" },
+      { id: "post_hem"            , label: "Постоперативна хеморагия / Хемоабдомен" },
+      { id: "dehiscence"          , label: "Отваряне на раната (Dehiscence)" },
+      { id: "infection_sup"       , label: "Възпалена оперативна рана, повърхностно" },
+      { id: "infection_deep"      , label: "Възпалена оперативна рана, дълбоко" },
+      { id: "stump_granuloma"     , label: "Синусни канали/ Грануломи на чукана (Sinus Tracts / Stump Granulomas)" },
+      { id: "remnant_syndrome"    , label: "Синдром на остатъчния яйчник" },
+      { id: "mammary_hyperplasia" , label: "Хиперплазия на млечните жлези" },
     ],
     male: [
       { id: "scrotal_swelling"    , label: "Подуване/контузия/хеморагия на скротума" },
