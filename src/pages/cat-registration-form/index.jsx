@@ -61,7 +61,7 @@ const CatRegistrationForm = () => {
   useEffect(() => {
 
     fetch(
-      `https://mihail-petrov.me/apimap`
+      `https://mihail-petrov.me/apimap/index.php`
     )
       .then(res => {
         if (!res.ok) {
