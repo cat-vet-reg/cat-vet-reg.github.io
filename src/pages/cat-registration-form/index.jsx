@@ -41,6 +41,7 @@ import { usePlacesWidget }                  from "react-google-autocomplete";
 import supabase                             from "../../utils/supabase";
 import SignatureCanvas                      from 'react-signature-canvas';
 import { useRef }                           from 'react';
+import If from "components/If";
 
 const CatRegistrationForm = () => {
 
@@ -54,11 +55,34 @@ const CatRegistrationForm = () => {
 
   // Initial state derived from editingData (if present) or defaults
   const [formData, setFormData] = useState(() => mapRecordToForm(editingData));
+  const [mapUrl, setMapUrl]     = useState(null);
+
+
+  useEffect(() => {
+
+    fetch(
+      `https://mihail-petrov.me/apimap`
+    )
+      .then(res => {
+        if (!res.ok) {
+          throw new Error('Failed to load map');
+        }
+        return res.json();
+      })
+      .then(data => {
+        setMapUrl(data.mapUrl);
+      })
+      .catch(() => {
+        setMapUrl(null);
+      })
+
+  });
+
 
   const getCoordinates = async (city, address) => {
-    const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
+
     const fullAddress = `${city}, ${address}`;
-    const url = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(fullAddress)}&key=${apiKey}`;
+    const url = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(fullAddress)}&key=${mapUrl}`;
 
     try {
       const response = await fetch(url);
@@ -120,6 +144,7 @@ useEffect(() => {
 
 // Добави този нов useEffect след останалите
 useEffect(() => {
+
   // 1. Проверяваме дали имаме град и адрес
   if (!formData.recordCity || !formData.address) return;
 
@@ -145,7 +170,7 @@ useEffect(() => {
   }, 1000); 
 
   return () => clearTimeout(timer);
-}, [formData.address, formData.recordCity]); // Следи за промяна в адреса или града
+}); // Следи за промяна в адреса или града
 
 
 useEffect(() => {
@@ -718,37 +743,42 @@ const handleSubmit = (e) => {
                   />
                   <div className="space-y-2">
                       <label className="text-sm font-medium text-foreground">Адрес</label>
-                        <Autocomplete
-                          apiKey={import.meta.env.VITE_GOOGLE_MAPS_API_KEY}
-                          onPlaceSelected={(place) => {
-                            if (!place.geometry) return;
+                        <If condition={mapUrl}>
+                          <Autocomplete
+                            apiKey={mapUrl}
+                            onPlaceSelected={(place) => {
 
-                            const lat = place.geometry.location.lat();
-                            const lng = place.geometry.location.lng();
+                              console.log(place)
 
-                            // 1. Сетваме координатите веднага
-                            setCoordinates({ lat, lng });
-                            
-                            // 2. Спираме лоудинг индикатора веднага
-                            setIsValidatingAddress(false); 
+                              if (!place.geometry) return;
 
-                            // 3. Обновяваме формата
-                            setFormData((prev) => ({
-                              ...prev,
-                              address: place.formatted_address,
-                              coords: { lat, lng }
-                            }));
-                          }}
-                          options={{
-                            componentRestrictions: { country: "bg" },
-                            types: ['geocode'], 
-                            fields: ["address_components", "geometry", "formatted_address"]
-                          }}
-                          // Тук ползваме твоите CSS класове за еднакъв дизайн
-                          className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                          placeholder="Започнете да пишете адрес..."
-                          defaultValue={formData?.address}
-                        />
+                              const lat = place.geometry.location.lat();
+                              const lng = place.geometry.location.lng();
+
+                              // 1. Сетваме координатите веднага
+                              setCoordinates({ lat, lng });
+                              
+                              // 2. Спираме лоудинг индикатора веднага
+                              setIsValidatingAddress(false); 
+
+                              // 3. Обновяваме формата
+                              setFormData((prev) => ({
+                                ...prev,
+                                address: place.formatted_address,
+                                coords: { lat, lng }
+                              }));
+                            }}
+                            options={{
+                              componentRestrictions: { country: "bg" },
+                              types: ['geocode'], 
+                              fields: ["address_components", "geometry", "formatted_address"]
+                            }}
+                            // Тук ползваме твоите CSS класове за еднакъв дизайн
+                            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                            placeholder="Започнете да пишете адрес..."
+                            defaultValue={formData?.address}
+                          />
+                        </If>
                     {errors?.address && <p className="text-xs text-destructive">{errors.address}</p>}
                   </div>
 
