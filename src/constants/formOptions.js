@@ -4,10 +4,10 @@ export const genderOptions = [
   ];
 
 export const spicyOptions = [
-{ id: "mild", label: "MILD", icon: "🟡", desc: "Спокойна", color: "border-yellow-400", bg: "bg-yellow-50", active: "bg-yellow-400" },
-  { id: "medium", label: "MEDIUM", icon: "🟠", desc: "Любопитна", color: "border-orange-400", bg: "bg-orange-50", active: "bg-orange-400" },
-  { id: "spicy", label: "SPICY", icon: "🔴", desc: "Нервна", color: "border-red-500", bg: "bg-red-50", active: "bg-red-500" },
-  { id: "extra_spicy", label: "EXTRA SPICY", icon: "🌶️", desc: "Агресивна", color: "border-red-800", bg: "bg-red-100", active: "bg-red-800" }
+  { id: "mild"        , label: "MILD"       , icon: "🟡", desc: "Спокойна"  , color: "border-yellow-400", bg: "bg-yellow-50", active: "bg-yellow-400" },
+  { id: "medium"      , label: "MEDIUM"     , icon: "🟠", desc: "Любопитна" , color: "border-orange-400", bg: "bg-orange-50", active: "bg-orange-400" },
+  { id: "spicy"       , label: "SPICY"      , icon: "🔴", desc: "Нервна"    , color: "border-red-500"   , bg: "bg-red-50"   , active: "bg-red-500" },
+  { id: "extra_spicy" , label: "EXTRA SPICY", icon: "🌶️", desc: "Агресивна" , color: "border-red-800"   , bg: "bg-red-100"  , active: "bg-red-800" }
 ];
 
 export const bcsScores = [1, 2, 3, 4, 5, 6, 7, 8, 9];
@@ -33,11 +33,14 @@ export const colorOptions = [
     { value: 'calico'       , label: 'Калико (трицветна)' },
     { value: 'tortoiseshell', label: 'Костенуркова' },
     { value: 'tuxedo'       , label: 'Черно-бяла' },
+    { value: 'tuxedo'       , label: 'Сиво-бяла' },
     { value: 'orange_white' , label: 'Рижо-бяла' },
 
     // Solid colors
     { value: 'orange'   , label: 'Рижа' },
     { value: 'black'    , label: 'Черна' },
+    { value: 'white'    , label: 'Сива' },
+    { value: 'white'    , label: 'Сребриста' },
     { value: 'white'    , label: 'Бяла' },
     { value: 'gray'     , label: 'Сива (Синя)' },
     { value: 'brown'    , label: 'Кафява' },
@@ -75,14 +78,16 @@ export const statusOptions = [
 
 export const complicationOptions = {
     female: [
-      { id: "intra_hem"           , label: "Интраоперативна хеморагия" },
-      { id: "ureter_trauma"       , label: "Ятрогенна травма на уретерите" },
-      { id: "post_hem"            , label: "Постоперативна хеморагия / Хемоабдомен" },
-      { id: "dehiscence"          , label: "Отваряне на раната (Dehiscence)" },
-      { id: "infection"           , label: "Инфекция на оперативната рана" },
-      { id: "stump_granuloma"     , label: "Синусни канали/ Грануломи на чукана (Sinus Tracts / Stump Granulomas)" },
-      { id: "remnant_syndrome"    , label: "Синдром на остатъчния яйчник" },
-      { id: "mammary_hyperplasia" , label: "Хиперплазия на млечните жлези" },
+      { id: "intra_hem"                     , label: "Интраоперативна хеморагия" },
+      { id: "ureter_trauma"                 , label: "Ятрогенна травма на уретерите" },
+      { id: "post_hem"                      , label: "Постоперативна хеморагия / Хемоабдомен" },
+      { id: "dehiscence"                    , label: "Отваряне на раната (Dehiscence)" },
+      { id: "surgical_site_infection_sup"   , label: "Възпалена оперативна рана, повърхностно" },
+      { id: "surgical_site_infection_deep"  , label: "Възпалена оперативна рана, дълбоко" },
+      { id: "infection"                     , label: "Инфекция на оперативната рана" },
+      { id: "stump_granuloma"               , label: "Синусни канали/ Грануломи на чукана (Sinus Tracts / Stump Granulomas)" },
+      { id: "remnant_syndrome"              , label: "Синдром на остатъчния яйчник" },
+      { id: "mammary_hyperplasia"           , label: "Хиперплазия на млечните жлези" },
     ],
     male: [
       { id: "scrotal_swelling"    , label: "Подуване/контузия/хеморагия на скротума" },
