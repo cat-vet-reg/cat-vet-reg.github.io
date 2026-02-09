@@ -68,7 +68,7 @@ const MapPreview = ({ address, coordinates, isValidating }) => {
             loading="lazy"
             title={`Map showing location: ${address}`}
             referrerPolicy="no-referrer-when-downgrade"
-            src={`${mapUrl}&q=${coordinates.lat},${coordinates.lng}&zoom=15`}
+            src={`${mapUrl}&q=${coordinates?.lat},${coordinates?.lng}&zoom=15`}
             className="border-0"
           />
           <div className="absolute top-3 left-3 right-3 bg-background/95 backdrop-blur-sm rounded-md px-3 py-2 shadow-warm">
