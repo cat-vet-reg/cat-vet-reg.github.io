@@ -6,56 +6,45 @@ const MapPreview = ({ address, coordinates, isValidating }) => {
   const hasValidCoordinates =
     coordinates && coordinates.lat && coordinates.lng;
 
-  const [mapUrl, setMapUrl]         = useState(null);
+  const [mapUrl, setMapUrl]         = useState('AIzaSyCSyjPTq09LYc7lcBxotOnv-KBTiEfNbOI');
   const [loadingMap, setLoadingMap] = useState(false);
 
-  useEffect(() => {
+  // useEffect(() => {
 
-    console.log("INITTTTTTTTTTTT");
-    console.log(coordinates);
+  //   if (!hasValidCoordinates || isValidating) {
+  //     setMapUrl(null);
+  //     return;
+  //   }
 
-    if (!hasValidCoordinates || isValidating) {
-      setMapUrl(null);
-      return;
-    }
+  //   console.log("Step 1");
+  //   console.log(coordinates);
 
-    console.log("Step 1");
-    console.log(coordinates);
+  //   setLoadingMap(true);
 
-    setLoadingMap(true);
+  //   console.log("Step 2");
 
-    console.log("Step 2");
+  //   fetch(
+  //     `https://mihail-petrov.me/api/?lat=${coordinates.lat}&lng=${coordinates.lng}`
+  //   )
+  //     .then(res => {
+  //       if (!res.ok) {
+  //         throw new Error('Failed to load map');
+  //       }
+  //       return res.json();
+  //     })
+  //     .then(data => {
+  //       setMapUrl(data.mapUrl);
+        
 
-    fetch(
-      `https://mihail-petrov.me/api/?lat=${coordinates.lat}&lng=${coordinates.lng}`
-    )
-      .then(res => {
-        if (!res.ok) {
-          throw new Error('Failed to load map');
-        }
-        return res.json();
-      })
-      .then(data => {
-        setMapUrl(data.mapUrl);
-        console.log("|DDDDD");
-        console.log(data.mapUrl)
+  //     })
+  //     .catch(() => {
+  //       setMapUrl(null);
+  //     })
+  //     .finally(() => {
+  //       setLoadingMap(false);
+  //     });
 
-        console.log("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
-        console.log(isValidating)
-        console.log(loadingMap)
-        console.log(mapUrl)
-        console.log("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
-
-
-      })
-      .catch(() => {
-        setMapUrl(null);
-      })
-      .finally(() => {
-        setLoadingMap(false);
-      });
-
-  }, [coordinates, isValidating, hasValidCoordinates]);
+  // }, [coordinates, isValidating, hasValidCoordinates]);
 
   return (
     <div className="bg-card rounded-lg border border-border overflow-hidden h-64 md:h-80 lg:h-96">

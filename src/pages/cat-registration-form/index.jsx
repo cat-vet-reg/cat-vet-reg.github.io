@@ -55,7 +55,7 @@ const CatRegistrationForm = () => {
 
   // Initial state derived from editingData (if present) or defaults
   const [formData, setFormData] = useState(() => mapRecordToForm(editingData));
-  const [mapUrl, setMapUrl]     = useState(null);
+  const [mapUrl, setMapUrl]     = useState('AIzaSyCSyjPTq09LYc7lcBxotOnv-KBTiEfNbOI');
 
 
   useEffect(() => {
