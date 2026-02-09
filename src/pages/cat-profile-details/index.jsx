@@ -50,7 +50,7 @@ const CatProfileDetails = () => {
 
         setCatData(formattedCat);
       } catch (error) {
-        console.error("Грешка при зареждане на котката:", error.message);
+        console.error("Грешка при зареждане на животното:", error.message);
       } finally {
         setIsLoading(false);
       }
@@ -62,9 +62,9 @@ const CatProfileDetails = () => {
   }, [id]);
 
   const breadcrumbItems = [
-    { label: 'Табло', path: '/dashboard-overview' },
-    { label: 'Регистрация котки', path: '/cat-registry-list' },
-    { label: 'Профил на котката', path: '#' }
+    { label: 'Табло'              , path: '/dashboard-overview' },
+    { label: 'Регистрация животни', path: '/cat-registry-list' },
+    { label: 'Профил на животното', path: '#' }
   ];
 
 const handleEdit = () => {
@@ -100,7 +100,7 @@ const handleEdit = () => {
       <div className="min-h-screen bg-background">
         <Header />
         <div className="flex flex-col items-center justify-center h-[60vh]">
-          <p className="text-xl text-red-500 mb-4">Котката не беше намерена!</p>
+          <p className="text-xl text-red-500 mb-4">Животното не беше намерено!</p>
           <button onClick={() => navigate('/cat-registry-list')} className="text-blue-500 underline">
             Върни се към списъка
           </button>

@@ -78,7 +78,7 @@ const Header = () => {
               onClick={() => window.location.href = '#/cat-registration-form'}
               className="hidden sm:flex"
             >
-              Нова котка
+              Нова регистрация
             </Button>
 
             <Button
@@ -87,7 +87,7 @@ const Header = () => {
               iconName="Plus"
               onClick={() => window.location.href = '#/cat-registration-form'}
               className="sm:hidden"
-              aria-label="Регистрирай котка"
+              aria-label="Нова регистрация"
             />
 
             <button

@@ -7,7 +7,8 @@ export const defaultFormData = {
     
     // Данни на КТ
     recordName      : "",
-    gender          : "",
+    gender          : "female",
+    species         : "cat",
     weight          : "",
     bcsScore        : "5",
     temperament     : "mild",
@@ -87,12 +88,14 @@ export const mapRecordToForm = (record) => {
 
         recordName      : record.name || "",
         gender          : record.gender || "",
+        species         : record.species || record.data?.species || "cat",
         weight          : record.weight || "",
         bcsScore        : record.data?.bcsScore || "5",
         
         ageValue        : record.age_value || "",
         ageUnit         : record.age_unit || "months",
         color           : record.color || "",
+        customColor         : record.data?.customColor || "",
         recordNotes     : record.notes || "",
         recordCity      : record.location_city || "",
         address         : record.location_address || "",
@@ -109,10 +112,10 @@ export const mapRecordToForm = (record) => {
         imagePreview    : data?.publicUrl || "",
         signature       : record.data?.signature || "",
         
-        castratedAt         : record.castrated_at || "",
-        isAlreadyCastrated  : record.data?.isAlreadyCastrated || record.is_already_castrated || "N",
+        castratedAt             : record.castrated_at || "",
+        isAlreadyCastrated      : record.data?.isAlreadyCastrated || record.is_already_castrated || "N",
 
-        hasComplications    : record.data?.has_complications || record.has_complications || "N",
+        hasComplications        : record.data?.has_complications || record.has_complications || "N",
         selectedComplications   : record.data?.selectedComplications|| [],
         recordComplications     : record.record_complications       || "",
 
@@ -124,15 +127,14 @@ export const mapRecordToForm = (record) => {
         propofolTotalMl     : record.data?.propofolTotalMl        || "",
         propofolFirstMin    : record.data?.propofolFirstMin       || "",
         surgeryDuration     : record.data?.surgeryDuration        || "",
+        recoveryDuration    : record.data?.recoveryDuration       || "",
 
         status              : record.data?.status || record.status || "recorded",
-        staffReceived       : record.data?.staffReceived          || "",
-        staffSurgeon        : record.data?.staffSurgeon           || "",
-        staffReleased       : record.data?.staffReleased          || "",
-        earStatus           : record.data?.earStatus              || "marked",
-        parasites           : record.data?.parasites              || "none",
-        reproductiveStatus  : record.data?.reproductiveStatus     || "none_visible",
-        
-        customColor: record.data?.customColor || ""
+        staffReceived       : record.data?.staffReceived           || "",
+        staffSurgeon        : record.data?.staffSurgeon            || "",
+        staffReleased       : record.data?.staffReleased           || "",
+        earStatus           : record.data?.earStatus               || "marked",
+        parasites           : record.data?.parasites               || "none",
+        reproductiveStatus  : record.data?.reproductiveStatus      || "none_visible"
     };
 };

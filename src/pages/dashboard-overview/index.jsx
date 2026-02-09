@@ -616,22 +616,22 @@ const DashboardOverview = () => {
 
   const quickActions = [
   {
-    title: "Регистрирай Нова Котка",
-    description: "Добави нова котка в регистъра с пълна информация и локацията",
+    title: "Регистрирай ново животно",
+    description: "Добави ново животно в регистъра с пълна информация и локацията",
     icon: "Plus",
     iconColor: "var(--color-primary)",
     path: "/cat-registration-form"
   },
   {
     title: "Виж интерактивна карта",
-    description: "Виж регистрираните котки на картата, показваща техните локации",
+    description: "Виж регистрираните животни на картата, показваща техните локации",
     icon: "Map",
     iconColor: "var(--color-secondary)",
     path: "/interactive-cat-map"
   },
   {
     title: "Търси в регистъра",
-    description: "Виж целия списък на регистрираните котки с търсачка и опции за филтриране.",
+    description: "Виж целия списък на регистрираните животни с търсачка и опции за филтриране.",
     icon: "List",
     iconColor: "var(--color-accent)",
     path: "/cat-registry-list"

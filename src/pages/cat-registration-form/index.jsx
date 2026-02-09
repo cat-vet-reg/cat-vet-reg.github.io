@@ -279,7 +279,7 @@ useEffect(() => {
 
   const breadcrumbItems = [
     { label: "Табло"              , path: "/dashboard-overview" },
-    { label: "Регистрирай котка"  , path: "/cat-registration-form" },
+    { label: "Нова регистрация"   , path: "/cat-registration-form" },
   ];
 
   const handleImageChange = (e) => {
@@ -553,6 +553,33 @@ const handleSubmit = (e) => {
                       onChange={(value) => handleInputChange("gender", value)}
                       error={errors?.gender}
                     />
+
+                    <label className="block text-sm font-medium text-slate-700 mb-2">Вид животно</label>
+                    <div className="flex justify-between items-center gap-2 mb-6">
+                      <button
+                        type="button"
+                        onClick={() => handleInputChange("species", "cat")}
+                        className={`flex-1 py-3 text-sm font-bold rounded-md transition-all flex items-center justify-center gap-2 ${
+                          formData?.species === 'cat' 
+                          ? "bg-primary text-white ring-2 ring-offset-2 ring-primary scale-105 z-10" 
+                          : "bg-slate-100 text-slate-500 hover:bg-slate-200"
+                        }`}
+                      >
+                        <span className="text-base">🐱</span> Котка
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleInputChange("species", "dog")}
+                        className={`flex-1 py-3 text-sm font-bold rounded-md transition-all flex items-center justify-center gap-2 ${
+                          formData?.species === 'dog' 
+                          ? "bg-primary text-white ring-2 ring-offset-2 ring-primary scale-105 z-10" 
+                          : "bg-slate-100 text-slate-500 hover:bg-slate-200"
+                        }`}
+                      >
+                        <span className="text-base">🐶</span> Куче
+                      </button>
+                    </div>
+
                   </div>
                   
                   <Input
@@ -795,7 +822,7 @@ const handleSubmit = (e) => {
 
                   {/* Произход */}
                   <div className="space-y-2">
-                    <label className="text-sm font-medium block text-foreground">Откъде е котката?</label>
+                    <label className="text-sm font-medium block text-foreground">Откъде е животното?</label>
                     <div className="flex gap-4">
                       {origin.map((opt) => (
                         <button
@@ -931,7 +958,7 @@ const handleSubmit = (e) => {
                   />
 
                   <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 mb-2 block text-foreground">
-                    Котката беше ли вече кастрирана?
+                    Животното беше ли вече кастрирана?
                   </label>
 
                   <div className="flex gap-4 mb-4">
@@ -977,7 +1004,7 @@ const handleSubmit = (e) => {
 
 
                     <Input
-                      label="След колко минути заспа котката?"
+                      label="След колко минути заспа животното?"
                       type="number"
                       step="0.5"
                       placeholder="Напр. 5 мин"
@@ -1048,8 +1075,8 @@ const handleSubmit = (e) => {
                   <Input
                     label="Възстановяване (sternal recumbency)"
                     type="number"
-                    placeholder="Кога котката се изправи?"
-                    value={formData.surgeryDuration}
+                    placeholder="Кога ЖВ се изправи?"
+                    value={formData.recoveryDuration}
                     onChange={(e) => handleInputChange("recoveryDuration", e.target.value)}
                     iconName="Clock"
                   />
@@ -1218,8 +1245,8 @@ const handleSubmit = (e) => {
                     iconName="CheckCircle2"
                     iconPosition="left"
                   >
-                    {isEditing ? "Редактирай котката" : "Регистрирай котката"}
-                    {/* {isSubmitting ? "Регистрираме..." : "Регистрирай котката"} */}
+                    {isEditing ? "Редактирай ЖВ" : "Регистрирай ЖВ"}
+                    {/* {isSubmitting ? "Регистрираме..." : "Регистрирай ЖВ"} */}
                   </Button>
 
                   <Button
@@ -1330,7 +1357,7 @@ const handleSubmit = (e) => {
         signature={formData.signature}
       />
 
-      <FloatingActionButton onClick={handleSubmit} label="Регистрирай котка" />
+      <FloatingActionButton onClick={handleSubmit} label="Регистрирай животното" />
 
       <SuccessModal
         isOpen={showSuccessModal}

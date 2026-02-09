@@ -189,8 +189,8 @@ const CatRegistryList = () => {
   };
 
   const breadcrumbItems = [
-    { label: 'Табло', path: '/dashboard-overview' },
-    { label: 'Регистър на котките', path: '/cat-registry-list' }
+    { label: 'Табло'                , path: '/dashboard-overview' },
+    { label: 'Регистър на животните', path: '/cat-registry-list' }
   ];
 
   if (isLoading) return <div className="p-10 text-center text-xl">Зареждане на регистъра...</div>;
@@ -203,9 +203,9 @@ const CatRegistryList = () => {
 
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6 md:mb-8">
           <div>
-            <h1 className="text-3xl md:text-4xl lg:text-5xl mb-2 font-bold text-foreground">Регистър на котките</h1>
+            <h1 className="text-3xl md:text-4xl lg:text-5xl mb-2 font-bold text-foreground">Регистър на животните</h1>
             <p className="text-base md:text-lg text-muted-foreground">
-              Общо регистрирани: {catCollection.length} котки
+              Общо регистрирани: {catCollection.length} животни
             </p>
           </div>
 
@@ -244,7 +244,7 @@ const CatRegistryList = () => {
         {filteredAndSortedCats.length === 0 && (
           <div className="bg-card rounded-lg p-12 text-center shadow-sm border mt-4">
             <Icon name="Search" size={48} className="mx-auto text-muted-foreground mb-4" />
-            <h3 className="text-xl font-semibold">Няма намерени котки</h3>
+            <h3 className="text-xl font-semibold">Няма намерени животни</h3>
             <p className="text-muted-foreground mb-6">Опитайте с други критерии за търсене.</p>
             <Button variant="outline" onClick={handleClearFilters}>Изчисти филтрите</Button>
           </div>
@@ -258,7 +258,7 @@ const CatRegistryList = () => {
 
       <FloatingActionButton
         onClick={() => navigate('/cat-registration-form')}
-        label="Регистрирай нова котка"
+        label="Регистрирай ново животно"
       />
     </div>
   );

@@ -29,7 +29,7 @@ const SuccessModal = ({ isOpen, onClose, catData }) => {
               Успешна регистрация
             </h2>
             <p className="text-sm md:text-base text-muted-foreground">
-              Котката е заведена в регистъра.
+              Животното е заведено в регистъра.
             </p>
           </div>
 
