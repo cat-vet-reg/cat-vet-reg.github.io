@@ -1106,8 +1106,8 @@ const handleSubmit = (e) => {
                     label="Възстановяване (sternal recumbency)"
                     type="number"
                     placeholder="Кога ЖВ се изправи?"
-                    value={formData.recoveryDuration}
-                    onChange={(e) => handleInputChange("recoveryDuration", e.target.value)}
+                    value={formData.recoveryTime}
+                    onChange={(e) => handleInputChange("recoveryTime", e.target.value)}
                     iconName="Clock"
                   />
                 </FormSection>
@@ -1190,12 +1190,12 @@ const handleSubmit = (e) => {
                       disabled={!stamps.injectedAt}
                       onClick={() => {
                         const mins = getDiffInMinutes(stamps.injectedAt, new Date());
-                        handleInputChange("recoveryDuration", mins);
+                        handleInputChange("recoveryTime", mins);
                       }}
                       className="p-7 rounded-lg border-2 border-orange-100 bg-orange-50 text-orange-700"
                     >
                       <span className="text-xs uppercase font-bold">Събуди се</span>
-                      <div className="text-sm font-semibold">{formData.recoveryDuration ? `${formData.recoveryDuration} мин` : 'Засечи'}</div>
+                      <div className="text-sm font-semibold">{formData.recoveryTime ? `${formData.recoveryTime} мин` : 'Засечи'}</div>
                     </button>
                   </div>
                 </FormSection>

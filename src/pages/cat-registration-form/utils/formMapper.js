@@ -127,7 +127,7 @@ export const mapRecordToForm = (record) => {
         propofolTotalMl     : record.data?.propofolTotalMl        || "",
         propofolFirstMin    : record.data?.propofolFirstMin       || "",
         surgeryDuration     : record.data?.surgeryDuration        || "",
-        recoveryDuration    : record.data?.recoveryDuration       || "",
+        recoveryTime        : record.data?.recoveryTime           || "",
 
         status              : record.data?.status || record.status || "recorded",
         staffReceived       : record.data?.staffReceived           || "",

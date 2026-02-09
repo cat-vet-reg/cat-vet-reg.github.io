@@ -482,40 +482,45 @@ const DashboardOverview = () => {
 
     filteredForAnesthesia.forEach(cat => {
       const weight = parseFloat(cat.weight);
+      const recovery = parseFloat(cat.recoveryTime);
+      const propofolTime = parseFloat(cat.propofolFirstMin);
+
+    // --- ЛОГИКА ЗА ВРЕМЕТО ---
+      let durationOfAnesthesia = 0;
       
-      // 1. ОПРЕДЕЛЯМЕ БАЗОВАТА ДОЗА ВЪТРЕ В ЦИКЪЛА (според пола на конкретната котка)
+      if (!isNaN(propofolTime) && propofolTime > 0) {
+        // Ако сме дали пропофол в 15-ата мин, значи упойката е "изпуснала" тогава.
+        durationOfAnesthesia = propofolTime;
+      } else if (!isNaN(recovery) && recovery > 0) {
+        // Ако не е имало нужда от пропофол, гледаме кога се е събудила окончателно.
+        durationOfAnesthesia = recovery;
+      }
+
+      // --- ЛОГИКА ЗА ДОЗАТА ---
       const inductionDose = parseFloat(cat.inductionDose);
       const fallbackDose = cat.gender === 'male' ? 0.12 : 0.11;
       const baseDose = (!isNaN(inductionDose) && inductionDose > 0) ? inductionDose : fallbackDose;
       
-      // 2. ДОБАВЯМЕ ДОПЪЛНИТЕЛНАТА УПОЙКА, АКО ИМА ТАКАВА
       const topUp = parseFloat(cat.inductionAddAmount) || 0;
       const totalVolume = baseDose + topUp;
-      
-      // 3. ИЗЧИСЛЯВАМЕ ВРЕМЕТО
-      const propofolTime = parseFloat(cat.propofolFirstMin);
-      const surgeryTime = parseFloat(cat.surgeryDuration || cat.duration);
-      const effectiveTime = (!isNaN(propofolTime) && propofolTime > 0) 
-        ? propofolTime 
-        : (!isNaN(surgeryTime) && surgeryTime > 0 ? surgeryTime : 0);
 
-      // 4. ПРОВЕРКА ЗА ВАЛИДНОСТ
-      if (!isNaN(weight) && weight > 0 && effectiveTime > 0) {
+      // --- ЗАПИСВАНЕ САМО ПРИ ВАЛИДНИ ДАННИ ---
+      if (!isNaN(weight) && weight > 0 && durationOfAnesthesia > 0) {
         const groupKey = weight;
           
         if (!groups[groupKey]) {
           groups[groupKey] = { 
             weightGroup: groupKey, 
-            totalDoseSum: 0, // Сумираме (общо количество / тегло)
+            totalDoseSum: 0, 
             totalRecoveryTime: 0, 
             count: 0,
             topUpCount: 0
           };
         }
         
-        // Изчисляваме дозата на кг за тази конкретна котка
+        // Смятаме доза на килограм (мл/кг)
         groups[groupKey].totalDoseSum += (totalVolume / weight);
-        groups[groupKey].totalRecoveryTime += effectiveTime;
+        groups[groupKey].totalRecoveryTime += durationOfAnesthesia;
         groups[groupKey].count += 1;
         
         if (cat.hasInductionAdd === true || cat.hasInductionAdd === 'Y') {
