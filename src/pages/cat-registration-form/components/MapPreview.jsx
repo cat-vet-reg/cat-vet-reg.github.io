@@ -1,22 +1,66 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import Icon from '../../../components/AppIcon';
+import If from '../../../components/If';
 
 const MapPreview = ({ address, coordinates, isValidating }) => {
-  const hasValidCoordinates = coordinates && coordinates?.lat && coordinates?.lng;
-  const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
+  const hasValidCoordinates =
+    coordinates && coordinates.lat && coordinates.lng;
+
+  const [mapUrl, setMapUrl]         = useState('https://www.google.com/maps/embed/v1/place?key=AIzaSyCSyjPTq09LYc7lcBxotOnv-KBTiEfNbOI');
+  const [loadingMap, setLoadingMap] = useState(false);
+
+  // useEffect(() => {
+
+  //   if (!hasValidCoordinates || isValidating) {
+  //     setMapUrl(null);
+  //     return;
+  //   }
+
+  //   console.log("Step 1");
+  //   console.log(coordinates);
+
+  //   setLoadingMap(true);
+
+  //   console.log("Step 2");
+
+  //   fetch(
+  //     `https://mihail-petrov.me/api/?lat=${coordinates.lat}&lng=${coordinates.lng}`
+  //   )
+  //     .then(res => {
+  //       if (!res.ok) {
+  //         throw new Error('Failed to load map');
+  //       }
+  //       return res.json();
+  //     })
+  //     .then(data => {
+  //       setMapUrl(data.mapUrl);
+        
+
+  //     })
+  //     .catch(() => {
+  //       setMapUrl(null);
+  //     })
+  //     .finally(() => {
+  //       setLoadingMap(false);
+  //     });
+
+  // }, [coordinates, isValidating, hasValidCoordinates]);
 
   return (
     <div className="bg-card rounded-lg border border-border overflow-hidden h-64 md:h-80 lg:h-96">
-      {isValidating ? (
+      
+      <If condition={isValidating || loadingMap}>
         <div className="flex flex-col items-center justify-center h-full gap-3 px-4">
           <div className="animate-spin">
             <Icon name="Loader2" size={32} className="text-primary" />
           </div>
           <p className="text-sm md:text-base text-muted-foreground text-center">
-            Validating address and finding location...
+            Loading map preview...
           </p>
         </div>
-      ) : hasValidCoordinates ? (
+      </If>
+
+      <If condition={!isValidating && !loadingMap && mapUrl}>
         <div className="relative w-full h-full">
           <iframe
             width="100%"
@@ -24,7 +68,7 @@ const MapPreview = ({ address, coordinates, isValidating }) => {
             loading="lazy"
             title={`Map showing location: ${address}`}
             referrerPolicy="no-referrer-when-downgrade"
-            src={`https://www.google.com/maps/embed/v1/place?key=${apiKey}&q=${coordinates.lat},${coordinates.lng}&zoom=15`}
+            src={`${mapUrl}&q=${coordinates?.lat},${coordinates?.lng}&zoom=15`}
             className="border-0"
           />
           <div className="absolute top-3 left-3 right-3 bg-background/95 backdrop-blur-sm rounded-md px-3 py-2 shadow-warm">
@@ -36,7 +80,9 @@ const MapPreview = ({ address, coordinates, isValidating }) => {
             </div>
           </div>
         </div>
-      ) : (
+      </If>
+
+      <If condition={!isValidating && !loadingMap && !mapUrl}>
         <div className="flex flex-col items-center justify-center h-full gap-3 px-4 text-center">
           <div className="flex items-center justify-center w-16 h-16 bg-muted rounded-full">
             <Icon name="MapPin" size={32} className="text-muted-foreground" />
@@ -50,7 +96,8 @@ const MapPreview = ({ address, coordinates, isValidating }) => {
             </p>
           </div>
         </div>
-      )}
+      </If>
+
     </div>
   );
 };
