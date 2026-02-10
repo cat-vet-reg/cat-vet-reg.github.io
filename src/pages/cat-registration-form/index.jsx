@@ -51,7 +51,8 @@ const CatRegistrationForm = () => {
 
   // Вземаме данните, ако идваме от бутона "Редактирай"
   const editingData = location.state?.catData;
-  const isEditing = !!location.state?.isEditing;
+  const [isEditing, setIsEditing] = useState(!!location.state?.isEditing);
+  //const isEditing = !!location.state?.isEditing;
 
   // Initial state derived from editingData (if present) or defaults
   const [formData, setFormData] = useState(() => mapRecordToForm(editingData));
@@ -124,9 +125,6 @@ const CatRegistrationForm = () => {
   }, [editingData]);
 
 useEffect(() => {
-  // Проверяваме дали сме в режим на нова регистрация (няма редактиране) 
-  // ИЛИ ако полето за доза е празно в момента.
-  // Така не прецакваме старите записи при отваряне за преглед.
   if (!isEditing || !formData.inductionDose) {
     if (formData.gender === "female") {
       handleInputChange("inductionDose", "0.11");
@@ -134,10 +132,8 @@ useEffect(() => {
       handleInputChange("inductionDose", "0.12");
     }
   }
-  if (formData.gender === "female") {
-     handleInputChange("reproductiveStatus", "none_visible");
-  } else if (formData.gender === "male") {
-     handleInputChange("reproductiveStatus", "none_visible"); // Или стойност по подразбиране за мъжки
+  if (!formData.reproductiveStatus || formData.reproductiveStatus === "") {
+      handleInputChange("reproductiveStatus", "none_visible");
   }
 }, [formData.gender]);
 
@@ -419,34 +415,34 @@ const handleSubmit = (e) => {
     });
 };
 
-  const handleSuccessModalClose = (state) => {
-    setShowSuccessModal(false);
+const handleSuccessModalClose = (state) => {
+  setShowSuccessModal(false);
 
-    if (state == "close") {
+  if (state == "close") {
+    setFormData(defaultFormData);
+    setLivingConditions(new Set());
+  }
 
-      setFormData(defaultFormData);
+  if (state == "same_owner") {
+    setIsEditing(false)
+    setFormData({
+      ...defaultFormData,
+      ownerName: formData.ownerName,
+      ownerPhone: formData.ownerPhone,
+      donation: formData.donation
+    });
 
-      setLivingConditions(new Set());
-    }
+    setLivingConditions(new Set());
+    navigate(location.pathname, { replace: true, state: {} }); // <--- ТОВА ИЗЧИСТВА ID-то от паметта на браузъра
+  }
 
-    if (state == "same_owner") {
-      setFormData({
-        ...defaultFormData,
-        ownerName: formData.ownerName,
-        ownerPhone: formData.ownerPhone,
-        donation: formData.donation
-      });
+  setCoordinates(null);
+  setRegisteredCatData(null);
 
-      setLivingConditions(new Set());
-    }
-
-    setCoordinates(null);
-    setRegisteredCatData(null);
-
-    if(state != "same_owner") {
-      navigate("/cat-registry-list");
-    }
-  };
+  if(state != "same_owner") {
+    navigate("/cat-registry-list");
+  }
+};
 
   const isFormValid = () => {
     return true;

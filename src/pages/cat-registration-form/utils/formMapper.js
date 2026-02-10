@@ -135,6 +135,6 @@ export const mapRecordToForm = (record) => {
         staffReleased       : record.data?.staffReleased           || "",
         earStatus           : record.data?.earStatus               || "marked",
         parasites           : record.data?.parasites               || "none",
-        reproductiveStatus  : record.data?.reproductiveStatus      || "none_visible"
+        reproductiveStatus  : record.data?.reproductiveStatus  || record.reproductiveStatus  || "none_visible"
     };
 };
