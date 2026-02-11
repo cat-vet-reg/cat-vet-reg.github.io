@@ -19,6 +19,7 @@ export const defaultFormData = {
     recordNotes     : "",
     recordCity      : "",
     address         : "",
+    zonaNumber      : "",
     livingCondition : [], // Changed to array for better compatibility
     coords          : null,
     
@@ -99,6 +100,7 @@ export const mapRecordToForm = (record) => {
         recordNotes     : record.notes || "",
         recordCity      : record.location_city || "",
         address         : record.location_address || "",
+        zonaNumber      : record.zona_number || "",
         livingCondition : record.living_condition || [],
         coords          : foundCoords,
 
