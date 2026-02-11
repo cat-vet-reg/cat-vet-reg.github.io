@@ -9,43 +9,6 @@ const MapPreview = ({ address, coordinates, isValidating }) => {
   const [mapUrl, setMapUrl]         = useState('https://www.google.com/maps/embed/v1/place?key=AIzaSyCSyjPTq09LYc7lcBxotOnv-KBTiEfNbOI');
   const [loadingMap, setLoadingMap] = useState(false);
 
-  // useEffect(() => {
-
-  //   if (!hasValidCoordinates || isValidating) {
-  //     setMapUrl(null);
-  //     return;
-  //   }
-
-  //   console.log("Step 1");
-  //   console.log(coordinates);
-
-  //   setLoadingMap(true);
-
-  //   console.log("Step 2");
-
-  //   fetch(
-  //     `https://mihail-petrov.me/api/?lat=${coordinates.lat}&lng=${coordinates.lng}`
-  //   )
-  //     .then(res => {
-  //       if (!res.ok) {
-  //         throw new Error('Failed to load map');
-  //       }
-  //       return res.json();
-  //     })
-  //     .then(data => {
-  //       setMapUrl(data.mapUrl);
-        
-
-  //     })
-  //     .catch(() => {
-  //       setMapUrl(null);
-  //     })
-  //     .finally(() => {
-  //       setLoadingMap(false);
-  //     });
-
-  // }, [coordinates, isValidating, hasValidCoordinates]);
-
   return (
     <div className="bg-card rounded-lg border border-border overflow-hidden h-64 md:h-80 lg:h-96">
       

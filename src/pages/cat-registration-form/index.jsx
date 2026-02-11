@@ -41,7 +41,8 @@ import { usePlacesWidget }                  from "react-google-autocomplete";
 import supabase                             from "../../utils/supabase";
 import SignatureCanvas                      from 'react-signature-canvas';
 import { useRef }                           from 'react';
-import If from "components/If";
+import If                                   from "components/If";
+import { findDistrict }                     from "../../constants/zona_find";
 
 const CatRegistrationForm = () => {
 
@@ -56,6 +57,7 @@ const CatRegistrationForm = () => {
 
   // Initial state derived from editingData (if present) or defaults
   const [formData, setFormData] = useState(() => mapRecordToForm(editingData));
+  const [coordinates, setCoordinates] = useState(formData.coords || null);
   const [mapUrl, setMapUrl]     = useState('AIzaSyCSyjPTq09LYc7lcBxotOnv-KBTiEfNbOI');
 
 
@@ -170,62 +172,12 @@ useEffect(() => {
 
 
 useEffect(() => {
-  // Търсим само ако е нова регистрация и телефонът е точно 10 цифри
-  if (!isEditing && formData.ownerPhone?.length === 10) {
-    const findExistingOwner = async () => {
-      try {
-        console.log("Търся собственик в td_owners с телефон:", formData.ownerPhone);
-        
-        const { data, error } = await supabase
-          .from('td_owners') // Търсим директно в таблицата за собственици
-          .select('name, id') // Вземаме името
-          .eq('phone', formData.ownerPhone)
-          .limit(1)
-          .single();
+    if (coordinates && coordinates.lat) { // Тук вече няма да има грешка
+       const detectedZone = findDistrict(coordinates.lat, coordinates.lng);
+       handleInputChange("zonaNumber", detectedZone);
+    }
+  }, [coordinates]);
 
-        if (error) {
-          console.log("Инфо: Собственикът не е намерен или е нов.");
-          return;
-        }
-
-        if (data) {
-          console.log("Намерен собственик:", data.name);
-          
-          // Попълваме името автоматично
-          setFormData(prev => ({
-            ...prev,
-            ownerName: data.name
-          }));
-
-          // Ако искаш да намериш и последния адрес, използван от този собственик:
-          const { data: lastRecord } = await supabase
-            .from('td_records')
-            .select('location_city, location_address, latitude, longitude')
-            .eq('owner_id', data.id) // Предполагам, че има такава връзка
-            .order('created_at', { ascending: false })
-            .limit(1)
-            .single();
-
-          if (lastRecord) {
-            setFormData(prev => ({
-              ...prev,
-              recordCity: lastRecord.location_city || prev.recordCity,
-              address: lastRecord.location_address || prev.address
-            }));
-            
-            if (lastRecord.latitude && lastRecord.longitude) {
-              setCoordinates({ lat: lastRecord.latitude, lng: lastRecord.longitude });
-            }
-          }
-        }
-      } catch (err) {
-        console.error("Грешка при автоматично попълване:", err);
-      }
-    };
-
-    findExistingOwner();
-  }
-}, [formData.ownerPhone, isEditing]);
 
   // Обекти за изчисленият на бутоните
   const [stamps, setStamps] = useState({
@@ -289,7 +241,6 @@ useEffect(() => {
 
   const [isPrinting, setIsPrinting] = useState(false);
 
-  const [coordinates, setCoordinates] = useState(formData.coords || null);
 
   const [errors               , setErrors               ] = useState({});
   const [isValidatingAddress  , setIsValidatingAddress  ] = useState(false);
@@ -803,6 +754,16 @@ const handleSuccessModalClose = (state) => {
                           />
                         </If>
                     {errors?.address && <p className="text-xs text-destructive">{errors.address}</p>}
+                  </div>
+
+                  <div className="mt-4">
+                    <label className="text-sm font-medium text-foreground">Идентифицирана Зона</label>
+                    <div className="flex h-10 w-full rounded-md border border-input bg-slate-100 px-3 py-2 text-sm font-bold text-pink-600">
+                      {formData?.zonaNumber || "Търсене на зона..."}
+                    </div>
+                    <p className="text-[10px] text-slate-500 mt-1 italic">
+                      *Зоната се определя автоматично според картата на Пловдив
+                    </p>
                   </div>
 
                   <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 mb-2 block text-foreground">
