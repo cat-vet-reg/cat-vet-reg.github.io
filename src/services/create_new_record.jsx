@@ -28,7 +28,7 @@ export async function $apiCreateNewRecord(formData, isEditing = false, catId = n
         }
     }
 
-    // 3. Сега вече имаме ID (старо или ново) и записваме/обновяваме котката
+    // 3. Сега вече имаме ID (старо или ново) и записваме/обновяваме жв
     if (isEditing && catId) {
 
         console.log("@@@@@@@@@@@@@@")
@@ -103,14 +103,29 @@ async function recordAnimal(formData, ownerId) {
     const newCat = tdRecordsResponse.data[0];
 
     // 2. АКО потребителят НЕ е въвел име, обновяваме с "Котка №ID"
+    // if (!formData?.recordName?.trim()) {
+    //     await supabase
+    //         .from('td_records')
+    //         .update({ name: `Котка №${newCat.id}` })
+    //         .eq('id', newCat.id);
+        
+    //     // Обновяваме обекта в паметта, за да може SuccessModal да го види веднага
+    //     newCat.name = `Котка №${newCat.id}`;
+    // }
+
+    // 2. АКО потребителят НЕ е въвел име, обновяваме спрямо вида на животното
     if (!formData?.recordName?.trim()) {
+        // Определяме префикса: ако е куче -> "Куче", в противен случай -> "Котка"
+        const speciesLabel = formData.species === 'cat' ? 'Котка' : 'Куче';
+        const autoName = `${speciesLabel} №${newCat.id}`;
+
         await supabase
             .from('td_records')
-            .update({ name: `Котка №${newCat.id}` })
+            .update({ name: autoName })
             .eq('id', newCat.id);
         
         // Обновяваме обекта в паметта, за да може SuccessModal да го види веднага
-        newCat.name = `Котка №${newCat.id}`;
+        newCat.name = autoName;
     }
 
     // 3. Качване на снимката

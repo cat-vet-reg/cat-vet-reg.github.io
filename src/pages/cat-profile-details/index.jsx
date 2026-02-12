@@ -94,7 +94,7 @@ const handleEdit = () => {
     );
   }
 
-  // Ако няма такава котка
+  // Ако няма такова животно
   if (!catData) {
     return (
       <div className="min-h-screen bg-background">

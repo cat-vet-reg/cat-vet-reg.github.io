@@ -342,6 +342,7 @@ const DashboardOverview = () => {
   const [anesthesiaGender, setAnesthesiaGender] = useState('female');
   const [timeRange, setTimeRange] = useState('3months'); // '1week', '1month', '3months', 'all'
   const [selectedDoctor, setSelectedDoctor] = useState('all');
+  const [selectedSpecies, setSelectedSpecies] = useState('all'); // 'all', 'cat', 'dog'
 
   // 1. Зареждане и Мапване на данните
   useEffect(() => {
@@ -383,7 +384,12 @@ const DashboardOverview = () => {
       const doctorMatch = selectedDoctor === 'all' || cat.staffSurgeon === selectedDoctor;
       if (!doctorMatch) return false;
 
-      // Б) Филтър по време
+      // Б) Филтър по вид животно
+      const currentSpecies = (cat.species || '').toLowerCase().trim();
+      const speciesMatch = selectedSpecies === 'all' || currentSpecies === selectedSpecies;
+      if (!speciesMatch) return false;
+
+      // В) Филтър по време
       if (timeRange === 'all') return true;
       if (!cat.castratedAt && !cat.castrated_at) return false;
       
@@ -571,10 +577,6 @@ const DashboardOverview = () => {
         timestamp: surgeryDates[date].rawDate.getTime()
       }))
       .sort((a, b) => a.timestamp - b.timestamp);
-
-      console.log("Доктор филтър:", selectedDoctor);
-      console.log("Първа котка хирург:", filteredData[0]?.staffSurgeon);
-      console.log("Намерени котки за този филтър:", filteredData.length);
     
     // ГРЕШКА 3: Добавяме обекта gender в return-а
     return { 
@@ -590,7 +592,7 @@ const DashboardOverview = () => {
       anesthesiaChartData,
       surgerySpeedData
     };
-  }, [realCats, anesthesiaGender, timeRange, selectedDoctor]);
+  }, [realCats, anesthesiaGender, timeRange, selectedDoctor, selectedSpecies]);
 
   const statsData = [
   {
@@ -671,6 +673,34 @@ const DashboardOverview = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-6 md:mb-8">
             {statsData.map((stat, index) => <StatCard key={index} {...stat} />)}
           </div>
+
+          {/* Филтър по Вид Животно */}
+          <div className="mb-6">
+            <p className="text-base md:text-lg text-muted-foreground mb-2 font-medium flex items-center gap-2">
+              <Icon name="Filter" size={18} className="text-primary" />
+              Филтриране по вид животно:
+            </p>
+            <div className="flex bg-slate-100 p-1 rounded-xl border border-slate-200 self-start md:self-auto">
+              {[
+                { id: 'all', label: 'Всички', icon: 'Layout' },
+                { id: 'cat', label: 'Котки', icon: 'Cat' },
+                { id: 'dog', label: 'Кучета', icon: 'Dog' }
+              ].map((type) => (
+                <button
+                  key={type.id}
+                  onClick={() => setSelectedSpecies(type.id)}
+                  className={`px-4 py-2 text-sm font-bold rounded-lg transition-all flex items-center gap-2 ${
+                    selectedSpecies === type.id 
+                    ? 'bg-white shadow-md text-primary scale-105' 
+                    : 'text-muted-foreground hover:text-foreground'
+                  }`}
+                >
+                  <Icon name={type.icon} size={16} />
+                  {type.label}
+                </button>
+              ))}
+            </div>
+          </div>
         
           {/* Филтър по Лекар */}
           <div className="mb-6">
@@ -678,7 +708,7 @@ const DashboardOverview = () => {
               <Icon name="Stethoscope" size={18} className="text-primary" />
               Филтриране по хирург:
             </p>
-            <div className="flex flex-wrap gap-2 bg-slate-100 p-1.5 rounded-xl border border-slate-200 w-fit">
+            <div className="flex bg-slate-100 p-1 rounded-xl border border-slate-200 self-start md:self-auto">
               {[
                 { id: 'all'         , label: 'Всички лекари' },
                 { id: 'dr_taneva'   , label: 'д-р Танева' },
@@ -699,7 +729,11 @@ const DashboardOverview = () => {
             </div>
           </div>
  
-          <p className="text-base md:text-lg text-muted-foreground">Избери време за филтриране на графиките:</p>
+          {/* Филтър по Време */}
+          <p className="text-base md:text-lg text-muted-foreground mb-2 font-medium flex items-center gap-2">
+              <Icon name="Calendar" size={18} className="text-primary" />
+              Филтриране по време:
+          </p>
           <div className="flex bg-slate-100 p-1 rounded-xl border border-slate-200 self-start md:self-auto">
             {[
               { id: '1week'   , label: '7 дни' },
@@ -741,7 +775,7 @@ const DashboardOverview = () => {
           </div>
           
          
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+          {/* <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
             <div className="lg:col-span-2">
                <MiniMap registrationHotspots={registrationHotspots} />
             </div>
@@ -753,7 +787,7 @@ const DashboardOverview = () => {
                 ))}
               </div>
             </div>
-          </div>
+          </div> */}
         </div>
       </div>
       <FloatingActionButton onClick={() => navigate('/cat-registration-form')} />

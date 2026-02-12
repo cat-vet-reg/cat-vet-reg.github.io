@@ -129,7 +129,7 @@ const InteractiveCatMap = () => {
         </div>
       </main>
       <MapFilterPanel isOpen={isFilterPanelOpen} onClose={() => setIsFilterPanelOpen(false)} onFilterChange={setFilters} />
-      <FloatingActionButton onClick={() => navigate('/cat-registration-form')} label="Нова котка" />
+      <FloatingActionButton onClick={() => navigate('/cat-registration-form')} label="Ново животно" />
     </div>
   );
 };
