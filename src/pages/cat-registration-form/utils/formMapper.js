@@ -133,7 +133,7 @@ export const mapRecordToForm = (record) => {
 
         status              : record.data?.status || record.status || "recorded",
         staffReceived       : record.data?.staffReceived           || "",
-        staffSurgeon        : record.data?.staffSurgeon            || "",
+        staffSurgeon        : record.data?.staffSurgeon  || record.staff_surgeon  || "",
         staffReleased       : record.data?.staffReleased           || "",
         earStatus           : record.data?.earStatus               || "marked",
         parasites           : record.data?.parasites               || "none",

@@ -341,6 +341,7 @@ const DashboardOverview = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [anesthesiaGender, setAnesthesiaGender] = useState('female');
   const [timeRange, setTimeRange] = useState('3months'); // '1week', '1month', '3months', 'all'
+  const [selectedDoctor, setSelectedDoctor] = useState('all');
 
   // 1. Зареждане и Мапване на данните
   useEffect(() => {
@@ -371,30 +372,28 @@ const DashboardOverview = () => {
     
     const now = new Date();
 
-    // --- 1. ГЛОБАЛНИ СТАТИСТИКИ (НЕ се влияят от филтъра) ---
+    // --- 1. ГЛОБАЛНИ СТАТИСТИКИ (НЕ се влияят от филтрите за време/лекар) ---
     const globalTotal = realCats.length;
-    
-    // Глобален процент усложнения
     const globalComplicationsCount = realCats.filter(cat => cat.hasComplications === 'Y' || cat.hasComplications === true).length;
     const globalRate = globalTotal > 0 ? ((globalComplicationsCount / globalTotal) * 100).toFixed(1) : 0;
 
     // --- 2. ФИЛТРИРАНЕ ПО ВРЕМЕ (за графиките) ---
-    const filteredByTime = realCats.filter(cat => {
+    const filteredData = realCats.filter(cat => {
+      // А) Филтър по лекар (staffSurgeon идва от твоя мапер)
+      const doctorMatch = selectedDoctor === 'all' || cat.staffSurgeon === selectedDoctor;
+      if (!doctorMatch) return false;
+
+      // Б) Филтър по време
       if (timeRange === 'all') return true;
-      
-      // 1. Проверка дали изобщо има дата на кастрация
       if (!cat.castratedAt && !cat.castrated_at) return false;
       
-      // 2. Опит за създаване на дата (поддържаме и двата възможни ключа от мапера)
       const dateValue = cat.castratedAt || cat.castrated_at;
       const catDate = new Date(dateValue);
-      
-      // 3. Проверка дали датата е валидна
+      // Проверка дали датата е валидна
       if (isNaN(catDate.getTime())) return false;
       
-      // 4. Изчисляване на разликата в дни
       const diffInTime = now.getTime() - catDate.getTime();
-      const diffInDays = diffInTime / (1000 * 60 * 60 * 24);
+      const diffInDays = (now.getTime() - catDate.getTime()) / (1000 * 60 * 60 * 24);
       
       if (timeRange === '1week') return diffInDays <= 7;
       if (timeRange === '1month') return diffInDays <= 30;
@@ -402,8 +401,8 @@ const DashboardOverview = () => {
       return true;
     });
 
-    // ВАЖНО: Оттук нататък в useMemo използваме filteredByTime вместо realCats!
-    const periodTotal = filteredByTime.length;
+    // ВАЖНО: Оттук нататък в useMemo използваме filteredData вместо realCats!
+    const periodTotal = filteredData.length;
     
     const monthAgo = new Date();
     monthAgo.setMonth(monthAgo.getMonth() - 1);
@@ -414,8 +413,8 @@ const DashboardOverview = () => {
     const recent = realCats.filter(cat => new Date(cat.created_at) > monthAgo).length;
 
     // Броене на половете
-    const maleCount = filteredByTime.filter(cat => cat.gender === 'male').length;
-    const femaleCount = filteredByTime.filter(cat => cat.gender === 'female').length;
+    const maleCount = filteredData.filter(cat => cat.gender === 'male').length;
+    const femaleCount = filteredData.filter(cat => cat.gender === 'female').length;
 
     // ЛОКАЦИИ (в мапера е полето .address)
     const allLocations = new Set(realCats.map(cat => cat.address).filter(Boolean));
@@ -438,13 +437,18 @@ const DashboardOverview = () => {
     const newLocationsCount = [...recentLocations].filter(loc => !oldLocations.has(loc)).length;
 
     // УСЛОЖНЕНИЯ (ползваме изчистеното .hasComplications)
-    const hasComplicationsCount = realCats.filter(cat => cat.hasComplications === 'Y').length;
+    // 1. Усложнения - трябва да гледат филтрираните данни (filteredData)
+    const hasComplicationsCount = filteredData.filter(cat => cat.hasComplications === 'Y' || cat.hasComplications === true).length;
     const rate = periodTotal > 0 ? ((hasComplicationsCount / periodTotal) * 100).toFixed(1) : 0;
+
+    // 2. Локации - ако искаш да виждаш локациите само на конкретния лекар:
+    const filteredLocations = new Set(filteredData.map(cat => cat.address).filter(Boolean));
+    const currentLocationsCount = filteredLocations.size;
 
     // ДАННИ ЗА ГРАФИКАТА
     // УСЛОЖНЕНИЯ - По-сигурно изчисляване
     const counts = {};
-    filteredByTime.forEach(cat => {
+    filteredData.forEach(cat => {
       // ПРОВЕРКА: Броим усложненията САМО ако е потвърдено, че котката има такива
       if (cat.hasComplications === 'Y' || cat.hasComplications === true) {
         const selected = cat.selectedComplications || [];
@@ -477,8 +481,8 @@ const DashboardOverview = () => {
     const groups = {};
     
     const filteredForAnesthesia = anesthesiaGender === 'all' 
-      ? filteredByTime 
-      : filteredByTime.filter(cat => cat.gender === anesthesiaGender);
+      ? filteredData 
+      : filteredData.filter(cat => cat.gender === anesthesiaGender);
 
     filteredForAnesthesia.forEach(cat => {
       const weight = parseFloat(cat.weight);
@@ -568,6 +572,9 @@ const DashboardOverview = () => {
       }))
       .sort((a, b) => a.timestamp - b.timestamp);
 
+      console.log("Доктор филтър:", selectedDoctor);
+      console.log("Първа котка хирург:", filteredData[0]?.staffSurgeon);
+      console.log("Намерени котки за този филтър:", filteredData.length);
     
     // ГРЕШКА 3: Добавяме обекта gender в return-а
     return { 
@@ -583,7 +590,7 @@ const DashboardOverview = () => {
       anesthesiaChartData,
       surgerySpeedData
     };
-  }, [realCats, anesthesiaGender, timeRange]);
+  }, [realCats, anesthesiaGender, timeRange, selectedDoctor]);
 
   const statsData = [
   {
@@ -663,6 +670,33 @@ const DashboardOverview = () => {
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-6 md:mb-8">
             {statsData.map((stat, index) => <StatCard key={index} {...stat} />)}
+          </div>
+        
+          {/* Филтър по Лекар */}
+          <div className="mb-6">
+            <p className="text-base md:text-lg text-muted-foreground mb-2 font-medium flex items-center gap-2">
+              <Icon name="Stethoscope" size={18} className="text-primary" />
+              Филтриране по хирург:
+            </p>
+            <div className="flex flex-wrap gap-2 bg-slate-100 p-1.5 rounded-xl border border-slate-200 w-fit">
+              {[
+                { id: 'all'         , label: 'Всички лекари' },
+                { id: 'dr_taneva'   , label: 'д-р Танева' },
+                { id: 'dr_dimitrova', label: 'д-р Димитрова' }
+              ].map((doc) => (
+                <button
+                  key={doc.id}
+                  onClick={() => setSelectedDoctor(doc.id)}
+                  className={`px-4 py-2 text-sm font-bold rounded-lg transition-all ${
+                    selectedDoctor === doc.id 
+                    ? 'bg-white shadow-md text-primary scale-105' 
+                    : 'text-muted-foreground hover:text-foreground'
+                  }`}
+                >
+                  {doc.label}
+                </button>
+              ))}
+            </div>
           </div>
  
           <p className="text-base md:text-lg text-muted-foreground">Избери време за филтриране на графиките:</p>
