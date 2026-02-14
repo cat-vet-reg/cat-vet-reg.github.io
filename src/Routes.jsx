@@ -8,6 +8,7 @@ import DashboardOverview from './pages/dashboard-overview';
 import CatRegistryList from './pages/cat-registry-list';
 import InteractiveCatMap from './pages/interactive-cat-map';
 import CatRegistrationForm from './pages/cat-registration-form';
+import StatisticsTable from './pages/statistics';
 import { HashRouter } from "react-router-dom";
 
 const Routes = () => {
@@ -23,6 +24,7 @@ const Routes = () => {
         <Route path="/cat-registry-list" element={<CatRegistryList />} />
         <Route path="/interactive-cat-map" element={<InteractiveCatMap />} />
         <Route path="/cat-registration-form" element={<CatRegistrationForm />} />
+        <Route path="/statistics" element={<StatisticsTable />} />
         <Route path="*" element={<NotFound />} />
       </RouterRoutes>
       </ErrorBoundary>

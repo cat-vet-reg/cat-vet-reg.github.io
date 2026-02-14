@@ -251,7 +251,7 @@ const SurgerySpeedChart = ({ data, activeGender, onGenderChange }) => {
         <div>
           <h2 className="text-xl font-semibold text-foreground flex items-center gap-2">
             <Icon name="Timer" size={20} className="text-primary" />
-            Ефективност: Време за кастрация на ({genderText} котки)
+            Ефективност: Време за кастрация на {genderText} котки
           </h2>
           <p className="text-sm text-muted-foreground italic">
             Средна продължителност на операцията (минути) по дни

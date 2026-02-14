@@ -8,9 +8,10 @@ const Header = () => {
   const location = useLocation();
 
   const navigationItems = [
-    { label: 'Табло', path: '/dashboard-overview', icon: 'LayoutDashboard' },
-    { label: 'Регистрирани', path: '/cat-registry-list', icon: 'BookOpen' },
-    { label: 'Карта', path: '/interactive-cat-map', icon: 'Map' },
+    { label: 'Табло'        , path: '/dashboard-overview' , icon: 'LayoutDashboard' },
+    { label: 'Регистрирани' , path: '/cat-registry-list'  , icon: 'BookOpen' },
+    { label: 'Карта'        , path: '/interactive-cat-map', icon: 'Map' },
+    { label: 'Статистика'   , path: '/statistics'         , icon: 'Map' },
   ];
 
   const isActivePath = (path) => {

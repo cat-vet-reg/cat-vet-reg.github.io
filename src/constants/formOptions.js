@@ -95,7 +95,10 @@ export const complicationOptions = {
     ],
     general: [
       { id: "lung_edema"          , label: "Белодробен оток" },
-      { id: "anesthesia_reac"     , label: "Алергична реакция към упойка" }
+      { id: "anesthesia_reac"     , label: "Алергична реакция към упойка" },
+      { id: "dead_anesthesia"     , label: "Умряло, от упойка" },
+      { id: "dead_surgery"        , label: "Умряло по време на операция" },
+      { id: "dead_postsurgery"    , label: "Умряло след операция" }
     ]
   };
 
