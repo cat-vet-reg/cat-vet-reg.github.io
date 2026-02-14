@@ -11,7 +11,8 @@ const Header = () => {
     { label: 'Табло'        , path: '/dashboard-overview' , icon: 'LayoutDashboard' },
     { label: 'Регистрирани' , path: '/cat-registry-list'  , icon: 'BookOpen' },
     { label: 'Карта'        , path: '/interactive-cat-map', icon: 'Map' },
-    { label: 'Статистика'   , path: '/statistics'         , icon: 'Map' },
+    { label: 'Статистика'   , path: '/statistics'         , icon: 'ChartArea' },
+    { label: 'График'       , path: '/schedule'           , icon: 'Calendar' },
   ];
 
   const isActivePath = (path) => {

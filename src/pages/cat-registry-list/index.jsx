@@ -9,8 +9,11 @@ import RegistryTable from './components/RegistryTable';
 import BulkActionsBar from './components/BulkActionsBar';
 import Icon from '../../components/AppIcon';
 import supabase from '../../utils/supabase'; 
+import Pagination from './components/Pagination';
 
 const CatRegistryList = () => {
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(25);
   const navigate = useNavigate();
 
   const [catCollection, setCatCollection] = useState([]);
@@ -193,6 +196,18 @@ const CatRegistryList = () => {
     { label: 'Регистър на животните', path: '/cat-registry-list' }
   ];
 
+  // Изчисляваме кои котки да се покажат на текущата страница
+  const paginatedCats = useMemo(() => {
+    const startIndex = (currentPage - 1) * pageSize;
+    return filteredAndSortedCats.slice(startIndex, startIndex + pageSize);
+  }, [filteredAndSortedCats, currentPage, pageSize]);
+
+  // Важно: Ако филтрираме и броят на резултатите намалее, 
+  // трябва да се върнем на първа страница, за да не гледаме празен екран
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [filters]);
+
   if (isLoading) return <div className="p-10 text-center text-xl">Зареждане на регистъра...</div>;
 
   return (
@@ -231,7 +246,7 @@ const CatRegistryList = () => {
 
         <div className="mt-8">
           <RegistryTable
-            cats={filteredAndSortedCats}
+            cats={paginatedCats}
             selectedCats={selectedCats}
             onSelectCat={handleSelectCat}
             onSort={handleSort}
@@ -249,6 +264,20 @@ const CatRegistryList = () => {
             <Button variant="outline" onClick={handleClearFilters}>Изчисти филтрите</Button>
           </div>
         )}
+
+          {filteredAndSortedCats.length > 0 && (
+          <Pagination 
+            currentPage={currentPage}
+            totalPages={Math.ceil(filteredAndSortedCats.length / pageSize)}
+            pageSize={pageSize}
+            totalItems={filteredAndSortedCats.length}
+            onPageChange={(page) => setCurrentPage(page)}
+            onPageSizeChange={(size) => {
+              setPageSize(size);
+              setCurrentPage(1); // Връщаме на първа страница при смяна на размера
+            }}
+          />
+        )}
       </main>
 
       <BulkActionsBar
@@ -260,6 +289,7 @@ const CatRegistryList = () => {
         onClick={() => navigate('/cat-registration-form')}
         label="Регистрирай ново животно"
       />
+
     </div>
   );
 };

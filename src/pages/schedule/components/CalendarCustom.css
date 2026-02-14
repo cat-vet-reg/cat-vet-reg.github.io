@@ -1,0 +1,29 @@
+/* CalendarCustom.css */
+.react-calendar {
+  width: 100% !important;
+  max-width: 100%;
+  background: white;
+  border: 1px solid #e2e8f0;
+  font-family: inherit;
+  line-height: 1.125em;
+  border-radius: 12px;
+  padding: 10px;
+}
+
+/* Промяна на цвета на избраната дата */
+.react-calendar__tile--active {
+  background: #e11d48 !important; /* Твоят основен цвят */
+  color: white !important;
+  border-radius: 8px;
+}
+
+.react-calendar__tile--now {
+  background: #f1f5f9 !important;
+  border-radius: 8px;
+  font-weight: bold;
+  color: #e11d48;
+}
+
+.fc .fc-toolbar-title { font-size: 1.2rem; font-weight: bold; }
+.fc .fc-button-primary { background-color: #e11d48; border-color: #e11d48; }
+.fc .fc-button-primary:disabled { background-color: #fda4af; border-color: #fda4af; }
