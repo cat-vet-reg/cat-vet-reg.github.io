@@ -77,7 +77,8 @@ export const statusOptions = [
   { id: 'prep'      , label: 'Подготовка'     , color: 'bg-blue-100 text-blue-700' },
   { id: 'surgery'   , label: 'В операция'     , color: 'bg-red-100 text-red-700' },
   { id: 'recovery'  , label: 'Възстановяване' , color: 'bg-amber-100 text-amber-700' },
-  { id: 'released'  , label: 'Върнато'        , color: 'bg-green-100 text-green-700' }
+  { id: 'released'  , label: 'Върнато'        , color: 'bg-green-100 text-green-700' },
+  { id: 'treatment' , label: 'За лечение'     , color: 'bg-gray-200 text-gray-800' }
 ];
 
 export const complicationOptions = {
