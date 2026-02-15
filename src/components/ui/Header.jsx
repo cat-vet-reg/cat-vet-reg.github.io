@@ -13,6 +13,7 @@ const Header = () => {
     { label: 'Карта'        , path: '/interactive-cat-map', icon: 'Map' },
     { label: 'Статистика'   , path: '/statistics'         , icon: 'ChartArea' },
     { label: 'График'       , path: '/schedule'           , icon: 'Calendar' },
+    { label: 'Лечение'      , path: '/treatment-registry' , icon: 'Stethoscope' }
   ];
 
   const isActivePath = (path) => {

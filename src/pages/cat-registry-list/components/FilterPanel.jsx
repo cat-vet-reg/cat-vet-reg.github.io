@@ -2,14 +2,29 @@ import React from 'react';
 import Select from '../../../components/ui/Select';
 import Input from '../../../components/ui/Input';
 import Button from '../../../components/ui/Button';
+import {  speciesOptions,
+          genderOptions, 
+          bcsScores,
+          getBcsDescription,
+          ageUnitOptions, 
+          colorOptions, 
+          habitat,
+          origin,
+          generalConditionOptions, 
+          statusOptions, 
+          complicationOptions,
+          staffOptions,
+          earStatusOptions,
+          parasiteOptions,
+          discoverySourceOptions,
+          reproductiveOptions 
+          } from "../../../constants/formOptions";
+
 
 const FilterPanel = ({ 
   filters, 
   onFilterChange, 
   onClearFilters,
-  genderOptions = [],
-  colorOptions = [],
-  locationOptions = [],
 }) => {
   return (
     <div className="bg-card rounded-lg p-4 md:p-6 shadow-warm mb-4 md:mb-6">
@@ -46,11 +61,11 @@ const FilterPanel = ({
           />
 
           <Select
-            label="Локация"
-            placeholder="Избери локация"
-            options={locationOptions}
-            value={filters?.location}
-            onChange={(value) => onFilterChange('location', value)}
+            label="Вид"
+            placeholder="Избери вид"
+            options={speciesOptions}
+            value={filters?.species}
+            onChange={(value) => onFilterChange('species', value)}
             searchable
             clearable
           />
