@@ -51,37 +51,40 @@ const navigate = useNavigate();
 
 
   useEffect(() => {
-
     (async () => {
+      const { data, error } = await supabase.from('td_records')
+        .select(`*, owner:owner_id (name, phone)`)
+        .order('castrated_at', { ascending: false });
 
-      const { data, error } = await supabase.from('td_records').select(`*, owner:owner_id (name, phone)`)
-      .order('castrated_at', { ascending: false }) // Първо по дата
-      .order('id', { ascending: false });
+      if (error) return;
 
-      for(const element of data) {
+      const events = data.map(element => {
+        const isPast = Date.now() > new Date(element.castrated_at);
+        const eventColor = isPast ? '#dedede' : '#a1ffa6';
+        
+        // Определяме пола и вида (проверка дали са в element или element.data)
+        const genderSym = (element.gender === 'male' || element.data?.gender === 'male') ? "♂️" : "♀️";
+        const species = (element.species || element.data?.species || 'Котка');
 
-        const date      = element.castrated_at; 
-        const isPast    = Date.now() >  new Date(date);
-        const color     = isPast ? '#dedede' : '#6bbe6f';
-
-
-        setMyEvents(prev => [...prev, {
-          id              : element.id, 
-          title           : `${element.owner.name}`, 
-          phone           : `${element.owner.phone}`, 
-          start           : element.castrated_at,
-          data            : element,
-          extendedProps   : { 
-            phone   : element.owner.phone, 
-            ownerId : '123', 
-            species : element?.data?.species, 
-            gender  : (element?.data?.gender == 'male') ? "♂️" : "♀️",
-            date    : element.castrated_at
+        return {
+          id: element.id,
+          // Заглавието вече включва пола и вида
+          title: `${genderSym} ${species} - ${element.owner?.name}`, 
+          start: element.castrated_at,
+          extendedProps: { 
+            phone: element.owner?.phone, 
+            gender: genderSym,
+            species: species,
+            ownerName: element.owner?.name,
+            data: element 
           },
-          backgroundColor : color,
-          borderColor     : color          
-        }]);
-      }
+          backgroundColor: eventColor,
+          borderColor: eventColor,
+          textColor: isPast ? '#666' : '#000'
+        };
+      });
+
+      setMyEvents(events); // Директно сетваме целия масив
     })();
   }, []);
 
@@ -116,20 +119,25 @@ const navigate = useNavigate();
           }}
           events={myEvents}
           eventContent={(eventInfo) => {
-              // Разделяме текста, за да го стилизираме
-            const title     = eventInfo.event.title;
-            const phone     = eventInfo.event.extendedProps.phone;
-            const date      = eventInfo.event.extendedProps.date; 
-            const gender    = eventInfo.event.extendedProps.gender; 
-            const isPast    = Date.now() >  date;
+            const { gender, species, phone, ownerName } = eventInfo.event.extendedProps;
+            const isMale = gender === "♂️";
 
-              
             return (
               <div className="p-1 overflow-hidden text-[10px] sm:text-xs cursor-pointer hover:brightness-110 transition-all leading-tight">
-                <div className="font-bold border-b border-white/20 mb-1 pb-1">
-                  <span style={{color: '#ff0000', fontSize: 24}}>{gender}</span> {title}
+                <div className="font-bold border-b border-white/20 mb-1 pb-1 flex items-center gap-1">
+                  {/* По-голям и цветен символ за пол */}
+                  <span style={{ 
+                    color: isMale ? '#3b82f6' : '#f43f5e', 
+                    fontSize: '16px',
+                    fontWeight: 'bold' 
+                  }}>
+                    {gender}
+                  </span> 
+                  <span className="truncate">{species}</span>
                 </div>
-                <div className="opacity-90 flex items-center gap-1">
+                
+                <div className="flex flex-col opacity-90">
+                  <span className="truncate">👤 {ownerName}</span>
                   <span>📞 {phone}</span>
                 </div>
               </div>
