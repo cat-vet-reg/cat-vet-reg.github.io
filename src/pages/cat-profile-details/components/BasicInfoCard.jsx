@@ -134,9 +134,9 @@ const BasicInfoCard = ({ cat }) => {
               <p className="text-xs md:text-sm text-muted-foreground mb-1">
                 {item?.label}
               </p>
-              <p className="text-sm md:text-base lg:text-lg font-medium text-foreground break-words">
+              <div className="text-sm md:text-base lg:text-lg font-medium text-foreground break-words">
                 {item?.value}
-              </p>
+              </div>
             </div>
           </div>
         ))}

@@ -87,6 +87,7 @@ export const mapRecordToForm = (record) => {
         ownerPhone      : record.owner?.phone || record.owner_phone || "",
         donation        : record.data?.donation || "",
 
+        id              : record.id,
         recordName      : record.name || "",
         gender          : record.gender || "",
         species         : record.species || record.data?.species || "cat",
