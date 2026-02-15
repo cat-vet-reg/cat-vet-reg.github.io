@@ -54,8 +54,8 @@ const CatRegistryList = () => {
   ];
 
   const [sortConfig, setSortConfig] = useState({
-    column: 'castrated_at',
-    direction: 'desc'
+    column    : 'castrated_at',
+    direction : 'desc'
   });
 
   const [selectedCats, setSelectedCats] = useState([]);
@@ -65,15 +65,7 @@ const CatRegistryList = () => {
     async function fetchData() {
       try {
         setIsLoading(true);
-        const { data, error } = await supabase
-          .from('td_records')
-          .select(`
-          *,
-          owner:owner_id (
-            name,
-            phone
-          )
-        `)
+        const { data, error } = await supabase.from('td_records').select(`*, owner:owner_id (name, phone)`)
         .order('castrated_at', { ascending: false }) // Първо по дата
         .order('id', { ascending: false });
         

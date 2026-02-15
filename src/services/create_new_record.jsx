@@ -50,29 +50,18 @@ async function recordAnimal(formData, ownerId) {
     // }
 
     // 2. АКО потребителят НЕ е въвел име, обновяваме спрямо вида на животното
-    if (!formData?.recordName || formData.recordName.trim() === '') {
-        // 1. Проверяваме вида, като добавяме fallback (ако няма species, приемаме 'cat')
-        const species = formData?.species || 'cat'; 
-        const speciesLabel = species === 'cat' ? 'Котка' : 'Куче';
+    if (!formData?.recordName?.trim()) {
+        // Определяме префикса: ако е куче -> "Куче", в противен случай -> "Котка"
+        // const speciesLabel = formData.species === 'cat' ? 'Котка' : 'Куче';
+        // const autoName = `${speciesLabel} №${newCat.id}`;
+
+        // await supabase
+        //     .from('td_records')
+        //     .update({ name: autoName })
+        //     .eq('id', newCat.id);
         
-        const autoName = `${speciesLabel} №${newCat.id}`;
-
-        // 2. Използваме .select() при ъпдейта, за да сме сигурни, че данните се връщат
-        const { data: updatedData, error: updateError } = await supabase
-            .from('td_records')
-            .update({ name: autoName })
-            .eq('id', newCat.id)
-            .select();
-
-        if (updateError) {
-            console.error("Грешка при автоматично именуване:", updateError);
-        } else if (updatedData && updatedData.length > 0) {
-            // 3. Обновяваме референцията, която функцията ще върне
-            newCat.name = autoName;
-            // Важно: Тъй като връщаш целия tdRecordsResponse накрая, 
-            // трябва да обновиш данните и в неговия обект
-            tdRecordsResponse.data[0].name = autoName;
-        }
+        // Обновяваме обекта в паметта, за да може SuccessModal да го види веднага
+        // newCat.name = autoName;
     }
 
     // 3. Качване на снимката

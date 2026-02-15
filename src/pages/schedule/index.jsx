@@ -24,7 +24,8 @@ const Schedule = () => {
         gender      : element.gender,
         data        : {...element, ownerName: e.ownerName, ownerPhone  : e.phone},
         ownerName   : e.ownerName,
-        ownerPhone  : e.phone
+        ownerPhone  : e.phone,
+        castratedAt : e.date
       });
     }
   }
