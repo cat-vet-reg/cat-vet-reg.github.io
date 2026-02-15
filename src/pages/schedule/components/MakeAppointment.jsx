@@ -1,13 +1,11 @@
 import React, { useState, useEffect } from "react";
+import Icon from "../../../components/AppIcon"; 
 
-import Header     from "../../../components/ui/Header";
-import Breadcrumb from "../../../components/ui/Breadcrumb";
-import Icon       from "../../../components/AppIcon"; 
+const MakeAppointment = ({ selectedDate, onAnimalAdd }) => {
 
-const MakeAppointment = ({ selectedDate }) => {
     const [appointment, setAppointment] = useState({
-        phone: '',
-        ownerName: '',
+        phone       : '',
+        ownerName   : '',
         // Тук казваме на формата да ползва датата от календара
         date: selectedDate ? selectedDate.toISOString().split('T')[0] : '', 
         animals: []
@@ -44,6 +42,13 @@ const MakeAppointment = ({ selectedDate }) => {
             ...prev,
             animals: prev.animals.filter(a => a.id !== id)
         }));
+    };
+
+    /**
+     * 
+     */
+    const registerAnimalIntoTheSYstem = (animal) => {
+        onAnimalAdd(animal);
     };
 
     return (
@@ -136,7 +141,8 @@ const MakeAppointment = ({ selectedDate }) => {
                 ))}
             </div>
 
-            <button className="w-full bg-green-600 text-white py-3 rounded-xl font-bold text-lg shadow-md hover:bg-green-700 transition-colors">
+            <button className="w-full bg-green-600 text-white py-3 rounded-xl font-bold text-lg shadow-md hover:bg-green-700 transition-colors"
+            onClick={() => registerAnimalIntoTheSYstem(appointment)}>
                 Запиши час
             </button>
         </div>

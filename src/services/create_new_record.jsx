@@ -1,69 +1,5 @@
 import supabase from 'utils/supabase';
 
-// export async function $apiCreateNewRecord(formData) {
-
-//     // check if the owner already exist into the system
-//     const ownerId = await getOwnerIdByPhone(formData?.ownerPhone)
-    
-//     if(ownerId) {
-//         return await recordAnimal(formData, ownerId);
-//     }
-
-//     const ownerData = await recordOwner(formData);
-//     return await recordAnimal(formData, ownerData.data[0].id);
-// }
-
-export async function $apiCreateNewRecord(formData, isEditing = false, catId = null) {
-    // 1. Първо търсим дали вече има такъв собственик по телефона
-    let finalOwnerId = await getOwnerIdByPhone(formData?.ownerPhone);
-
-    // 2. Само ако НЕ открием такъв, създаваме нов
-    if (!finalOwnerId) {
-        const ownerData = await recordOwner(formData);
-        
-        if (ownerData?.data && ownerData.data.length > 0) {
-            finalOwnerId = ownerData.data[0].id;
-        } else {
-            throw new Error("Неуспешно създаване на собственик.");
-        }
-    }
-
-    // 3. Сега вече имаме ID (старо или ново) и записваме/обновяваме жв
-    if (isEditing && catId) {
-
-        console.log("@@@@@@@@@@@@@@")
-        console.log("@@@@@@@@@@@@@@")
-        console.log(formData);
-        console.log("@@@@@@@@@@@@@@")
-        console.log("@@@@@@@@@@@@@@")
-
-        return await supabase
-            .from('td_records')
-            .upsert({
-                id : catId,
-                name                : formData?.recordName,
-                notes               : formData?.recordNotes,
-                gender              : formData?.gender,
-                weight              : formData.weight   ? Number(formData.weight) : null,
-                age_value           : formData.ageValue ? Number(formData.ageValue) : null,
-                age_unit            : formData.ageUnit,
-                color               : formData.color,
-                location_address    : formData?.address,
-                location_city       : formData?.recordCity,
-                living_condition    : formData.livingCondition ? Array.from(formData.livingCondition) : [],
-                map_coordinates     : formData?.coords,
-                owner_id            : finalOwnerId,
-
-                has_complications   : formData?.hasComplications,
-                record_complications: formData.recordComplications,
-                castrated_at        : formData?.castratedAt,
-                data                : formData
-            });
-    } else {
-        return await recordAnimal(formData, finalOwnerId);
-    }
-}
-
 /**ss
  * @author Mihail Petrov
  * @param {*} formData 
@@ -174,9 +110,68 @@ async function getOwnerIdByPhone(ownerPhone) {
     return data[0].id;
 }
 
+/**
+ * 
+ * @param {*} formData 
+ * @param {*} isEditing 
+ * @param {*} catId 
+ * @returns 
+ */
+export async function $apiCreateNewRecord(
+    formData, 
+    isEditing   = false, 
+    catId       = null
+) {
+    // 1. Първо търсим дали вече има такъв собственик по телефона
+    let finalOwnerId = await getOwnerIdByPhone(formData?.ownerPhone);
 
+    // 2. Само ако НЕ открием такъв, създаваме нов
+    if (!finalOwnerId) {
+        const ownerData = await recordOwner(formData);
+        
+        if (ownerData?.data && ownerData.data.length > 0) {
+            finalOwnerId = ownerData.data[0].id;
+        } else {
+            throw new Error("Неуспешно създаване на собственик.");
+        }
+    }
+
+    // 3. Сега вече имаме ID (старо или ново) и записваме/обновяваме жв
+    if (isEditing && catId) {
+
+        return await supabase
+            .from('td_records')
+            .upsert({
+                id : catId,
+                name                : formData?.recordName,
+                notes               : formData?.recordNotes,
+                gender              : formData?.gender,
+                weight              : formData.weight   ? Number(formData.weight) : null,
+                age_value           : formData.ageValue ? Number(formData.ageValue) : null,
+                age_unit            : formData.ageUnit,
+                color               : formData.color,
+                location_address    : formData?.address,
+                location_city       : formData?.recordCity,
+                living_condition    : formData.livingCondition ? Array.from(formData.livingCondition) : [],
+                map_coordinates     : formData?.coords,
+                owner_id            : finalOwnerId,
+
+                has_complications   : formData?.hasComplications,
+                record_complications: formData.recordComplications,
+                castrated_at        : formData?.castratedAt,
+                data                : formData
+            });
+    } 
+
+    return await recordAnimal(formData, finalOwnerId);
+}
+
+/**
+ * 
+ * @returns 
+ */
 export async function $apiGetCats() {
-    // Вземаме данните от td_records и автоматично закачаме информацията за собственика от td_owners
+    
     const { data, error } = await supabase
         .from('td_records')
         .select(`
