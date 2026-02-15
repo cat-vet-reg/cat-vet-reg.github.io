@@ -1,3 +1,7 @@
+export const speciesOptions = [
+    { value: 'cat'   , label: 'Котка' },
+    { value: 'dog'   , label: 'Куче' }
+]
 export const genderOptions = [
     { value: "male"   , label: "Мъжки" },
     { value: "female" , label: "Женски" },

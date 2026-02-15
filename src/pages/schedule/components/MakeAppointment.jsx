@@ -80,7 +80,7 @@ const MakeAppointment = ({ selectedDate }) => {
                     <div>
                         <label className="text-xs block mb-1 text-muted-foreground">Вид</label>
                         <select 
-                            className="p-2 rounded border bg-background border-border"
+                            className="p-2 pr-12 rounded border bg-background border-border"
                             value={currentAnimal.species}
                             onChange={(e) => setCurrentAnimal({...currentAnimal, species: e.target.value})}
                         >
@@ -91,7 +91,7 @@ const MakeAppointment = ({ selectedDate }) => {
                     <div>
                         <label className="text-xs block mb-1 text-muted-foreground">Пол</label>
                         <select 
-                            className="p-2 rounded border bg-background border-border"
+                            className="p-2 pr-12 rounded border bg-background border-border"
                             value={currentAnimal.gender}
                             onChange={(e) => setCurrentAnimal({...currentAnimal, gender: e.target.value})}
                         >
