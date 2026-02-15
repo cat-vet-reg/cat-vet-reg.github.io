@@ -171,12 +171,37 @@ useEffect(() => {
 }); // Следи за промяна в адреса или града
 
 
-useEffect(() => {
-    if (coordinates && coordinates.lat) { // Тук вече няма да има грешка
-       const detectedZone = findDistrict(coordinates.lat, coordinates.lng);
-       handleInputChange("zonaNumber", detectedZone);
-    }
+  useEffect(() => {
+      if (coordinates && coordinates.lat) { // Тук вече няма да има грешка
+        const detectedZone = findDistrict(coordinates.lat, coordinates.lng);
+        handleInputChange("zonaNumber", detectedZone);
+      }
   }, [coordinates]);
+
+  // Автоматично намиране на име на собственик по телефонен номер
+  useEffect(() => {
+    // Проверяваме само ако телефонът е поне 6 цифри (за да не правим заявки за всяка цифра)
+    if (formData.ownerPhone && formData.ownerPhone.length >= 6 && !isEditing) {
+      const timer = setTimeout(async () => {
+        try {
+          const { data, error } = await supabase
+            .from('td_owners') // Провери дали таблицата ти се казва така (или 'owners')
+            .select('name')
+            .eq('phone', formData.ownerPhone)
+            .maybeSingle();
+
+          if (data && data.name && !formData.ownerName) {
+            // Ако намерим име и полето за име в момента е празно - попълваме го
+            handleInputChange("ownerName", data.name);
+          }
+        } catch (err) {
+          console.error("Грешка при търсене на собственик:", err);
+        }
+      }, 800); // Изчакваме 0.8 сек след спиране на писането (Debounce)
+
+      return () => clearTimeout(timer);
+    }
+  }, [formData.ownerPhone]);
 
 
   // Обекти за изчисленият на бутоните
