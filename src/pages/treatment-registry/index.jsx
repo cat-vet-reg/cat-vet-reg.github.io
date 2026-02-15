@@ -1,86 +1,135 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import Header from "../../components/ui/Header";
+import Header     from "../../components/ui/Header";
 import Breadcrumb from "../../components/ui/Breadcrumb";
+import supabase   from "../../utils/supabase";
 
-import Icon from "../../components/AppIcon";
-import FilterPanel from '../cat-registry-list/components/FilterPanel'; 
-import Button from '../../components/ui/Button'; 
-import Pagination from '../cat-registry-list/components/Pagination';
-import { useNavigate } from 'react-router-dom'; 
+import CreatePatient    from './components/CreatePatient';
+import Icon             from "../../components/AppIcon";
+import FilterPanel      from '../cat-registry-list/components/FilterPanel'; 
+import Button           from '../../components/ui/Button'; 
+import Pagination       from '../cat-registry-list/components/Pagination';
+import { useNavigate }  from 'react-router-dom'; 
 
 import { mapRecordToForm, defaultFormData } from '../cat-registration-form/utils/formMapper';
-import supabase from "../../utils/supabase";
-// ДОБАВЕНО: AlertTriangle и Eye, Edit за иконите
 import { Search, Plus, Stethoscope, Dog, Cat, Rabbit, AlertTriangle, Eye, Edit } from 'lucide-react';
 
-import CreatePatient from './components/CreatePatient';
 
 // Примерни данни - дефинирани отвън, за да са достъпни веднага
-const MOCK_PATIENTS = [
-  {
-    id: 1,
-    recordName: 'Бела',
-    species: 'cat',
-    gender: 'female',
-    ownerName: 'Иван Иванов',
-    hasComplications: 'Y',
-    recordComplications: 'Възпаление след операция',
-  },
-  {
-    id: 2,
-    recordName: 'Макс',
-    species: 'dog',
-    gender: 'male',
-    ownerName: 'Мария Петрова',
-    hasComplications: 'N',
-    recordComplications: '',
-  },
-  {
-    id: 3,
-    recordName: 'Писана',
-    species: 'cat',
-    gender: 'female',
-    ownerName: 'Георги Георгиев',
-    hasComplications: 'N',
-    recordComplications: 'Редовен преглед',
-  }
-];
+// const MOCK_PATIENTS = [
+//   {
+//     id: 1,
+//     recordName: 'Бела',
+//     species: 'cat',
+//     gender: 'female',
+//     ownerName: 'Иван Иванов',
+//     hasComplications: 'Y',
+//     recordComplications: 'Възпаление след операция',
+//   },
+//   {
+//     id: 2,
+//     recordName: 'Макс',
+//     species: 'dog',
+//     gender: 'male',
+//     ownerName: 'Мария Петрова',
+//     hasComplications: 'N',
+//     recordComplications: '',
+//   },
+//   {
+//     id: 3,
+//     recordName: 'Писана',
+//     species: 'cat',
+//     gender: 'female',
+//     ownerName: 'Георги Георгиев',
+//     hasComplications: 'N',
+//     recordComplications: 'Редовен преглед',
+//   }
+// ];
 
-const TreatmentRegistry = ({ recordCollection = [] }) => {
+const TreatmentRegistry = () => {
   const navigate = useNavigate();
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   const [isModalOpen, setIsModalOpen] = useState(false);
-
-  // ПОПРАВКА: Сменихме initialCollection с recordCollection
-  const [records, setRecords] = useState(
-    recordCollection.length > 0 ? recordCollection : MOCK_PATIENTS
-  );
-
-  const [filters, setFilters] = useState({
-    search: '',
-    species: '',
-    hasComplications: '',
-    status: ''
-  });
+  const [records, setRecords] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   const breadcrumbItems = [
     { label: 'Табло', path: '/dashboard-overview' },
     { label: 'Лечение', path: '/treatment' },
   ];
 
+  const [filters, setFilters] = useState({
+    search: '',
+    species: '',
+    hasComplications: '',
+    status: 'treatment' // По подразбиране търсим тези за лечение
+  });
+
   const handleFilterChange = (key, value) => {
     setFilters(prev => ({ ...prev, [key]: value }));
     setCurrentPage(1);
   };
-  
-  const handleAddNewPatient = (newRecord) => {
-    const recordWithId = {
-      ...newRecord,
-      id: Date.now(),
+
+  const handleClearFilters = () => {
+    setFilters({ search: '', species: '', hasComplications: '', status: 'treatment' });
+    setCurrentPage(1);
+  };
+
+  // ФЕТЧВАНЕ НА ДАННИ ОТ SUPABASE
+  useEffect(() => {
+    const fetchTreatmentRecords = async () => {
+      setIsLoading(true);
+      try {
+        const { data, error } = await supabase
+          .from('td_records')
+          .select(`
+            *,
+            owner:owner_id (
+              name,
+              phone
+            )
+          `)
+          // Филтрираме: или статусът е 'treatment', или има усложнение 'Y'
+          .or('data->>status.eq.treatment,has_complications.eq.Y')
+          .order('created_at', { ascending: false });
+
+        if (error) throw error;
+        
+        // Мапваме данните през твоя formMapper, за да са в правилния формат за UI
+        const mappedData = data.map(record => mapRecordToForm(record));
+        setRecords(mappedData);
+      } catch (err) {
+        console.error("Грешка при зареждане на лечение:", err.message);
+      } finally {
+        setIsLoading(false);
+      }
     };
-    setRecords(prev => [recordWithId, ...prev]);
-    setIsModalOpen(false);
+
+    fetchTreatmentRecords();
+  }, []);
+
+  // Логика за запис на нов пациент директно в DB
+  const handleAddNewPatient = async (formData) => {
+    try {
+      // Тук добавяме автоматично статуса, за да се появи в този списък
+      const recordToSave = { 
+        ...formData, 
+        status: 'treatment',
+        created_at: new Date().toISOString() 
+      };
+      
+      const { data, error } = await supabase
+        .from('records')
+        .insert([recordToSave])
+        .select();
+
+      if (error) throw error;
+
+      setRecords(prev => [mapRecordToForm(data[0]), ...prev]);
+      setIsModalOpen(false);
+    } catch (err) {
+      alert("Грешка при запис: " + err.message);
+    }
   };
 
   const filteredRecords = useMemo(() => {
@@ -128,7 +177,7 @@ const TreatmentRegistry = ({ recordCollection = [] }) => {
         <FilterPanel
           filters={filters}
           onFilterChange={handleFilterChange}
-          onClearFilters={() => setFilters({ search: '', species: '', hasComplications: '', status: '' })}
+          onClearFilters={handleClearFilters}
           speciesOptions={[
             { label: 'Котка', value: 'cat' },
             { label: 'Куче', value: 'dog' }
@@ -181,8 +230,14 @@ const TreatmentRegistry = ({ recordCollection = [] }) => {
                     </td>
                     <td className="px-4 py-3 text-right">
                       <div className="flex items-center justify-end gap-2">
-                        <Button variant="ghost" size="icon" iconName="Eye" onClick={() => navigate(`/treatment/${record.id}`)} />
-                        <Button variant="ghost" size="icon" iconName="Edit" onClick={() => console.log('Edit', record.id)} />
+                        <Button variant="ghost" size="icon" iconName="Eye" 
+                        onClick={() => {
+    console.log("Кликнато ID:", record.id); // Провери конзолата!
+    if (record.id) navigate(`/cat-profile-details/${record.id}`);
+    else alert("Грешка: Липсва ID на записа!");
+  }}
+                        />
+                        <Button variant="ghost" size="icon" iconName="Edit" onClick={() => console.log('Edit', record.id)} /> 
                       </div>
                     </td>
                   </tr>
