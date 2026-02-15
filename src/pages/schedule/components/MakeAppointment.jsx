@@ -1,13 +1,11 @@
 import React, { useState, useEffect } from "react";
+import Icon from "../../../components/AppIcon"; 
 
-import Header     from "../../../components/ui/Header";
-import Breadcrumb from "../../../components/ui/Breadcrumb";
-import Icon       from "../../../components/AppIcon"; 
+const MakeAppointment = ({ selectedDate, onAnimalAdd }) => {
 
-const MakeAppointment = ({ selectedDate }) => {
     const [appointment, setAppointment] = useState({
-        phone: '',
-        ownerName: '',
+        phone       : '',
+        ownerName   : '',
         // Тук казваме на формата да ползва датата от календара
         date: selectedDate ? selectedDate.toISOString().split('T')[0] : '', 
         animals: []
@@ -46,8 +44,15 @@ const MakeAppointment = ({ selectedDate }) => {
         }));
     };
 
+    /**
+     * 
+     */
+    const registerAnimalIntoTheSYstem = (animal) => {
+        onAnimalAdd(animal);
+    };
+
     return (
-        <div className="bg-card p-6 rounded-xl shadow-lg border border-border max-w-2xl mx-auto">
+        <div className="bg-card p-6 rounded-xl shadow-lg border border-border mx-auto">
             <h3 className="text-xl font-bold mb-4 flex items-center gap-2 text-foreground">
                 <Icon name="CalendarPlus" className="text-primary" /> Запиши час
             </h3>
@@ -136,7 +141,8 @@ const MakeAppointment = ({ selectedDate }) => {
                 ))}
             </div>
 
-            <button className="w-full bg-green-600 text-white py-3 rounded-xl font-bold text-lg shadow-md hover:bg-green-700 transition-colors">
+            <button className="w-full bg-green-600 text-white py-3 rounded-xl font-bold text-lg shadow-md hover:bg-green-700 transition-colors"
+            onClick={() => registerAnimalIntoTheSYstem(appointment)}>
                 Запиши час
             </button>
         </div>
