@@ -52,16 +52,16 @@ async function recordAnimal(formData, ownerId) {
     // 2. АКО потребителят НЕ е въвел име, обновяваме спрямо вида на животното
     if (!formData?.recordName?.trim()) {
         // Определяме префикса: ако е куче -> "Куче", в противен случай -> "Котка"
-        const speciesLabel = formData.species === 'cat' ? 'Котка' : 'Куче';
-        const autoName = `${speciesLabel} №${newCat.id}`;
+        // const speciesLabel = formData.species === 'cat' ? 'Котка' : 'Куче';
+        // const autoName = `${speciesLabel} №${newCat.id}`;
 
-        await supabase
-            .from('td_records')
-            .update({ name: autoName })
-            .eq('id', newCat.id);
+        // await supabase
+        //     .from('td_records')
+        //     .update({ name: autoName })
+        //     .eq('id', newCat.id);
         
         // Обновяваме обекта в паметта, за да може SuccessModal да го види веднага
-        newCat.name = autoName;
+        // newCat.name = autoName;
     }
 
     // 3. Качване на снимката
