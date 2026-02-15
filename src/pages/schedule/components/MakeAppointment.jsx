@@ -52,7 +52,7 @@ const MakeAppointment = ({ selectedDate, onAnimalAdd }) => {
     };
 
     return (
-        <div className="bg-card p-6 rounded-xl shadow-lg border border-border max-w-2xl mx-auto">
+        <div className="bg-card p-6 rounded-xl shadow-lg border border-border mx-auto">
             <h3 className="text-xl font-bold mb-4 flex items-center gap-2 text-foreground">
                 <Icon name="CalendarPlus" className="text-primary" /> Запиши час
             </h3>
