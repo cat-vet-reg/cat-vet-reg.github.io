@@ -188,7 +188,8 @@ export async function $apiGetCats() {
         .select(`
             *,
             owner:td_owners(name, phone)
-        `);
+        `)
+        .neq('status', 'recorded'); // <--- ВАЖНО: Скрива тези, които са само записани часове
 
     if (error) {
         console.error("Грешка при вземане на котките:", error);
