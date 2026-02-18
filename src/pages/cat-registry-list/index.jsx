@@ -10,6 +10,7 @@ import BulkActionsBar from './components/BulkActionsBar';
 import Icon from '../../components/AppIcon';
 import supabase from '../../utils/supabase'; 
 import Pagination from './components/Pagination';
+import { $apiGetRegistryOnly } from '../../services/create_new_record';
 
 const CatRegistryList = () => {
   const [currentPage, setCurrentPage] = useState(1);
@@ -60,16 +61,33 @@ const CatRegistryList = () => {
 
   const [selectedCats, setSelectedCats] = useState([]);
 
-  // 1. Вземане на реалните данни
+  // 1. Вземане на реалните данни от Supabase
+  // useEffect(() => {
+  //   async function fetchData() {
+  //     try {
+  //       setIsLoading(true);
+  //       const { data, error } = await supabase.from('td_records').select(`*, owner:owner_id (name, phone)`)
+  //       .order('castrated_at', { ascending: false }) // Първо по дата
+  //       .order('id', { ascending: false });
+        
+  //       if (error) throw error;
+  //       setCatCollection(data || []);
+  //     } catch (err) {
+  //       console.error("Грешка при зареждане:", err.message);
+  //     } finally {
+  //       setIsLoading(false);
+  //     }
+  //   }
+  //   fetchData();
+  // }, []);
+
+  // 1. Вземане на данните, минаващи през филтъра за статуса "записани".
   useEffect(() => {
     async function fetchData() {
       try {
         setIsLoading(true);
-        const { data, error } = await supabase.from('td_records').select(`*, owner:owner_id (name, phone)`)
-        .order('castrated_at', { ascending: false }) // Първо по дата
-        .order('id', { ascending: false });
-        
-        if (error) throw error;
+        // Вече използваме готовата ни функция, която филтрира 'recorded'
+        const { data } = await $apiGetRegistryOnly();
         setCatCollection(data || []);
       } catch (err) {
         console.error("Грешка при зареждане:", err.message);

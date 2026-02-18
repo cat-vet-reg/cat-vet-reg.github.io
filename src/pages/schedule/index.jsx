@@ -10,6 +10,7 @@ import { $apiCreateNewRecord } from "services/create_new_record";
 const Schedule = () => {
 
   const [date, setDate] = useState(new Date());
+  const [refreshKey, setRefreshKey] = useState(0);
 
   const breadcrumbItems = [
       { label: 'Табло'    , path: '/dashboard-overview' },
@@ -17,16 +18,31 @@ const Schedule = () => {
   ];
 
   const registerAnimalIntoTheSystem = async (e) => {
-    
-    for(const element of e.animals) {
-
-      await $apiCreateNewRecord({
-        gender      : element.gender,
-        data        : {...element, ownerName: e.ownerName, ownerPhone  : e.phone},
-        ownerName   : e.ownerName,
-        ownerPhone  : e.phone,
-        castratedAt : e.date
-      });
+    try {
+      for(const element of e.animals) {
+        await $apiCreateNewRecord({
+          gender      : element.gender,
+          // ВАЖНО: Добавяме статуса тук, за да влезе в JSON колоната 'data'
+          data        : {
+            ...element, 
+            ownerName: e.ownerName, 
+            ownerPhone: e.phone, 
+            status: 'recorded' // <--- ТОВА Е КЛЮЧЪТ
+          },
+          ownerName   : e.ownerName,
+          ownerPhone  : e.phone,
+          castratedAt : e.date,
+          status      : 'recorded' // Добавяме го и тук за всеки случай
+        });
+      }
+        // СЛЕД КАТО ВСИЧКИ ЖИВОТНИ СА ЗАПИСАНИ:
+        // Увеличаваме ключа, за да "тригернем" обновяване
+      setRefreshKey(prev => prev + 1);
+        
+        // Опционално: изчистване на формата може да стане вътре в MakeAppointment, 
+        // ако му подадеш функция за успешно завършване.
+    } catch (error) {
+      console.error("Грешка при запис:", error);
     }
   }
 
@@ -58,7 +74,7 @@ const Schedule = () => {
 
           {/* Секция 2: Календарът (отдолу) */}
           <div className="mb-10">
-              <Calendar selectedDate={date} />
+              <Calendar selectedDate={date} key={refreshKey} />
           </div>
 
         </div>

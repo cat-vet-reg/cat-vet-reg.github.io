@@ -12,34 +12,6 @@ const Calendar = () => {
 const [myEvents, setMyEvents] = useState([]);
 const navigate = useNavigate();
 
-
-  // const myEvents = [
-    // { 
-    //   id              : 'anim_1', 
-    //   title           : 'Ж КТ - Нанси Танева - 0896160033', 
-    //   start           : '2026-02-14',
-    //   extendedProps   : { phone: '0896160033', ownerId: '123', species: 'cat', gender: 'female' },
-    //   backgroundColor : '#e11d48',
-    //   borderColor     : '#e11d48'
-    // },
-    // { 
-    //   id: 'anim_2', 
-    //   title: 'Ж КТ - Нанси Танева - 0896160033', 
-    //   start: '2026-02-14',
-    //   extendedProps: { phone: '0896160033', ownerId: '123', species: 'cat', gender: 'female' },
-    //   backgroundColor: '#e11d48',
-    //   borderColor: '#e11d48'
-    // },
-    // { 
-    //   id: 'anim_3', 
-    //   title: 'М КТ - Нанси Танева - 0896160033', 
-    //   start: '2026-02-14',
-    //   extendedProps: { phone: '0896160033', ownerId: '123', species: 'cat', gender: 'male' },
-    //   backgroundColor: '#10b981', // Зелено, защото приемеме, че това е приключило
-    //   borderColor: '#10b981'
-    // }
-  // ];
-
   const handleEdit = (cat) => {
 
     console.log("@=====================")
@@ -50,53 +22,70 @@ const navigate = useNavigate();
   };
 
 
+  // ФУНКЦИЯ ЗА ЗАРЕЖДАНЕ
+  const loadCalendarData = async () => {
+    const { data, error } = await supabase.from('td_records')
+      .select(`*, owner:owner_id (name, phone)`)
+      .order('castrated_at', { ascending: false });
+
+    if (error) return;
+
+    const events = data.map(element => {
+      const isPast = Date.now() > new Date(element.castrated_at);
+      const rawGender = element.gender || element.data?.gender;
+      const isMale = rawGender === 'male';
+
+      // Логиката за цветовете (Розово/Синьо/Сиво)
+      let eventColor = isPast ? '#dedede' : (isMale ? '#dbeafe' : '#ffe4e6');
+      const genderSym = isMale ? "♂️" : "♀️";
+      const species = (element.species || element.data?.species || 'Котка');
+
+      return {
+        id: element.id,
+        title: `${genderSym} ${species} - ${element.owner?.name}`, 
+        start: element.castrated_at,
+        extendedProps: { 
+          phone: element.owner?.phone, 
+          gender: genderSym,
+          isMale: isMale,
+          species: species,
+          ownerName: element.owner?.name,
+          data: element 
+        },
+        backgroundColor: eventColor,
+        borderColor: isPast ? '#ccc' : (isMale ? '#3b82f6' : '#f43f5e'),
+        textColor: isPast ? '#666' : '#000'
+      };
+    });
+
+    setMyEvents(events);
+  };
+
   useEffect(() => {
-    (async () => {
-      const { data, error } = await supabase.from('td_records')
-        .select(`*, owner:owner_id (name, phone)`)
-        .order('castrated_at', { ascending: false });
-
-      if (error) return;
-
-      const events = data.map(element => {
-        const isPast = Date.now() > new Date(element.castrated_at);
-        const eventColor = isPast ? '#dedede' : '#a1ffa6';
-        
-        // Определяме пола и вида (проверка дали са в element или element.data)
-        const genderSym = (element.gender === 'male' || element.data?.gender === 'male') ? "♂️" : "♀️";
-        const species = (element.species || element.data?.species || 'Котка');
-
-        return {
-          id: element.id,
-          // Заглавието вече включва пола и вида
-          title: `${genderSym} ${species} - ${element.owner?.name}`, 
-          start: element.castrated_at,
-          extendedProps: { 
-            phone: element.owner?.phone, 
-            gender: genderSym,
-            species: species,
-            ownerName: element.owner?.name,
-            data: element 
-          },
-          backgroundColor: eventColor,
-          borderColor: eventColor,
-          textColor: isPast ? '#666' : '#000'
-        };
-      });
-
-      setMyEvents(events); // Директно сетваме целия масив
-    })();
+      loadCalendarData();
   }, []);
 
-  const handleEventClick = (info) => {
-    // ВАЖНО: FullCalendar слага extendedProps автоматично в обекта event
-    const ownerId       = info.event.extendedProps.ownerId;
-    const appointmentId = info.event.id;
-    
-    console.log("Клик върху:", info.event.title);
-    
-    // Пренасочваме към формата за регистрация
-    window.location.href = `#/register-animal?owner_id=${ownerId}&from_apt=${appointmentId}`;
+  const handleDelete = async (e, id) => {
+      e.stopPropagation();
+
+      if (!window.confirm("Сигурни ли сте, че искате да изтриете този час?")) return;
+
+      try {
+          const { error } = await supabase
+              .from('td_records')
+              .delete()
+              .eq('id', id);
+
+          if (error) throw error;
+
+          // Вместо само да филтрираме, викаме функцията за зареждане,
+          // за да сме 100% сигурни, че данните са актуални
+          await loadCalendarData();
+          
+      } catch (err) {
+          console.error("Грешка при триене:", err.message);
+          alert("Възникна грешка при триенето.");
+      }
   };
 
   return (
@@ -119,26 +108,33 @@ const navigate = useNavigate();
           }}
           events={myEvents}
           eventContent={(eventInfo) => {
-            const { gender, species, phone, ownerName } = eventInfo.event.extendedProps;
-            const isMale = gender === "♂️";
+            const { isMale, gender, species, phone, ownerName } = eventInfo.event.extendedProps;
+            
+            // Проверяваме дали събитието е сиво (минало), за да не слагаме ярки цветове на иконите
+            const isPast = eventInfo.event.backgroundColor === '#dedede';
 
             return (
               <div className="p-1 overflow-hidden text-[10px] sm:text-xs cursor-pointer hover:brightness-110 transition-all leading-tight">
-                <div className="font-bold border-b border-white/20 mb-1 pb-1 flex items-center gap-1">
-                  {/* По-голям и цветен символ за пол */}
+                <button 
+                onClick={(e) => handleDelete(e, eventInfo.event.id)}
+                className="absolute top-0 right-0 p-1 text-red-500 hover:bg-red-50 rounded-bl-lg transition-colors z-50 font-bold"
+                title="Изтрий часа"
+              >
+                ✕ 
+              </button>
+                <div className="font-bold border-b border-black/10 mb-1 pb-1 flex items-center gap-1">
                   <span style={{ 
-                    color: isMale ? '#3b82f6' : '#f43f5e', 
-                    fontSize: '16px',
-                    fontWeight: 'bold' 
+                    color: isPast ? '#666' : (isMale ? '#2563eb' : '#e11d48'), 
+                    fontSize: '14px'
                   }}>
                     {gender}
                   </span> 
                   <span className="truncate">{species}</span>
                 </div>
                 
-                <div className="flex flex-col opacity-90">
-                  <span className="truncate">👤 {ownerName}</span>
-                  <span>📞 {phone}</span>
+                <div className="flex flex-col opacity-90 text-black">
+                  <span className="truncate font-medium">👤 {ownerName}</span>
+                  <span className="text-[9px]">📞 {phone}</span>
                 </div>
               </div>
             );

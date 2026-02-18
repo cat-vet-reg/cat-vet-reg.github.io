@@ -100,6 +100,7 @@ export const complicationOptions = {
     ],
     general: [
       { id: "lung_edema"          , label: "Белодробен оток" },
+      { id: "apnea"               , label: "Апнея" },
       { id: "anesthesia_reac"     , label: "Алергична реакция към упойка" },
       { id: "dead_anesthesia"     , label: "Умряло, от упойка" },
       { id: "dead_surgery"        , label: "Умряло по време на операция" },
@@ -144,6 +145,7 @@ export const reproductiveOptions = {
       { value: "mucometra"        , label: "Мукометра" },
       { value: "pyometra"         , label: "Пиометра" },
       { value: "ovarian_cyst"     , label: "Киста на яйчника" },
+      { value: "ceh"              , label: "Кистозна хиперплазия на ендометриума" },
     ],
     male: [
       { value: "none_visible"       , label: "Нормален" },

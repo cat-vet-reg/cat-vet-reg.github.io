@@ -80,7 +80,20 @@ useEffect(() => {
    * 
    */
   const registerAnimalIntoTheSYstem = (animal) => {
-      onAnimalAdd(animal);
+      // 1. Изпращаме данните към Schedule
+    onAnimalAdd(animal);
+
+    // 2. ИЗЧИСТВАМЕ ФОРМАТА ВЕДНАГА
+    setAppointment({
+        phone: '',
+        ownerName: '',
+        // Запазваме текущо избраната дата, за да не се занули на днешна, ако потребителят иска да запише още някой за същия ден
+        date: selectedDate ? selectedDate.toISOString().split('T')[0] : '',
+        animals: []
+    });
+    
+    // 3. Нулираме червения цвят за съществуващ собственик
+    setIsExistingOwner(false);
   };
 
   return (

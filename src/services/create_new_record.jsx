@@ -7,7 +7,11 @@ import supabase from 'utils/supabase';
  */
 async function recordAnimal(formData, ownerId) {
     
-    
+    const dataToSave = { 
+        ...formData, 
+        status: formData.status || 'registered'
+    };
+
     // 1. Първо създаваме записа
     const tdRecordsResponse = await supabase.from('td_records').insert({
         name                    : formData?.recordName,
@@ -26,8 +30,7 @@ async function recordAnimal(formData, ownerId) {
         record_complications    : formData.recordComplications,
         castrated_at            : formData?.castratedAt,
 
-        // record all of the fields into a generic JSON column
-        data                    : formData
+        data: dataToSave
     }).select();
 
     // ПРОВЕРКА: Ако има грешка, не продължавай надолу
@@ -188,21 +191,43 @@ export async function $apiGetCats() {
         .select(`
             *,
             owner:td_owners(name, phone)
-        `)
-        .neq('status', 'recorded'); // <--- ВАЖНО: Скрива тези, които са само записани часове
+        `);
 
     if (error) {
         console.error("Грешка при вземане на котките:", error);
         return { data: [] };
     }
 
-    // Тъй като Supabase връща собственика като обект, 
-    // "разгръщаме" го малко, за да е по-лесно за ползване
     const formattedData = data.map(cat => ({
         ...cat,
         owner_name: cat.owner?.name,
         owner_phone: cat.owner?.phone,
-        address: cat.location_address // Уеднаквяваме името на полето
+        address: cat.location_address
+    }));
+
+    return { data: formattedData };
+}
+
+// ЗА РЕГИСТЪРА - Скрива записаните часове
+export async function $apiGetRegistryOnly() {
+    const { data, error } = await supabase
+        .from('td_records')
+        .select(`*, owner:td_owners(name, phone)`)
+        // Филтърът: Дай ми тези, при които статусът НЕ Е 'recorded'
+        // Използваме 'is.null', за да хванем всички твои стари записи (като №147)
+        .or('data->>status.neq.recorded,data->>status.is.null')
+        .order('castrated_at', { ascending: false });
+
+    if (error) {
+        console.error("Грешка при зареждане:", error);
+        return { data: [] };
+    }
+
+    // Форматирането за таблицата
+    const formattedData = data.map(cat => ({
+        ...cat,
+        owner_name: cat?.owner?.name || cat?.owner_name || "—",
+        owner_phone: cat?.owner?.phone || cat?.owner_phone || "—",
     }));
 
     return { data: formattedData };
