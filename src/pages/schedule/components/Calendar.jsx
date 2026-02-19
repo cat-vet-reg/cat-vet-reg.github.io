@@ -2,9 +2,10 @@ import React, { useState, useEffect } from "react";
 import './CalendarCustom.css';
 import FullCalendar     from '@fullcalendar/react';
 import dayGridPlugin    from '@fullcalendar/daygrid';
-import supabase from "utils/supabase";
-import { useNavigate } from 'react-router-dom';
-import { color } from "d3";
+import timeGridPlugin   from '@fullcalendar/timegrid';
+import supabase         from "utils/supabase";
+import { useNavigate }  from 'react-router-dom';
+import { color }        from "d3";
 
 
 const Calendar = () => {
@@ -93,18 +94,19 @@ const navigate = useNavigate();
       <FullCalendar
           eventClick={handleEdit}
           dayMaxEvents={false}
-          plugins={[ dayGridPlugin ]}
+          plugins={[ dayGridPlugin, timeGridPlugin ]}
           initialView="dayGridMonth"
           locale="bg"
           headerToolbar={{
               left: 'prev,next today',
               center: 'title',
-              right: 'dayGridMonth,dayGridWeek'
+              right: 'dayGridMonth,dayGridWeek,dayGridDay'
           }}
           buttonText={{
               today: 'Днес',
               month: 'Месец',
-              week: 'Седмица'
+              week: 'Седмица',
+              day: 'Ден'
           }}
           events={myEvents}
           eventContent={(eventInfo) => {
