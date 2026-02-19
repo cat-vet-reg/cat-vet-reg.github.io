@@ -31,25 +31,41 @@ const AddProtocol = ({ isOpen, onClose, petId, onSave, lastProtocolNumber = 0 })
     setIsSubmitting(true);
     
     try {
-      const recordToSave = {
-        ...formData,
+      // Подготвяме JSON обекта според твоята структура
+      const protocolData = {
+        protocol_number: formData.protocol_number,
+        protocol_creation_date: formData.protocol_creation_date,
         pet_id: petId,
-        // Превръщаме запетаите в масиви за базата, ако е нужно
+        temperature: parseFloat(formData.temperature),
+        weight: parseFloat(formData.weight),
+        anamnesis: formData.anamnesis,
+        examination: formData.examination,
+        diagnosis: formData.diagnosis,
+        treatment: formData.treatment,
         medications: formData.medications.split(',').map(m => m.trim()).filter(m => m !== ""),
-        created_at: new Date().toISOString()
+        clinical_signs: formData.clinical_signs ? formData.clinical_signs.split(',') : [],
+        manipulations: [],
+        differential_diagnosis: "",
+        notes: formData.notes
       };
 
       const { data, error } = await supabase
-        .from('treatment_protocols')
-        .insert([recordToSave])
+        .from('td_protocols') // Използваме точното име на таблицата
+        .insert([
+          { 
+            record_id: petId, // Връзката към животното
+            data: protocolData // Всичко отива в JSON колоната
+          }
+        ])
         .select();
 
       if (error) throw error;
 
-      onSave(data[0]);
+      // Подаваме нагоре чистите данни от обекта data
+      onSave(data[0].data); 
       onClose();
     } catch (err) {
-      alert("Грешка при запис на протокола: " + err.message);
+      alert("Грешка: " + err.message);
     } finally {
       setIsSubmitting(false);
     }
@@ -92,35 +108,44 @@ const AddProtocol = ({ isOpen, onClose, petId, onSave, lastProtocolNumber = 0 })
             <div className="space-y-4">
               <div>
                 <label className="text-sm font-medium mb-1.5 block">Анамнеза</label>
-                <textarea name="anamnesis" value={formData.anamnesis} onChange={handleChange} rows="3" className="w-full p-2.5 rounded-lg border bg-background resize-none" placeholder="История на заболяването..."></textarea>
+                <textarea name="anamnesis" value={formData.anamnesis} onChange={handleChange} rows="4" className="w-full p-2.5 rounded-lg border bg-background resize-none" placeholder="История на заболяването..."></textarea>
               </div>
               <div>
-                <label className="text-sm font-medium mb-1.5 block font-bold text-destructive">Диагноза</label>
-                <input type="text" name="diagnosis" value={formData.diagnosis} onChange={handleChange} className="w-full p-2.5 rounded-lg border bg-background font-semibold" placeholder="Основна диагноза..." required />
+                <label className="text-sm font-medium mb-1.5 block font-bold">Клинични признаци</label>
+                <input type="text" name="clinical_signs" value={formData.clinical_signs} onChange={handleChange} className="w-full p-2.5 rounded-lg border bg-background font-semibold" placeholder="Отделени със запетая..." required />
               </div>
             </div>
 
             <div className="space-y-4">
               <div>
-                <label className="text-sm font-medium mb-1.5 block">Клинични признаци & Преглед</label>
-                <textarea name="examination" value={formData.examination} onChange={handleChange} rows="5" className="w-full p-2.5 rounded-lg border bg-background resize-none" placeholder="Резултати от прегледа (напр. Ширмер тест)..."></textarea>
+                <label className="text-sm font-medium mb-1.5 block">Изследвания</label>
+                <textarea name="examination" value={formData.examination} onChange={handleChange} rows="4" className="w-full p-2.5 rounded-lg border bg-background resize-none" placeholder="Резултати (напр. лигавици, ПКК, Ширмер тест)..."></textarea>
+              </div>
+              <div>
+                <label className="text-sm font-medium mb-1.5 block font-bold text-destructive">Диагноза</label>
+                <input type="text" name="diagnosis" value={formData.diagnosis} onChange={handleChange} className="w-full p-2.5 rounded-lg border bg-background font-semibold" placeholder="Основна диагноза..." />
               </div>
             </div>
           </div>
 
           {/* Секция: Лечение */}
           <div className="bg-primary/5 p-4 rounded-xl space-y-4 border border-primary/10">
-            <h3 className="font-bold flex items-center gap-2 text-primary"><ClipboardList size={18}/> Терапия и Медикаменти</h3>
+            <h3 className="font-bold flex items-center gap-2 text-primary"><ClipboardList size={18}/> Назначено лечение</h3>
+            <div>
+              <label className="text-sm font-medium mb-1.5 block">Лечение (описание)</label>
+              <textarea name="treatment" value={formData.treatment} onChange={handleChange} rows="3" className="w-full p-2.5 rounded-lg border bg-background" placeholder="Схема на прилагане..."></textarea>
+            </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="text-sm font-medium mb-1.5 block">Лечение (описание)</label>
-                <textarea name="treatment" value={formData.treatment} onChange={handleChange} rows="3" className="w-full p-2.5 rounded-lg border bg-background" placeholder="Схема на прилагане..."></textarea>
-              </div>
-              <div>
-                <label className="text-sm font-medium mb-1.5 block">Лекарства (разделени със запетая)</label>
+                <label className="text-sm font-medium mb-1.5 block">Медикаменти (разделени със запетая)</label>
                 <textarea name="medications" value={formData.medications} onChange={handleChange} rows="3" className="w-full p-2.5 rounded-lg border bg-background" placeholder="Аркол, Цикло, Диферион..."></textarea>
               </div>
+              <div>
+                <label className="text-sm font-medium mb-1.5 block">Манипулации (разделени със запетая)</label>
+                <textarea name="manipulations" value={formData.manipulations} onChange={handleChange} rows="3" className="w-full p-2.5 rounded-lg border bg-background" placeholder="напр. катетеризация, тарзорафия..."></textarea>
+              </div>
             </div>
+
           </div>
 
           {/* Footer Buttons */}

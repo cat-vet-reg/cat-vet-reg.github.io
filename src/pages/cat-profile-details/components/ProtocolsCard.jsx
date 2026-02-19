@@ -84,7 +84,7 @@ const ProtocolsCard = ({ protocols = [], onAddProtocol }) => {
                       <p className="text-sm">{protocol.clinical_signs?.join(', ') || "Няма вписани"}</p>
                     </div>
                     <div className="bg-background/50 p-3 rounded-lg border border-border/50">
-                      <p className="text-[11px] font-bold text-primary uppercase mb-1">Изследвания / Преглед</p>
+                      <p className="text-[11px] font-bold text-primary uppercase mb-1">Изследвания</p>
                       <p className="text-sm">{protocol.examination || "—"}</p>
                     </div>
                   </div>

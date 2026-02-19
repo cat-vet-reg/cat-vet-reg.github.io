@@ -13,38 +13,6 @@ import { useNavigate }  from 'react-router-dom';
 import { mapRecordToForm, defaultFormData } from '../cat-registration-form/utils/formMapper';
 import { Search, Plus, Stethoscope, Dog, Cat, Rabbit, AlertTriangle, Eye, Edit } from 'lucide-react';
 
-
-// Примерни данни - дефинирани отвън, за да са достъпни веднага
-// const MOCK_PATIENTS = [
-//   {
-//     id: 1,
-//     recordName: 'Бела',
-//     species: 'cat',
-//     gender: 'female',
-//     ownerName: 'Иван Иванов',
-//     hasComplications: 'Y',
-//     recordComplications: 'Възпаление след операция',
-//   },
-//   {
-//     id: 2,
-//     recordName: 'Макс',
-//     species: 'dog',
-//     gender: 'male',
-//     ownerName: 'Мария Петрова',
-//     hasComplications: 'N',
-//     recordComplications: '',
-//   },
-//   {
-//     id: 3,
-//     recordName: 'Писана',
-//     species: 'cat',
-//     gender: 'female',
-//     ownerName: 'Георги Георгиев',
-//     hasComplications: 'N',
-//     recordComplications: 'Редовен преглед',
-//   }
-// ];
-
 const TreatmentRegistry = () => {
   const navigate = useNavigate();
   const [currentPage, setCurrentPage] = useState(1);
@@ -87,7 +55,8 @@ const TreatmentRegistry = () => {
             owner:owner_id (
               name,
               phone
-            )
+            ),
+            td_protocols (data)
           `)
           // Филтрираме: или статусът е 'treatment', или има усложнение 'Y'
           .or('data->>status.eq.treatment,has_complications.eq.Y')
@@ -96,7 +65,21 @@ const TreatmentRegistry = () => {
         if (error) throw error;
         
         // Мапваме данните през твоя formMapper, за да са в правилния формат за UI
-        const mappedData = data.map(record => mapRecordToForm(record));
+        const mappedData = data.map(record => {
+          const formMapped = mapRecordToForm(record);
+          
+          // Взимаме анамнезата от последно създадения протокол
+          const lastProtocol = record.td_protocols && record.td_protocols.length > 0 
+            ? record.td_protocols[record.td_protocols.length - 1].data 
+            : null;
+
+          return {
+            ...formMapped,
+            // Добавяме анамнезата към обекта на рекорда
+            latestAnamnesis: lastProtocol?.anamnesis || "Няма вписана анамнеза"
+          };
+        });
+        
         setRecords(mappedData);
       } catch (err) {
         console.error("Грешка при зареждане на лечение:", err.message);
@@ -199,7 +182,11 @@ const TreatmentRegistry = () => {
               </thead>
               <tbody className="divide-y divide-border">
                 {paginatedRecords.map((record) => (
-                  <tr key={record.id} className="hover:bg-muted/50 transition-smooth">
+                  <tr 
+                    key={record.id} 
+                    className="hover:bg-muted/50 transition-smooth cursor-pointer"
+                    onClick={() => navigate(`/cat-profile-details/${record.id}`)}
+                  >
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-2">
                         <Icon 
@@ -225,17 +212,17 @@ const TreatmentRegistry = () => {
                     </td>
                     <td className="hidden lg:table-cell px-4 py-3">
                       <span className="text-xs text-muted-foreground line-clamp-1 italic">
-                        {record.recordComplications || "Няма записи"}
+                        {record.latestAnamnesis || "Няма записи"}
                       </span>
                     </td>
                     <td className="px-4 py-3 text-right">
                       <div className="flex items-center justify-end gap-2">
                         <Button variant="ghost" size="icon" iconName="Eye" 
                         onClick={() => {
-    console.log("Кликнато ID:", record.id); // Провери конзолата!
-    if (record.id) navigate(`/cat-profile-details/${record.id}`);
-    else alert("Грешка: Липсва ID на записа!");
-  }}
+                          console.log("Кликнато ID:", record.id); // Провери конзолата!
+                          if (record.id) navigate(`/cat-profile-details/${record.id}`);
+                          else alert("Грешка: Липсва ID на записа!");
+                        }}
                         />
                         <Button variant="ghost" size="icon" iconName="Edit" onClick={() => console.log('Edit', record.id)} /> 
                       </div>
