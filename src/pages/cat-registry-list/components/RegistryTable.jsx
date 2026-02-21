@@ -62,7 +62,8 @@ const RegistryTable = ({
       sortConfig?.column === column && sortConfig?.direction === 'asc' ?'desc' :'asc';
     onSort(column, direction);
   };
-console.log("Данни за първата котка:", cats[0]);
+  // console.log("Данни за първата котка:", cats[0]);
+
   return (
     <div className="bg-card rounded-lg shadow-warm">
       <div className="overflow-x-auto scrollbar-custom">

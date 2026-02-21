@@ -67,6 +67,18 @@ const TreatmentRegistry = () => {
         // Мапваме данните през твоя formMapper, за да са в правилния формат за UI
         const mappedData = data.map(record => {
           const formMapped = mapRecordToForm(record);
+
+          // 1. Взимаме всички протоколи
+          const allProtocols = record.td_protocols || [];
+
+          // 2. Вадим диагнозите от всеки протокол, махаме празните и повтарящите се
+          const uniqueDiagnoses = [
+            ...new Set(
+              allProtocols
+                .map(p => p.data?.diagnosis)
+                .filter(d => d && d.trim() !== "") // Махаме празни записи
+            )
+          ];
           
           // Взимаме анамнезата от последно създадения протокол
           const lastProtocol = record.td_protocols && record.td_protocols.length > 0 
@@ -76,7 +88,11 @@ const TreatmentRegistry = () => {
           return {
             ...formMapped,
             // Добавяме анамнезата към обекта на рекорда
-            latestAnamnesis: lastProtocol?.anamnesis || "Няма вписана анамнеза"
+            latestAnamnesis: lastProtocol?.anamnesis || "Няма вписана анамнеза",
+            // Обединяваме диагнозите със запетая
+            diagnoses: uniqueDiagnoses.length > 0 
+              ? uniqueDiagnoses.join(", ") 
+              : "-"
           };
         });
         
@@ -176,7 +192,8 @@ const TreatmentRegistry = () => {
                   <th className="px-4 py-3 text-left font-semibold text-sm">Вид</th>
                   <th className="hidden md:table-cell px-4 py-3 text-left font-semibold text-sm">Собственик</th>
                   <th className="px-4 py-3 text-left font-semibold text-sm text-center">Усложнения</th>
-                  <th className="hidden lg:table-cell px-4 py-3 text-left font-semibold text-sm">Последна бележка</th>
+                  <th className="hidden lg:table-cell px-4 py-3 text-left font-semibold text-sm">Последна анамнеза</th>
+                  <th className="hidden lg:table-cell px-4 py-3 text-left font-semibold text-sm">Заболявания</th>
                   <th className="px-4 py-3 text-right font-semibold text-sm">Действия</th>
                 </tr>
               </thead>
@@ -215,6 +232,11 @@ const TreatmentRegistry = () => {
                         {record.latestAnamnesis || "Няма записи"}
                       </span>
                     </td>
+                    <td className="hidden lg:table-cell px-4 py-3">
+                    <span className="text-xs font-medium text-amber-700 bg-amber-50 px-2 py-1 rounded-md line-clamp-1 border border-amber-100">
+                      {record.diagnoses}
+                    </span>
+                  </td>
                     <td className="px-4 py-3 text-right">
                       <div className="flex items-center justify-end gap-2">
                         <Button variant="ghost" size="icon" iconName="Eye" 
@@ -249,13 +271,18 @@ const TreatmentRegistry = () => {
         />
 
         {filteredRecords.length > 0 && (
-          <Pagination 
-            currentPage={currentPage}
-            totalPages={Math.ceil(filteredRecords.length / pageSize)}
-            totalItems={filteredRecords.length}
-            onPageChange={setCurrentPage}
-          />
-        )}
+            <Pagination 
+              currentPage={currentPage}
+              totalPages={Math.ceil(filteredRecords.length / pageSize)}
+              pageSize={pageSize}
+              totalItems={filteredRecords.length}
+              onPageChange={(page) => setCurrentPage(page)}
+              onPageSizeChange={(size) => {
+                setPageSize(size);
+                setCurrentPage(1); // Връщаме на първа страница при смяна на размера
+              }}
+            />
+          )}
       </main>
     </div>
   );

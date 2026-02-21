@@ -1,5 +1,6 @@
 import React from 'react';
-import Icon from '../../../components/AppIcon'; // Провери дали пътят до иконите е верен
+import Icon from '../../../components/AppIcon';
+import { statusOptions } from '../../../constants/formOptions';
 
 const ProfileHeader = ({ cat }) => {
   // 1. Дефинираме функцията за формат на датата ВЪТРЕ в компонента
@@ -16,7 +17,18 @@ const ProfileHeader = ({ cat }) => {
       minute: '2-digit'
     });
   };
-const STORAGE_URL = "https://gxnhbymgifwnkipdraye.supabase.co/storage/v1/object/public/protocol_images";
+
+  // 1. Първо, превърни статуса от базата данни в малки букви, за да няма грешки от "Surgery" vs "surgery"
+  const rawStatus = cat?.status?.toLowerCase() || '';
+
+  // 2. Търсим съвпадение в нашия списък с опции
+  const currentStatus = statusOptions.find(opt => opt.id === rawStatus) || {
+    label: cat?.status || 'Няма статус', // Ако не го намерим, показваме каквото пише в БД
+    color: 'bg-destructive/10 text-destructive border-destructive/20', // Оцветяваме го в червено, за да сигнализира грешка
+    icon: 'AlertCircle'
+  };
+  
+  const STORAGE_URL = "https://gxnhbymgifwnkipdraye.supabase.co/storage/v1/object/public/protocol_images";
 
     return (
     <div className="bg-card rounded-xl shadow-warm p-4 md:p-6 lg:p-8 mb-4 md:mb-6">
@@ -65,11 +77,11 @@ const STORAGE_URL = "https://gxnhbymgifwnkipdraye.supabase.co/storage/v1/object/
 
         <div className="flex items-center gap-2 md:gap-3">
           <span className={`
-            inline-flex items-center gap-1.5 px-3 md:px-4 py-1.5 md:py-2 rounded-lg text-sm md:text-base font-medium
-            ${cat?.status === 'active' ? 'bg-success/10 text-success' : 'bg-muted text-muted-foreground'}
-          `}>
-            <Icon name={cat?.status === 'active' ? 'CheckCircle2' : 'Clock'} size={16} className="md:w-5 md:h-5" />
-            <span className="capitalize">{cat?.status}</span>
+              inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs md:text-sm font-bold uppercase tracking-wider shadow-sm
+              ${currentStatus.color}
+            `}>
+              <Icon name={currentStatus.icon} size={14} />
+              {currentStatus.label}
           </span>
         </div>
       </div>

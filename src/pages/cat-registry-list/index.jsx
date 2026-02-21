@@ -276,18 +276,18 @@ const CatRegistryList = () => {
         )}
 
           {filteredAndSortedCats.length > 0 && (
-          <Pagination 
-            currentPage={currentPage}
-            totalPages={Math.ceil(filteredAndSortedCats.length / pageSize)}
-            pageSize={pageSize}
-            totalItems={filteredAndSortedCats.length}
-            onPageChange={(page) => setCurrentPage(page)}
-            onPageSizeChange={(size) => {
-              setPageSize(size);
-              setCurrentPage(1); // Връщаме на първа страница при смяна на размера
-            }}
-          />
-        )}
+            <Pagination 
+              currentPage={currentPage}
+              totalPages={Math.ceil(filteredAndSortedCats.length / pageSize)}
+              pageSize={pageSize}
+              totalItems={filteredAndSortedCats.length}
+              onPageChange={(page) => setCurrentPage(page)}
+              onPageSizeChange={(size) => {
+                setPageSize(size);
+                setCurrentPage(1); // Връщаме на първа страница при смяна на размера
+              }}
+            />
+          )}
       </main>
 
       <BulkActionsBar

@@ -1,15 +1,15 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import Header from '../../components/ui/Header';
-import Breadcrumb from '../../components/ui/Breadcrumb';
-import ProfileHeader from './components/ProfileHeader';
-import BasicInfoCard from './components/BasicInfoCard';
-import LocationMapCard from './components/LocationMapCard';
+import Header           from '../../components/ui/Header';
+import Breadcrumb       from '../../components/ui/Breadcrumb';
+import ProfileHeader    from './components/ProfileHeader';
+import BasicInfoCard    from './components/BasicInfoCard';
+import LocationMapCard  from './components/LocationMapCard';
 import OwnerContactCard from './components/OwnerContactCard';
-import ActionButtons from './components/ActionButtons';
-import supabase from '../../utils/supabase';
-import ProtocolsCard from './components/ProtocolsCard';
-import AddProtocol from './components/AddProtocol';
+import ActionButtons    from './components/ActionButtons';
+import supabase         from '../../utils/supabase';
+import ProtocolsCard    from './components/ProtocolsCard';
+import AddProtocol      from './components/AddProtocol';
 
 const CatProfileDetails = () => {
   const navigate = useNavigate();
@@ -19,6 +19,15 @@ const CatProfileDetails = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [protocols, setProtocols] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  // 1. Добави състояние за протокола, който редактираш
+  const [editingProtocol, setEditingProtocol] = useState(null);
+  const [isProtocolModalOpen, setIsProtocolModalOpen] = useState(false);
+
+  // 2. Функция за отваряне на модала за редактиране
+  const handleEditProtocol = (protocol) => {
+    setEditingProtocol(protocol); // Запазваме данните на избрания протокол
+    setIsProtocolModalOpen(true); // Отваряме модала
+  };
 
   // 1. Изнесена функция за протоколите
   const fetchProtocols = useCallback(async () => {
@@ -31,7 +40,10 @@ const CatProfileDetails = () => {
 
       if (!error && data) {
         // Проверяваме дали данните са в колона 'data'
-        setProtocols(data.map(p => p.data || p));
+        setProtocols(data.map(p => ({
+          ...(p.data || p),
+          db_id: p.id 
+        })));
       }
     } catch (err) {
       console.error("Грешка при зареждане на протоколи:", err);
@@ -53,6 +65,7 @@ const CatProfileDetails = () => {
 
         setCatData({
           ...data,
+          status: data.status || data.data?.status || 'recorded',
           foundLocation: data.location_address,
           coordinates: { lat: data.latitude, lng: data.longitude },
           owner: {
@@ -102,15 +115,33 @@ const CatProfileDetails = () => {
             {/* Секция Протоколи */}
             <ProtocolsCard 
               protocols={protocols} 
-              onAddProtocol={() => setIsModalOpen(true)}
+              onAddProtocol={() => {
+                setEditingProtocol(null);
+                setIsProtocolModalOpen(true);
+              }}
+              onEditProtocol={handleEditProtocol}
             />
 
+            {/* Използваме само isProtocolModalOpen, за да няма объркване */}
             <AddProtocol 
-              isOpen={isModalOpen}
-              onClose={() => setIsModalOpen(false)}
+              isOpen={isProtocolModalOpen}
+              onClose={() => {
+                setIsProtocolModalOpen(false);
+                setEditingProtocol(null);
+              }}
               petId={id}
-              onSave={handleProtocolSaved}
-              lastProtocolNumber={protocols.length > 0 ? (protocols[0].protocol_number || 0) : 0}
+              protocolToEdit={editingProtocol} // Не забравяй да подадеш това!
+              onSave={(updatedProtocol) => {
+                // Ако редактираме, обновяваме масива, ако е нов - добавяме го най-отгоре
+                if (editingProtocol) {
+                  setProtocols(prev => prev.map(p => p.db_id === updatedProtocol.db_id ? updatedProtocol : p));
+                } else {
+                  setProtocols(prev => [updatedProtocol, ...prev]);
+                }
+                setIsProtocolModalOpen(false);
+                setEditingProtocol(null);
+              }}
+              lastProtocolNumber={protocols.length > 0 ? Math.max(...protocols.map(p => p.protocol_number || 0)) : 0}
             />
           </div>
           

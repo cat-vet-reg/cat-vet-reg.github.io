@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import Icon from '../../../components/AppIcon';
 import Button from '../../../components/ui/Button';
 
-const ProtocolsCard = ({ protocols = [], onAddProtocol }) => {
+
+const ProtocolsCard = ({ protocols = [], onAddProtocol, onEditProtocol }) => {
   const [expandedId, setExpandedId] = useState(null);
 
   return (
@@ -60,6 +61,16 @@ const ProtocolsCard = ({ protocols = [], onAddProtocol }) => {
                     )}
                   </div>
                 </div>
+                {/* Бутон за Редакция */}
+                <button 
+                  onClick={(e) => {
+                    e.stopPropagation(); // Спираме отварянето на акордеона
+                    onEditProtocol(protocol);
+                  }}
+                  className="p-1.5 hover:bg-primary/10 rounded-md text-muted-foreground hover:text-primary transition-colors"
+                >
+                  <Icon name="Edit" size={16} />
+                </button>
                 <div className="flex items-center gap-2">
                    <span className="text-xs text-muted-foreground hidden sm:inline">
                      {isExpanded ? "Свий" : "Виж детайли"}
@@ -134,6 +145,26 @@ const ProtocolsCard = ({ protocols = [], onAddProtocol }) => {
                         </div>
                       )}
                     </div>
+
+                    {protocol.photo_link && Array.isArray(protocol.photo_link) && protocol.photo_link.length > 0 && (
+                      <div className="mt-4 pt-4 border-t border-border/50">
+                        <p className="text-[11px] font-bold text-blue-700 uppercase mb-2">Снимки и документи:</p>
+                        <div className="flex flex-wrap gap-2">
+                          {protocol.photo_link.map((link, index) => (
+                            <a 
+                              key={index}
+                              href={link} 
+                              target="_blank" 
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center gap-2 px-3 py-1.5 bg-blue-50 text-blue-700 rounded-lg border border-blue-200 hover:bg-blue-100 transition-colors text-xs font-bold"
+                            >
+                              <Icon name="Image" size={14} />
+                              Снимка {protocol.photo_link.length > 1 ? index + 1 : ''}
+                            </a>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
               )}

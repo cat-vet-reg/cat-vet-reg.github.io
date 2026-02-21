@@ -122,7 +122,7 @@ const CatRegistrationForm = () => {
         setLivingConditions(new Set(mappedData.livingCondition));
       }
       
-      console.log("Данни за редактиране (mapped):", mappedData);
+      // console.log("Данни за редактиране (mapped):", mappedData);
     }
   }, [editingData]);
 

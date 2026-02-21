@@ -72,13 +72,13 @@ export const generalConditionOptions = [
 ];
 
 export const statusOptions = [
-  { id: 'recorded'  , label: 'Записано'       , color: 'bg-slate-100 text-slate-700' },
-  { id: 'received'  , label: 'Прието'         , color: 'bg-slate-100 text-slate-700' },
-  { id: 'prep'      , label: 'Подготовка'     , color: 'bg-blue-100 text-blue-700' },
-  { id: 'surgery'   , label: 'В операция'     , color: 'bg-red-100 text-red-700' },
-  { id: 'recovery'  , label: 'Възстановяване' , color: 'bg-amber-100 text-amber-700' },
-  { id: 'released'  , label: 'Върнато'        , color: 'bg-green-100 text-green-700' },
-  { id: 'treatment' , label: 'За лечение'     , color: 'bg-gray-200 text-gray-800' }
+  { id: 'recorded',  label: 'Записано',       color: 'bg-slate-100 text-slate-700',         icon: 'ClipboardList' },
+  { id: 'received',  label: 'Прието',         color: 'bg-indigo-100 text-indigo-700',       icon: 'LogIn' },
+  { id: 'prep',      label: 'Подготовка',     color: 'bg-blue-100 text-blue-700',           icon: 'Activity' },
+  { id: 'surgery',   label: 'В операция',     color: 'bg-red-500 text-white animate-pulse', icon: 'Stethoscope' },
+  { id: 'recovery',  label: 'Възстановяване', color: 'bg-amber-400 text-amber-950',         icon: 'Sun' },
+  { id: 'released',  label: 'Върнато',        color: 'bg-green-100 text-green-700',         icon: 'Home' },
+  { id: 'treatment', label: 'За лечение',     color: 'bg-purple-100 text-purple-700',       icon: 'Thermometer' }
 ];
 
 export const complicationOptions = {
