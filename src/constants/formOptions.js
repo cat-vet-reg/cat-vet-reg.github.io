@@ -43,14 +43,32 @@ export const colorOptions = [
     // Solid colors
     { value: 'orange'   , label: 'Рижа' },
     { value: 'black'    , label: 'Черна' },
-    { value: 'white'    , label: 'Сива' },
-    { value: 'white'    , label: 'Сребриста' },
+    { value: 'gray'     , label: 'Сива' },
+    { value: 'silver'   , label: 'Сребриста' },
     { value: 'white'    , label: 'Бяла' },
-    { value: 'gray'     , label: 'Сива (Синя)' },
+    { value: 'darkgray' , label: 'Сива (Синя)' },
     { value: 'brown'    , label: 'Кафява' },
     { value: 'cinnamon' , label: 'Светлокафява' },
     { value: 'fawn'     , label: 'Бежова' },
   ];
+
+export const colorStyles = {
+  tabby         : 'repeating-linear-gradient(45deg, #8B4513, #8B4513 2px, #D2B48C 2px, #D2B48C 4px)',
+  tabby_white   : 'repeating-linear-gradient(45deg, #8B4513, #8B4513 2px, #D2B48C 2px, #D2B48C 4px)',
+  calico        : 'conic-gradient(#FF8C42 0deg 120deg, #1A1A1A 120deg 240deg, #FFFFFF 240deg)',
+  tortoiseshell : 'repeating-radial-gradient(circle, #1A1A1A, #FF8C42 5px)',
+  tuxedo        : 'linear-gradient(to right, #1A1A1A 50%, #FFFFFF 50%)',
+  orange_white  : 'linear-gradient(to right, #FF8C42 50%, #FFFFFF 50%)',
+  orange        : '#FFA500',
+  black         : '#1A1A1A',
+  gray          : '#6c6c6c',
+  silver        : '#bbbbbb',
+  white         : '#FFFFFF',
+  darkgray      : '#313131',
+  brown         : '#654321',
+  cinnamon      : '#8B4513',
+  fawn          : '#E5AA70',
+};
 
 export const habitat = [
     {value: 'street'  , label: "На улицата" , color: "bg-slate-100 text-slate-700 border-slate-200" },

@@ -56,16 +56,17 @@ const TreatmentRegistry = () => {
               name,
               phone
             ),
-            td_protocols (data)
+            td_protocols (id, data)
           `)
-          // Филтрираме: или статусът е 'treatment', или има усложнение 'Y'
-          .or('data->>status.eq.treatment,has_complications.eq.Y')
           .order('created_at', { ascending: false });
 
         if (error) throw error;
-        
-        // Мапваме данните през твоя formMapper, за да са в правилния формат за UI
-        const mappedData = data.map(record => {
+
+        const onlyWithProtocols = data.filter(record => 
+          record.td_protocols && record.td_protocols.length > 0
+        );
+
+        const mappedData = onlyWithProtocols.map(record => {
           const formMapped = mapRecordToForm(record);
 
           // 1. Взимаме всички протоколи
@@ -76,20 +77,15 @@ const TreatmentRegistry = () => {
             ...new Set(
               allProtocols
                 .map(p => p.data?.diagnosis)
-                .filter(d => d && d.trim() !== "") // Махаме празни записи
+                .filter(d => d && d.trim() !== "")
             )
           ];
           
-          // Взимаме анамнезата от последно създадения протокол
-          const lastProtocol = record.td_protocols && record.td_protocols.length > 0 
-            ? record.td_protocols[record.td_protocols.length - 1].data 
-            : null;
+          const lastProtocol = allProtocols[allProtocols.length - 1]?.data;
 
           return {
             ...formMapped,
-            // Добавяме анамнезата към обекта на рекорда
             latestAnamnesis: lastProtocol?.anamnesis || "Няма вписана анамнеза",
-            // Обединяваме диагнозите със запетая
             diagnoses: uniqueDiagnoses.length > 0 
               ? uniqueDiagnoses.join(", ") 
               : "-"
@@ -191,7 +187,7 @@ const TreatmentRegistry = () => {
                   <th className="px-4 py-3 text-left font-semibold text-sm">Пациент</th>
                   <th className="px-4 py-3 text-left font-semibold text-sm">Вид</th>
                   <th className="hidden md:table-cell px-4 py-3 text-left font-semibold text-sm">Собственик</th>
-                  <th className="px-4 py-3 text-left font-semibold text-sm text-center">Усложнения</th>
+                  {/* <th className="px-4 py-3 text-left font-semibold text-sm text-center">Усложнения</th> */}
                   <th className="hidden lg:table-cell px-4 py-3 text-left font-semibold text-sm">Последна анамнеза</th>
                   <th className="hidden lg:table-cell px-4 py-3 text-left font-semibold text-sm">Заболявания</th>
                   <th className="px-4 py-3 text-right font-semibold text-sm">Действия</th>
@@ -220,13 +216,13 @@ const TreatmentRegistry = () => {
                     <td className="hidden md:table-cell px-4 py-3 text-sm text-muted-foreground">
                       {record.ownerName || "—"}
                     </td>
-                    <td className="px-4 py-3 text-center">
+                    {/* <td className="px-4 py-3 text-center">
                       {record.hasComplications === 'Y' ? (
                         <div className="flex justify-center text-destructive">
                           <AlertTriangle size={20} />
                         </div>
                       ) : <span className="text-muted-foreground/20">—</span>}
-                    </td>
+                    </td> */}
                     <td className="hidden lg:table-cell px-4 py-3">
                       <span className="text-xs text-muted-foreground line-clamp-1 italic">
                         {record.latestAnamnesis || "Няма записи"}

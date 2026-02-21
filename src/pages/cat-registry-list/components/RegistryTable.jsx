@@ -4,47 +4,28 @@ import Button             from '../../../components/ui/Button';
 import { Checkbox }       from '../../../components/ui/Checkbox';
 import { AlertTriangle }  from "lucide-react";
 import {convertDate}      from '../../../utils/date'
-
-  const colorOptions = [
-    // Patterns
-    { value: 'tabby'        , label: 'Таби (тигрова)' },
-
-    // Bi-color & multi-color
-    { value: 'tabby_white'  , label: 'Таби-бяла (бяла с тигрово)' },
-    { value: 'calico'       , label: 'Калико (трицветна)' },
-    { value: 'tortoiseshell', label: 'Костенуркова' },
-    { value: 'tuxedo'       , label: 'Черно-бяла' },
-    { value: 'orange_white' , label: 'Рижо-бяла' },
-
-    // Solid colors
-    { value: 'orange'       , label: 'Рижа' },
-    { value: 'black'        , label: 'Черна' },
-    { value: 'white'        , label: 'Бяла' },
-    { value: 'gray'         , label: 'Сива (Синя)' },
-    { value: 'brown'        , label: 'Кафява' },
-    { value: 'cinnamon'     , label: 'Светлокафява' },
-    { value: 'fawn'         , label: 'Бежова' },
-  ];
-
-  const colorStyles = {
-    tabby         : 'repeating-linear-gradient(45deg, #8B4513, #8B4513 2px, #D2B48C 2px, #D2B48C 4px)',
-    tabby_white   : 'repeating-linear-gradient(45deg, #8B4513, #8B4513 2px, #D2B48C 2px, #D2B48C 4px)',
-    calico        : 'conic-gradient(#FF8C42 0deg 120deg, #1A1A1A 120deg 240deg, #FFFFFF 240deg)',
-    tortoiseshell : 'repeating-radial-gradient(circle, #1A1A1A, #FF8C42 5px)',
-    tuxedo        : 'linear-gradient(to right, #1A1A1A 50%, #FFFFFF 50%)',
-    orange_white  : 'linear-gradient(to right, #FF8C42 50%, #FFFFFF 50%)',
-    orange        : '#FFA500',
-    black         : '#1A1A1A',
-    white         : '#FFFFFF',
-    gray          : '#808080',
-    brown         : '#654321',
-    cinnamon      : '#8B4513',
-    fawn          : '#E5AA70',
-  };
+import {  genderOptions, 
+          spicyOptions,
+          bcsScores,
+          getBcsDescription,
+          ageUnitOptions, 
+          colorOptions,
+          colorStyles,
+          habitat,
+          origin,
+          generalConditionOptions, 
+          statusOptions, 
+          complicationOptions,
+          staffOptions,
+          earStatusOptions,
+          parasiteOptions,
+          discoverySourceOptions,
+          reproductiveOptions 
+          } from "../../../constants/formOptions";
 
 const RegistryTable = ({ 
   cats, 
-  selectedCats, 
+  selectedCats,
   onSelectCat, 
   onSelectAll, 
   onSort, 
