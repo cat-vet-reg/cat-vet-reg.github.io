@@ -86,6 +86,7 @@ const TreatmentRegistry = () => {
           return {
             ...formMapped,
             latestAnamnesis: lastProtocol?.anamnesis || "Няма вписана анамнеза",
+            latestTreatment: lastProtocol?.treatment || "Няма вписано лечение",
             diagnoses: uniqueDiagnoses.length > 0 
               ? uniqueDiagnoses.join(", ") 
               : "-"
@@ -190,6 +191,7 @@ const TreatmentRegistry = () => {
                   {/* <th className="px-4 py-3 text-left font-semibold text-sm text-center">Усложнения</th> */}
                   <th className="hidden lg:table-cell px-4 py-3 text-left font-semibold text-sm">Последна анамнеза</th>
                   <th className="hidden lg:table-cell px-4 py-3 text-left font-semibold text-sm">Заболявания</th>
+                  <th className="hidden lg:table-cell px-4 py-3 text-left font-semibold text-sm">Лечение</th>
                   <th className="px-4 py-3 text-right font-semibold text-sm">Действия</th>
                 </tr>
               </thead>
@@ -224,15 +226,20 @@ const TreatmentRegistry = () => {
                       ) : <span className="text-muted-foreground/20">—</span>}
                     </td> */}
                     <td className="hidden lg:table-cell px-4 py-3">
-                      <span className="text-xs text-muted-foreground line-clamp-1 italic">
+                      <span className="text-xs text-muted-foreground break-words italic">
                         {record.latestAnamnesis || "Няма записи"}
                       </span>
                     </td>
                     <td className="hidden lg:table-cell px-4 py-3">
-                    <span className="text-xs font-medium text-amber-700 bg-amber-50 px-2 py-1 rounded-md line-clamp-1 border border-amber-100">
-                      {record.diagnoses}
-                    </span>
-                  </td>
+                      <span className="text-xs font-medium text-amber-700 bg-amber-50 px-2 py-1 rounded-md break-words border border-amber-100">
+                        {record.diagnoses}
+                      </span>
+                    </td>
+                    <td className="hidden lg:table-cell px-4 py-3">
+                      <span className="text-xs text-muted-foreground break-words italic">
+                        {record.latestTreatment || "Няма записи"}
+                      </span>
+                    </td>
                     <td className="px-4 py-3 text-right">
                       <div className="flex items-center justify-end gap-2">
                         <Button variant="ghost" size="icon" iconName="Eye" 

@@ -27,3 +27,32 @@
 .fc .fc-toolbar-title { font-size: 1.2rem; font-weight: bold; }
 .fc .fc-button-primary { background-color: #e11d48; border-color: #e11d48; }
 .fc .fc-button-primary:disabled { background-color: #fda4af; border-color: #fda4af; }
+
+/* По-тъмни граници за целия календар */
+.calendar-container .fc {
+    --fc-border-color: #b0b0b0; /* Значително по-тъмно сиво */
+}
+
+/* Специално за линиите между часовете в TimeGrid изглед */
+.fc .fc-timegrid-slot {
+    height: 3em !important; /* Правим часовете малко по-високи за удобство */
+    border-bottom: 1px solid #d1d1d1 !important;
+}
+
+/* По-силно очертаване на днешния ден */
+.fc .fc-day-today {
+    background-color: rgba(59, 130, 246, 0.05) !important;
+    border: 2px solid #3b82f6 !important;
+}
+
+/* Стил за заглавията на дните */
+.fc .fc-col-header-cell {
+    background-color: #f8fafc;
+    padding: 8px 0;
+}
+
+/* По-видима линия за текущия час */
+.fc .fc-timegrid-now-indicator-line {
+    border-color: #ef4444 !important;
+    border-width: 2px !important;
+}

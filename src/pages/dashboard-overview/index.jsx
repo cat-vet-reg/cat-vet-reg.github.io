@@ -246,7 +246,7 @@ const SurgerySpeedChart = ({ data, activeGender, onGenderChange }) => {
   const svgPath = `M ${points}`;
 
   return (
-    <div className="bg-card rounded-xl shadow-warm p-6 mb-8 border border-primary/10 lg:col-span-2">
+    <div className="bg-card rounded-xl shadow-warm p-6 mb-8 border border-primary/10 w-full">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
         <div>
           <h2 className="text-xl font-semibold text-foreground flex items-center gap-2">
@@ -762,6 +762,8 @@ const DashboardOverview = () => {
               female={stats.gender.female} 
               total={stats.periodTotal} 
             />
+          </div>
+          <div className="grid flex-col gap-6">
             <AnesthesiaRecoveryChart 
               data={stats.anesthesiaChartData} 
               activeGender={anesthesiaGender} 

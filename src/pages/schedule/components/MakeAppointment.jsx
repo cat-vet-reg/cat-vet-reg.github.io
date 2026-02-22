@@ -79,20 +79,23 @@ useEffect(() => {
   /**
    * 
    */
-  const registerAnimalIntoTheSYstem = (animal) => {
-      // 1. Изпращаме данните към Schedule
-    onAnimalAdd(animal);
+  const registerAnimalIntoTheSYstem = (appointmentData) => {
+    // 1. Проверка дали имаме животни
+    if (!appointmentData.animals || appointmentData.animals.length === 0) {
+      alert("Моля, първо добавете животното в списъка чрез бутона '+ Добави ЖВ'");
+      return;
+    }
 
-    // 2. ИЗЧИСТВАМЕ ФОРМАТА ВЕДНАГА
+    // 2. Просто предаваме данните нагоре към родителя (Schedule)
+    onAnimalAdd(appointmentData);
+
+    // 3. Изчистваме формата
     setAppointment({
-        phone: '',
-        ownerName: '',
-        // Запазваме текущо избраната дата, за да не се занули на днешна, ако потребителят иска да запише още някой за същия ден
-        date: selectedDate ? selectedDate.toISOString().split('T')[0] : '',
-        animals: []
+      phone: '',
+      ownerName: '',
+      date: selectedDate ? selectedDate.toISOString().split('T')[0] : '',
+      animals: []
     });
-    
-    // 3. Нулираме червения цвят за съществуващ собственик
     setIsExistingOwner(false);
   };
 

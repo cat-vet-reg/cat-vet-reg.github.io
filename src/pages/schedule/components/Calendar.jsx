@@ -6,7 +6,7 @@ import timeGridPlugin   from '@fullcalendar/timegrid';
 import supabase         from "utils/supabase";
 import { useNavigate }  from 'react-router-dom';
 import { color }        from "d3";
-
+import interactionPlugin from '@fullcalendar/interaction';
 
 const Calendar = () => {
 
@@ -51,6 +51,8 @@ const navigate = useNavigate();
           isMale: isMale,
           species: species,
           ownerName: element.owner?.name,
+          displayId: element.id.toString().slice(-4),
+          fullId: element.id,
           data: element 
         },
         backgroundColor: eventColor,
@@ -89,54 +91,95 @@ const navigate = useNavigate();
       }
   };
 
+  const handleEventDrop = async (info) => {
+    const eventId = info.event.id;
+    const newDate = info.event.startStr.split('T')[0]; // Взимаме само датата YYYY-MM-DD
+
+    if (!window.confirm(`Сигурни ли сте, че искате да преместите часа на ${newDate}?`)) {
+      info.revert(); // Връща събитието обратно, ако откажете
+      return;
+    }
+
+    try {
+      const { error } = await supabase
+        .from('td_records')
+        .update({ castrated_at: newDate })
+        .eq('id', eventId);
+
+      if (error) throw error;
+      
+      // Презареждаме, за да се обновят цветовете (ако от сиво стане цветно)
+      loadCalendarData();
+    } catch (err) {
+      console.error("Грешка при преместване:", err);
+      alert("Неуспешно преместване.");
+      info.revert();
+    }
+  };
+
   return (
-    <div className="mt-10 bg-card p-6 rounded-xl shadow-lg border border-border">
+    <div className="mt-10 bg-card p-6 rounded-xl shadow-lg border border-border calendar-container">
       <FullCalendar
           eventClick={handleEdit}
           dayMaxEvents={false}
-          plugins={[ dayGridPlugin, timeGridPlugin ]}
-          initialView="dayGridMonth"
+          plugins={[ dayGridPlugin, timeGridPlugin, interactionPlugin ]}
+          editable={true}
+          eventDrop={handleEventDrop}
+          initialView="dayGridWeek"
           locale="bg"
+          allDaySlot={false} // Скриваме all-day за по-чист изглед
+          slotLabelFormat={{ hour: '2-digit', minute: '2-digit', hour12: false }} // 24ч формат
           headerToolbar={{
               left: 'prev,next today',
               center: 'title',
               right: 'dayGridMonth,dayGridWeek,dayGridDay'
           }}
           buttonText={{
-              today: 'Днес',
-              month: 'Месец',
-              week: 'Седмица',
-              day: 'Ден'
+              today: 'Днес', month: 'Месец', week: 'Седмица', day: 'Ден'
           }}
           events={myEvents}
           eventContent={(eventInfo) => {
-            const { isMale, gender, species, phone, ownerName } = eventInfo.event.extendedProps;
-            
-            // Проверяваме дали събитието е сиво (минало), за да не слагаме ярки цветове на иконите
+            const { isMale, gender, species, phone, ownerName, displayId } = eventInfo.event.extendedProps;
             const isPast = eventInfo.event.backgroundColor === '#dedede';
 
             return (
-              <div className="p-1 overflow-hidden text-[10px] sm:text-xs cursor-pointer hover:brightness-110 transition-all leading-tight">
+              <div className="p-1 overflow-hidden text-[10px] sm:text-xs cursor-pointer hover:brightness-95 transition-all leading-tight relative">
                 <button 
-                onClick={(e) => handleDelete(e, eventInfo.event.id)}
-                className="absolute top-0 right-0 p-1 text-red-500 hover:bg-red-50 rounded-bl-lg transition-colors z-50 font-bold"
-                title="Изтрий часа"
-              >
-                ✕ 
-              </button>
-                <div className="font-bold border-b border-black/10 mb-1 pb-1 flex items-center gap-1">
-                  <span style={{ 
-                    color: isPast ? '#666' : (isMale ? '#2563eb' : '#e11d48'), 
-                    fontSize: '14px'
-                  }}>
-                    {gender}
-                  </span> 
-                  <span className="truncate">{species}</span>
+                  onClick={(e) => handleDelete(e, eventInfo.event.id)}
+                  className="absolute top-0 right-0 p-1 text-red-500/50 hover:text-red-600 hover:bg-red-50 rounded-bl-lg transition-colors z-50 font-bold"
+                  title="Изтрий часа"
+                >
+                  ✕ 
+                </button>
+
+                {/* Основен акцент: ПОЛ И ВИД */}
+                <div className="font-bold flex items-center justify-between mb-0.5 border-b border-black/5 pb-0.5">
+                  <div className="flex items-center gap-1">
+                    <span style={{ 
+                      color: isPast ? '#666' : (isMale ? '#1d4ed8' : '#be123c'), 
+                      fontSize: '14px'
+                    }}>
+                      {gender}
+                    </span> 
+                    <span className={isPast ? "text-gray-500" : "text-black"}>
+                      {species.toUpperCase()}
+                    </span>
+                  </div>
+                  
+                  {/* ID НОМЕР - откроен в малко сиво правоъгълниче */}
+                  <span className="bg-black/5 px-1 rounded text-[9px] text-gray-600 font-mono">
+                    #{displayId}
+                  </span>
                 </div>
                 
-                <div className="flex flex-col opacity-90 text-black">
-                  <span className="truncate font-medium">👤 {ownerName}</span>
-                  <span className="text-[9px]">📞 {phone}</span>
+                {/* Вторичен план: СОБСТВЕНИК И ТЕЛЕФОН */}
+                <div className="flex flex-col text-gray-500 border-t border-black/5 mt-0.5 pt-0.5 font-normal">
+                  <span className="truncate italic">
+                    {ownerName || "—"}
+                  </span>
+                  <span className="text-[9px] tracking-tighter opacity-80">
+                    {phone || "няма тел."}
+                  </span>
                 </div>
               </div>
             );
@@ -144,7 +187,6 @@ const navigate = useNavigate();
       />
     </div>
   );
-
 };
 
 export default Calendar;

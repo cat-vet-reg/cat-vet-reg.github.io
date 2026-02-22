@@ -5,6 +5,7 @@ import Header from "../../components/ui/Header";
 import Breadcrumb from '../../components/ui/Breadcrumb';
 import Icon from '../../components/AppIcon';
 import ZoneStatisticsTable from './components/ZoneStatisticsTable';
+import * as XLSX from 'xlsx';
 
 
 const StatisticsTable = () => {
@@ -102,7 +103,7 @@ const StatisticsTable = () => {
     });
 
     const sortedStats = Object.values(grouped).sort((a, b) => 
-      new Date(`${b.year}-${b.month}-${b.day}`) - new Date(`${a.year}-${a.month}-${a.day}`)
+      new Date(`${a.year}-${a.month}-${a.day}`) - new Date(`${b.year}-${b.month}-${b.day}`)
     );
     setStats(sortedStats);
   };
@@ -122,9 +123,43 @@ const StatisticsTable = () => {
 
   if (loading) return <div className="p-10 text-center">Зареждане на статистика за Пловдив...</div>;
 
+  const exportDailyStatsToExcel = () => {
+    // Подготвяме данните за Excel
+    // const excelData = filteredStats.map(row => ({
+    //   "Ден": row.day,
+    //   "Месец": row.month,
+    //   "Година": row.year,
+    //   "Общо": row.total,
+    //   "Женски котки": row.femaleCats,
+    //   "Мъжки котки": row.maleCats,
+    //   "Женски кучета": row.femaleDogs,
+    //   "Мъжки кучета": row.maleDogs,
+    //   "Умрели": row.dead || 0
+    // }));
+
+    const excelData = filteredStats.map(row => ({
+      "Day": row.day,
+      "Month": row.month,
+      "Year": row.year,
+      "Total No of animals/day": row.total,
+      "Cats (female)": row.femaleCats,
+      "Cats (male)": row.maleCats,
+      "Dogs (female)": row.femaleDogs,
+      "Dogs (male)": row.maleDogs,
+      "Dead animals": row.dead || 0
+    }));
+
+    const worksheet = XLSX.utils.json_to_sheet(excelData);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Clinic");
+    
+    // Генериране на файл
+    XLSX.writeFile(workbook, `Otchet_Dni_${selectedMonth}_${selectedYear}.xlsx`);
+  };
+
   return (
-    <div className="min-h-screen bg-background">
-        <div className="max-w-6xl mx-auto">
+    <div className="w-full bg-background">
+        <main className="container mx-auto px-4 md:px-6 lg:px-8 py-6 md:py-8">
 
             <Header />
             <Breadcrumb items={breadcrumbItems} />
@@ -170,53 +205,60 @@ const StatisticsTable = () => {
                     <h2 className="text-2xl font-bold text-primary">Отчет по дни</h2>
                 </div>
 
+                <div className="flex justify-end mb-4">
+                  <button onClick={exportDailyStatsToExcel} className="bg-emerald-600 text-white px-4 py-2 rounded shadow hover:bg-emerald-700 flex items-center gap-2">
+                    <Icon name="Download" size={18} /> Експорт (Дни)
+                  </button>
+                </div>
+
                 <div className="bg-card rounded-lg shadow-md border border-border overflow-hidden">
                     <table className="w-full text-left border-collapse text-center">
-                    <thead>
-                        <tr className="bg-muted text-muted-foreground uppercase text-xs">
-                            <th colSpan="3" className="p-4 border-b">Дата</th>
-                            <th className="p-4 border-b" rowSpan="2">Общо</th>
-                            <th className="p-4 border-b" rowSpan="2">Кастрирани</th>
-                            <th colSpan="2" className="p-4 border-b">Пол (Котки)</th>
-                            <th colSpan="2" className="p-4 border-b">Пол (Кучета)</th>
-                            <th className="p-4 border-b" rowSpan="2">Умрели</th>
-                            <th className="p-4 border-b" rowSpan="2">Заловени от нас</th>
-                        </tr>
-                        <tr className="bg-green-50 dark:bg-green-800/20 text-xs">
-                            <th className="border border-gray-300 p-1">Ден</th>
-                            <th className="border border-gray-300 p-1">Мес.</th>
-                            <th className="border border-gray-300 p-1">Год.</th>
-                            <th className="border border-gray-300 p-1">Ж</th>
-                            <th className="border border-gray-300 p-1">М</th>
-                            <th className="border border-gray-300 p-1">Ж</th>
-                            <th className="border border-gray-300 p-1">М</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {filteredStats.map((row, index) => (
-                        <tr key={index} className="hover:bg-muted/50 text-center border-b border-gray-200">
-                            <td className="p-4 border-b">{row.day}</td>
-                            <td className="p-4 border-b">{row.month}</td>
-                            <td className="p-4 border-b text-xs">{row.year}</td>
-                            <td className="p-4 border-b font-bold">{row.total}</td>
-                            <td className="p-4 border-b">{row.total}</td>
-                            <td className="p-4 border-b text-pink-600">{row.femaleCats}</td>
-                            <td className="p-4 border-b text-blue-600">{row.maleCats}</td>
-                            <td className="p-4 border-b text-pink-600">{row.femaleDogs}</td>
-                            <td className="p-4 border-b text-blue-600">{row.maleDogs}</td>
-                            <td className="p-4 border-b">{row.dead || 0}</td>
-                            <td className="p-4 border-b text-muted-foreground">—</td>
-                        </tr>
-                        ))}
-                    </tbody>
+                      <thead>
+                          <tr className="bg-muted text-muted-foreground uppercase text-xs">
+                              <th colSpan="3" className="p-4 border-b">Дата</th>
+                              <th className="p-4 border-b" rowSpan="2">Общо</th>
+                              <th className="p-4 border-b" rowSpan="2">Кастрирани</th>
+                              <th colSpan="2" className="p-4 border-b">Пол (Котки)</th>
+                              <th colSpan="2" className="p-4 border-b">Пол (Кучета)</th>
+                              <th className="p-4 border-b" rowSpan="2">Умрели</th>
+                              <th className="p-4 border-b" rowSpan="2">Заловени от нас</th>
+                          </tr>
+                          <tr className="bg-green-50 dark:bg-green-800/20 text-xs">
+                              <th className="border border-gray-300 p-1">Ден</th>
+                              <th className="border border-gray-300 p-1">Мес.</th>
+                              <th className="border border-gray-300 p-1">Год.</th>
+                              <th className="border border-gray-300 p-1">Ж</th>
+                              <th className="border border-gray-300 p-1">М</th>
+                              <th className="border border-gray-300 p-1">Ж</th>
+                              <th className="border border-gray-300 p-1">М</th>
+                          </tr>
+                      </thead>
+                      <tbody>
+                          {filteredStats.map((row, index) => (
+                          <tr key={index} className="hover:bg-muted/50 text-center border-b border-gray-200">
+                              <td className="p-4 border-b">{row.day}</td>
+                              <td className="p-4 border-b">{row.month}</td>
+                              <td className="p-4 border-b text-xs">{row.year}</td>
+                              <td className="p-4 border-b font-bold">{row.total}</td>
+                              <td className="p-4 border-b">{row.total}</td>
+                              <td className="p-4 border-b text-pink-600">{row.femaleCats}</td>
+                              <td className="p-4 border-b text-blue-600">{row.maleCats}</td>
+                              <td className="p-4 border-b text-pink-600">{row.femaleDogs}</td>
+                              <td className="p-4 border-b text-blue-600">{row.maleDogs}</td>
+                              <td className="p-4 border-b">{row.dead || 0}</td>
+                              <td className="p-4 border-b text-muted-foreground">—</td>
+                          </tr>
+                          ))}
+                      </tbody>
                     </table>
 
                 </div>
-                
-                
-                <ZoneStatisticsTable />
-
-        </div>
+          
+                <ZoneStatisticsTable 
+                  selectedMonth={selectedMonth} 
+                  selectedYear={selectedYear} 
+                />
+        </main>
     </div>
   );
 };

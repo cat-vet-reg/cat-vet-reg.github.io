@@ -19,32 +19,37 @@ const Schedule = () => {
 
   const registerAnimalIntoTheSystem = async (e) => {
     try {
-      for(const element of e.animals) {
-        await $apiCreateNewRecord({
-          gender      : element.gender,
-          // ВАЖНО: Добавяме статуса тук, за да влезе в JSON колоната 'data'
-          data        : {
-            ...element, 
-            ownerName: e.ownerName, 
-            ownerPhone: e.phone, 
-            status: 'recorded' // <--- ТОВА Е КЛЮЧЪТ
-          },
-          ownerName   : e.ownerName,
-          ownerPhone  : e.phone,
-          castratedAt : e.date,
-          status      : 'recorded' // Добавяме го и тук за всеки случай
-        });
-      }
-        // СЛЕД КАТО ВСИЧКИ ЖИВОТНИ СА ЗАПИСАНИ:
-        // Увеличаваме ключа, за да "тригернем" обновяване
-      setRefreshKey(prev => prev + 1);
+      // Въртим цикъл през всяка добавена група (напр. "2 котки")
+      for (const group of e.animals) {
         
-        // Опционално: изчистване на формата може да стане вътре в MakeAppointment, 
-        // ако му подадеш функция за успешно завършване.
+        // Въртим втори цикъл за всяка бройка в групата (count)
+        for (let i = 0; i < group.count; i++) {
+          await $apiCreateNewRecord({
+            gender: group.gender,
+            ownerName: e.ownerName,
+            ownerPhone: e.phone,
+            castratedAt: e.date,
+            status: 'recorded',
+            data: {
+              ...group,
+              ownerName: e.ownerName,
+              ownerPhone: e.phone,
+              status: 'recorded',
+              count: 1 // В базата влиза като отделна единица
+            }
+          });
+        }
+      }
+
+      // ТОВА Е ВАЖНОТО: Обновяваме календара едва след като ВСИЧКИ записи са готови
+      setRefreshKey(prev => prev + 1);
+      alert("Успешно записани часове!");
+
     } catch (error) {
       console.error("Грешка при запис:", error);
+      alert("Грешка при записването.");
     }
-  }
+  };
 
   return (
     <>
