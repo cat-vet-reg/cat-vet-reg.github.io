@@ -7,11 +7,18 @@ import Button from '../../../components/ui/Button';
 const MapFilterPanel = ({ onFilterChange, isOpen, onClose }) => {
   const [filters, setFilters] = useState({
     search: '',
+    status: 'all',
     gender: '',
     color: '',
     weightMin: '',
     weightMax: ''
   });
+
+  const statusOptions = [
+    { value: 'all', label: 'Всички животни' },
+    { value: 'done', label: 'Кастрирани (Архив)' },
+    { value: 'waiting', label: 'Чакащи (Кампания)' }
+  ];
 
   const genderOptions = [
     { value: '', label: 'Всички полове' },
@@ -49,6 +56,7 @@ const MapFilterPanel = ({ onFilterChange, isOpen, onClose }) => {
   const handleReset = () => {
     const resetFilters = {
       search: '',
+      status: 'all',
       gender: '',
       color: '',
       weightMin: '',
@@ -85,13 +93,18 @@ const MapFilterPanel = ({ onFilterChange, isOpen, onClose }) => {
           </div>
 
           <div className="flex-1 overflow-y-auto p-4 space-y-4">
-            <Input
-              type="search"
-              label="Търси"
-              placeholder="Локация или име на собственик..."
-              value={filters?.search}
-              onChange={(e) => handleFilterChange('search', e?.target?.value)}
-            />
+            {/* НОВИЯТ ФИЛТЪР ЗА СТАТУС */}
+            <div className="p-3 bg-muted/30 rounded-lg border border-border/50">
+               <Select
+                label="Покажи на картата"
+                options={statusOptions}
+                value={filters?.status}
+                onChange={(value) => handleFilterChange('status', value)}
+              />
+              <p className="text-[10px] text-muted-foreground mt-2 italic">
+                * Изберете "Чакащи", за да видите горещите точки за нови кампании.
+              </p>
+            </div>
 
             <Select
               label="Пол"
