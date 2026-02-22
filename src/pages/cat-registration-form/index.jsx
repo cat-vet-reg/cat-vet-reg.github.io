@@ -126,49 +126,46 @@ const CatRegistrationForm = () => {
     }
   }, [editingData]);
 
-useEffect(() => {
-  if (!isEditing || !formData.inductionDose) {
-    if (formData.gender === "female") {
-      handleInputChange("inductionDose", "0.11");
-    } else if (formData.gender === "male") {
-      handleInputChange("inductionDose", "0.12");
-    }
-  }
-  if (!formData.reproductiveStatus || formData.reproductiveStatus === "") {
-      handleInputChange("reproductiveStatus", "none_visible");
-  }
-}, [formData.gender]);
-
-
-// Добави този нов useEffect след останалите
-useEffect(() => {
-
-  // 1. Проверяваме дали имаме град и адрес
-  if (!formData.recordCity || !formData.address) return;
-
-  // 2. Дебънс (debounce) - изчакваме 1 сек. след спиране на писането, 
-  // за да не хабим излишни заявки към Google при всяка буква
-  const timer = setTimeout(async () => {
-    
-    // Правим проверка: ако адресът е избран от Autocomplete, 
-    // той вече е сетнал координатите. Ако обаче са празни, значи е писано ръчно.
-    if (!coordinates || coordinates.address !== formData.address) {
-      setIsValidatingAddress(true);
-      
-      const coords = await getCoordinates(formData.recordCity, formData.address);
-      
-      if (coords) {
-        setCoordinates(coords);
-        // Записваме ги и в общия обект на формата
-        setFormData(prev => ({ ...prev, coords }));
+  useEffect(() => {
+    if (!isEditing || !formData.inductionDose) {
+      if (formData.gender === "female") {
+        handleInputChange("inductionDose", "0.11");
+      } else if (formData.gender === "male") {
+        handleInputChange("inductionDose", "0.12");
       }
-      
-      setIsValidatingAddress(false);
     }
-  }, 1000); 
+    if (!formData.reproductiveStatus || formData.reproductiveStatus === "") {
+        handleInputChange("reproductiveStatus", "none_visible");
+    }
+  }, [formData.gender]);
 
-  return () => clearTimeout(timer);
-}); // Следи за промяна в адреса или града
+  useEffect(() => {
+    // 1. Проверяваме дали имаме град и адрес
+    if (!formData.recordCity || !formData.address) return;
+
+    // 2. Дебънс (debounce) - изчакваме 1 сек. след спиране на писането, 
+    // за да не хабим излишни заявки към Google при всяка буква
+    const timer = setTimeout(async () => {
+      
+      // Правим проверка: ако адресът е избран от Autocomplete, 
+      // той вече е сетнал координатите. Ако обаче са празни, значи е писано ръчно.
+      if (!coordinates || coordinates.address !== formData.address) {
+        setIsValidatingAddress(true);
+        
+        const coords = await getCoordinates(formData.recordCity, formData.address);
+        
+        if (coords) {
+          setCoordinates(coords);
+          // Записваме ги и в общия обект на формата
+          setFormData(prev => ({ ...prev, coords }));
+        }
+        
+        setIsValidatingAddress(false);
+      }
+    }, 1000); 
+
+    return () => clearTimeout(timer);
+  }); // Следи за промяна в адреса или града
 
 
   useEffect(() => {

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, useMap, GeoJSON } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 
@@ -12,6 +12,7 @@ import MapMarkerPopup from './components/MapMarkerPopup';
 import MapControls from './components/MapControls';
 import MapLegend from './components/MapLegend';
 import { $apiGetCats } from '../../services/create_new_record';
+import zonesData from '../../constants/map.json';
 
 const createCustomIcon = (color = '#2563EB') => {
   return L.divIcon({
@@ -92,6 +93,34 @@ const InteractiveCatMap = () => {
     ? 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}' 
     : 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
 
+  const zoneStyle = {
+    fillColor: "#e64072",
+    weight: 2,
+    opacity: 1,
+    color: "white",
+    dashArray: "3",
+    fillOpacity: 0.2
+  };
+
+  // 2. Функция, която се изпълнява при всяка зона (за показване на име/номер)
+  const onEachZone = (feature, layer) => {
+    if (feature.properties && feature.properties.Zona) {
+      layer.bindPopup(`Градска Зона: ${feature.properties.Zona}`);
+      
+      // Ефект при посочване с мишката
+      layer.on({
+        mouseover: (e) => {
+          const l = e.target;
+          l.setStyle({ fillOpacity: 0.5, weight: 3 });
+        },
+        mouseout: (e) => {
+          const l = e.target;
+          l.setStyle({ fillOpacity: 0.2, weight: 2 });
+        }
+      });
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <Header />
@@ -107,6 +136,11 @@ const InteractiveCatMap = () => {
           ) : (
             <MapContainer center={[42.1441, 24.7481]} zoom={13} style={{ height: '100%' }}>
               <TileLayer url={tileLayerUrl} />
+              <GeoJSON 
+                data={zonesData} 
+                style={zoneStyle} 
+                onEachFeature={onEachZone} 
+              />
               {groupedCats.map((group, idx) => (
                 <Marker 
                   key={idx} 

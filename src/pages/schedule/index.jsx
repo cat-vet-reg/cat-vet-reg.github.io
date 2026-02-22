@@ -4,6 +4,7 @@ import Header           from "../../components/ui/Header";
 import Breadcrumb       from "../../components/ui/Breadcrumb";
 import MakeAppointment  from "./components/MakeAppointment";
 import Calendar         from "./components/Calendar";
+import WaitingList      from "./components/WaitingList";
 import { $apiCreateNewRecord } from "services/create_new_record";
 
 
@@ -11,6 +12,28 @@ const Schedule = () => {
 
   const [date, setDate] = useState(new Date());
   const [refreshKey, setRefreshKey] = useState(0);
+  const [prefillData, setPrefillData] = useState(null);
+
+  const handleSelectFromWaitingList = (item) => {
+    console.log("Избрано животно от списъка:", item);
+    
+    // 2. ЗАПИШИ ДАННИТЕ ТУК (вместо setFormData)
+    setPrefillData({
+      ownerName: item.owner_name,
+      phone: item.phone,
+      address: item.address,
+      animalType: item.animal_type,
+      gender: item.gender,
+      zonaNumber: item.zona_number,
+      coords: { lat: item.lat, lng: item.lng }
+    });
+
+    // 2. Скролваме нагоре до формата, за да я видиш веднага
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    
+    // 3. (Опционално) Ако ползваш модален прозорец, отвори го тук:
+    // setIsModalOpen(true); 
+  };
 
   const breadcrumbItems = [
       { label: 'Табло'    , path: '/dashboard-overview' },
@@ -72,7 +95,9 @@ const Schedule = () => {
           <div className="mb-10">
               <MakeAppointment 
                 selectedDate={date}
-                onAnimalAdd={(e) => registerAnimalIntoTheSystem(e)} />
+                prefillData={prefillData} 
+                onAnimalAdd={(e) => registerAnimalIntoTheSystem(e)} 
+              />
           </div>
 
           <hr className="my-10 border-border" />
@@ -80,6 +105,10 @@ const Schedule = () => {
           {/* Секция 2: Календарът (отдолу) */}
           <div className="mb-10">
               <Calendar selectedDate={date} key={refreshKey} />
+          </div>
+          
+          <div className="mb-10 border-border">
+            <WaitingList onSelectToSchedule={handleSelectFromWaitingList} />
           </div>
 
         </div>

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import Icon from "../../../components/AppIcon";
 import supabase from "../../../utils/supabase"
 
-const MakeAppointment = ({ selectedDate, onAnimalAdd }) => {
+const MakeAppointment = ({ selectedDate, onAnimalAdd, prefillData }) => {
 
   const [isExistingOwner, setIsExistingOwner] = useState(false);
   const [appointment, setAppointment] = useState({
@@ -24,40 +24,69 @@ const MakeAppointment = ({ selectedDate, onAnimalAdd }) => {
   }, [selectedDate]);
 
   // Автоматично намиране на име на собственик по телефонен номер
-useEffect(() => {
-    // Ако изтриеш телефона, нулираме статуса
-    if (!appointment.phone || appointment.phone.length < 6) {
-        setIsExistingOwner(false);
-        return;
-    }
-
-    const timer = setTimeout(async () => {
-        try {
-            const { data } = await supabase
-                .from('td_owners')
-                .select('name')
-                .eq('phone', appointment.phone)
-                .maybeSingle();
-
-            if (data && data.name) {
-                setAppointment(prev => ({ ...prev, ownerName: data.name }));
-                setIsExistingOwner(true); // <--- Намерен е!
-            } else {
-                setIsExistingOwner(false); // <--- Нов човек
-            }
-        } catch (err) {
-            console.error("Грешка:", err);
+    useEffect(() => {
+        // Ако изтриеш телефона, нулираме статуса
+        if (!appointment.phone || appointment.phone.length < 6) {
+            setIsExistingOwner(false);
+            return;
         }
-    }, 800);
 
-    return () => clearTimeout(timer);
-}, [appointment.phone]);
+        const timer = setTimeout(async () => {
+            try {
+                const { data } = await supabase
+                    .from('td_owners')
+                    .select('name')
+                    .eq('phone', appointment.phone)
+                    .maybeSingle();
+
+                if (data && data.name) {
+                    setAppointment(prev => ({ ...prev, ownerName: data.name }));
+                    setIsExistingOwner(true); // <--- Намерен е!
+                } else {
+                    setIsExistingOwner(false); // <--- Нов човек
+                }
+            } catch (err) {
+                console.error("Грешка:", err);
+            }
+        }, 800);
+
+        return () => clearTimeout(timer);
+    }, [appointment.phone]);
   
   const [currentAnimal, setCurrentAnimal] = useState({
       species: 'cat',
       gender: 'female',
       count: 1
   });
+
+  useEffect(() => {
+      if (prefillData) {
+        // Използваме setAppointment (правилното име), а не setFormData
+        setAppointment(prev => ({
+          ...prev,
+          ownerName: prefillData.ownerName || "",
+          phone: prefillData.phone || "",
+          // Тъй като в този компонент нямаш полета за адрес и зона в самия стейт, 
+          // добавяме ги тук, за да се запазят при изпращане
+          address: prefillData.address || "",
+          zonaNumber: prefillData.zonaNumber || "",
+          coords: prefillData.coords || null,
+        }));
+
+        // Автоматично добавяме и животното в списъка, ако има такова
+        if (prefillData.animalType) {
+          setAppointment(prev => ({
+            ...prev,
+            animals: [{
+              id: Date.now(),
+              species: prefillData.animalType === 'dog' ? 'dog' : 'cat',
+              gender: prefillData.gender || 'female',
+              count: 1
+            }]
+          }));
+        }
+      }
+    }, [prefillData]);
 
   const addAnimalToList = () => {
       // Добавяме към списъка
