@@ -37,7 +37,7 @@ export const colorOptions = [
     { value: 'calico'       , label: 'Калико (трицветна)' },
     { value: 'tortoiseshell', label: 'Костенуркова' },
     { value: 'tuxedo'       , label: 'Черно-бяла' },
-    { value: 'tuxedo'       , label: 'Сиво-бяла' },
+    { value: 'gray_white'   , label: 'Сиво-бяла' },
     { value: 'orange_white' , label: 'Рижо-бяла' },
 
     // Solid colors
@@ -58,8 +58,9 @@ export const colorStyles = {
   calico        : 'conic-gradient(#FF8C42 0deg 120deg, #1A1A1A 120deg 240deg, #FFFFFF 240deg)',
   tortoiseshell : 'repeating-radial-gradient(circle, #1A1A1A, #FF8C42 5px)',
   tuxedo        : 'linear-gradient(to right, #1A1A1A 50%, #FFFFFF 50%)',
+  gray_white    : 'linear-gradient(to right, #707070 50%, #FFFFFF 50%)',
   orange_white  : 'linear-gradient(to right, #FF8C42 50%, #FFFFFF 50%)',
-  orange        : '#FFA500',
+  orange        : '#FF8C42',
   black         : '#1A1A1A',
   gray          : '#6c6c6c',
   silver        : '#bbbbbb',
