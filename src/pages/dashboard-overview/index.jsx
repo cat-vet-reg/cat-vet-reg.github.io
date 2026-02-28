@@ -374,12 +374,31 @@ const DashboardOverview = () => {
     const now = new Date();
 
     // --- 1. ГЛОБАЛНИ СТАТИСТИКИ (НЕ се влияят от филтрите за време/лекар) ---
-    const globalTotal = realCats.length;
-    const globalComplicationsCount = realCats.filter(cat => cat.hasComplications === 'Y' || cat.hasComplications === true).length;
+    // const globalTotal = realCats.length;
+    // Филтрираме САМО кастрираните животни
+    const operatedAnimals = realCats.filter(cat => {
+      // Ако няма дата, значи още не е обслужена
+      if (!cat.castratedAt) return false;
+
+      const castrationDate = new Date(cat.castratedAt);
+
+      // Проверяваме две неща:
+      // 1. Дали датата е в миналото (преди 'now')
+      // 2. Дали статусът е 'registered' (за по-голяма сигурност)
+      const isPast = castrationDate <= now;
+      const isFinished = cat.status === 'registered';
+
+      // Връщаме true само ако часът е минал
+      return isPast || isFinished;
+    });
+
+    // 2. Вече използваме този филтриран масив за статистиките
+    const globalTotal = operatedAnimals.length;
+    const globalComplicationsCount = operatedAnimals.filter(cat => cat.hasComplications === 'Y' || cat.hasComplications === true).length;
     const globalRate = globalTotal > 0 ? ((globalComplicationsCount / globalTotal) * 100).toFixed(1) : 0;
 
     // --- 2. ФИЛТРИРАНЕ ПО ВРЕМЕ (за графиките) ---
-    const filteredData = realCats.filter(cat => {
+    const filteredData = operatedAnimals.filter(cat => {
       // А) Филтър по лекар (staffSurgeon идва от твоя мапер)
       const doctorMatch = selectedDoctor === 'all' || cat.staffSurgeon === selectedDoctor;
       if (!doctorMatch) return false;
@@ -416,7 +435,7 @@ const DashboardOverview = () => {
     oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
 
     // СКОРОШНИ (ползваме запазения created_at)
-    const recent = realCats.filter(cat => new Date(cat.created_at) > monthAgo).length;
+    const recent = operatedAnimals.filter(cat => new Date(cat.created_at) > monthAgo).length;
 
     // Броене на половете
     const maleCount = filteredData.filter(cat => cat.gender === 'male').length;
@@ -596,7 +615,7 @@ const DashboardOverview = () => {
 
   const statsData = [
   {
-    title: "Брой Регистрирани Котки",
+    title: "Брой Кастрирани Котки",
     value: stats.globalTotal.toString(),
     icon: "Cat",
     iconColor: "var(--color-primary)"
