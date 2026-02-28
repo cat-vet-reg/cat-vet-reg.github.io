@@ -309,24 +309,24 @@ const CatRegistrationForm = () => {
   };
 
   const handleParasiteChange = (parasiteId) => {
-  let currentParasites = Array.isArray(formData.parasites) ? [...formData.parasites] : [];
-  
-  // Ако изберем "Няма видими", изчистваме всичко останало
-  if (parasiteId === 'none') {
-    currentParasites = ['none'];
-  } else {
-    // Ако изберем нещо друго, махаме "Няма видими" от списъка
-    currentParasites = currentParasites.filter(p => p !== 'none');
+    let currentParasites = Array.isArray(formData.parasites) ? [...formData.parasites] : [];
     
-    if (currentParasites.includes(parasiteId)) {
-      currentParasites = currentParasites.filter(p => p !== parasiteId);
+    // Ако изберем "Няма видими", изчистваме всичко останало
+    if (parasiteId === 'none') {
+      currentParasites = ['none'];
     } else {
-      currentParasites.push(parasiteId);
+      // Ако изберем нещо друго, махаме "Няма видими" от списъка
+      currentParasites = currentParasites.filter(p => p !== 'none');
+      
+      if (currentParasites.includes(parasiteId)) {
+        currentParasites = currentParasites.filter(p => p !== parasiteId);
+      } else {
+        currentParasites.push(parasiteId);
+      }
     }
-  }
-  
-  handleInputChange("parasites", currentParasites);
-};
+    
+    handleInputChange("parasites", currentParasites);
+  };
 
   const validateForm = () => {
     const newErrors = {};
@@ -573,6 +573,57 @@ const handleSuccessModalClose = (state) => {
                         <span className="text-base">🐶</span> Куче
                       </button>
                     </div>
+
+                    {formData?.species === 'dog' && (
+                      <div className="bg-blue-50 p-4 rounded-lg border border-blue-100 mb-6">
+                        <label className="block text-sm font-bold text-blue-800 mb-3">
+                          Ушна марка (за кучета)
+                        </label>
+                        
+                        <div className="flex gap-4 mb-4">
+                          <button
+                            type="button"
+                            onClick={() => handleInputChange("hasEarTag", "Y")}
+                            className={`flex-1 py-2 rounded-md text-sm font-medium transition-all ${
+                              formData.hasEarTag === "Y" 
+                              ? "bg-blue-600 text-white" 
+                              : "bg-white text-slate-600 border border-slate-200"
+                            }`}
+                          >
+                            Поставена
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              handleInputChange("hasEarTag", "N");
+                              handleInputChange("earTagNumber", ""); // Изчистваме номера, ако няма марка
+                            }}
+                            className={`flex-1 py-2 rounded-md text-sm font-medium transition-all ${
+                              formData.hasEarTag === "N" 
+                              ? "bg-blue-600 text-white" 
+                              : "bg-white text-slate-600 border border-slate-200"
+                            }`}
+                          >
+                            Не е поставена
+                          </button>
+                        </div>
+
+                        {formData.hasEarTag === "Y" && (
+                          <div className="animate-in fade-in slide-in-from-top-2">
+                            <label className="block text-xs font-semibold text-slate-500 mb-1 uppercase">
+                              Номер на ушна марка
+                            </label>
+                            <input
+                              type="text"
+                              value={formData.earTagNumber}
+                              onChange={(e) => handleInputChange("earTagNumber", e.target.value)}
+                              placeholder="Въведете номер..."
+                              className="w-full p-2 border border-blue-200 rounded-md focus:ring-2 focus:ring-blue-400 outline-none"
+                            />
+                          </div>
+                        )}
+                      </div>
+                    )}
 
                   </div>
                   

@@ -9,6 +9,8 @@ export const defaultFormData = {
     recordName      : "",
     gender          : "female",
     species         : "cat",
+    hasEarTag       : "N",
+    earTagNumber    : "",
     weight          : "",
     bcsScore        : "5",
     temperament     : "mild",
@@ -91,6 +93,8 @@ export const mapRecordToForm = (record) => {
         recordName      : record.name || "",
         gender          : record.gender || "",
         species         : record.species || record.data?.species || "cat",
+        hasEarTag       : record.data?.hasEarTag || "N",
+        earTagNumber    : record.data?.earTagNumber || record.ear_tag_number || "",
         weight          : record.weight || "",
         bcsScore        : record.data?.bcsScore || "5",
         
