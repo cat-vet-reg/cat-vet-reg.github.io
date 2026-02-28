@@ -93,14 +93,21 @@ async function recordAnimal(formData, ownerId) {
  * @param {*} formData 
  * @returns 
  */
-async function recordOwner(formData) {
+// async function recordOwner(formData) {
  
-    return await supabase.from('td_owners').insert({
-        name              : formData?.ownerName,
-        phone             : formData?.ownerPhone,
-    }).select();
+//     return await supabase.from('td_owners').insert({
+//         name              : formData?.ownerName,
+//         phone             : formData?.ownerPhone,
+//     }).select();
+// }
+async function recordOwner(formData) {
+    // Използваме upsert с опция onConflict: 'phone'
+    // Така ако телефонът съществува, автоматично ще обнови името
+    return await supabase.from('td_owners').upsert({
+        name: formData?.ownerName,
+        phone: formData?.ownerPhone,
+    }, { onConflict: 'phone' }).select();
 }
-
 
 /**
  * 
@@ -136,19 +143,13 @@ export async function $apiCreateNewRecord(
     isEditing   = false, 
     catId       = null
 ) {
-    // 1. Първо търсим дали вече има такъв собственик по телефона
-    let finalOwnerId = await getOwnerIdByPhone(formData?.ownerPhone);
-
-    // 2. Само ако НЕ открием такъв, създаваме нов
-    if (!finalOwnerId) {
-        const ownerData = await recordOwner(formData);
-        
-        if (ownerData?.data && ownerData.data.length > 0) {
-            finalOwnerId = ownerData.data[0].id;
-        } else {
-            throw new Error("Неуспешно създаване на собственик.");
-        }
+    const ownerData = await recordOwner(formData);
+    
+    if (!ownerData?.data || ownerData.data.length === 0) {
+        throw new Error("Неуспешно обработване на данните за собственика.");
     }
+
+    const finalOwnerId = ownerData.data[0].id;
 
     // 3. Сега вече имаме ID (старо или ново) и записваме/обновяваме жв
     if (isEditing && catId) {
