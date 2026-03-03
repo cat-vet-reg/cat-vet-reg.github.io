@@ -10,18 +10,15 @@ import interactionPlugin from '@fullcalendar/interaction';
 
 const Calendar = () => {
 
-const [myEvents, setMyEvents] = useState([]);
-const navigate = useNavigate();
+  const [myEvents, setMyEvents] = useState([]);
+  const navigate = useNavigate();
 
   const handleEdit = (cat) => {
-
-    console.log("@=====================")
-    console.log(cat.event.extendedProps.data);
-    console.log("@=====================")
-
+    // console.log("@=====================")
+    // console.log(cat.event.extendedProps.data);
+    // console.log("@=====================")
     navigate('/cat-registration-form', { state: { catData: cat.event.extendedProps.data, isEditing: true } });
-  };
-
+  };  
 
   // ФУНКЦИЯ ЗА ЗАРЕЖДАНЕ
   const loadCalendarData = async () => {
@@ -117,6 +114,42 @@ const navigate = useNavigate();
     }
   };
 
+  const handleMissed = async (e, id) => {
+      e.stopPropagation();
+      if (!window.confirm("Маркирате този час като ПРОПУСНАТ? Стопанинът ще влезе в черния списък.")) return;
+
+      try {
+          // Първо трябва да вземем текущия обект 'data', за да не го презапишем празен
+          const { data: currentRecord, error: fetchError } = await supabase
+              .from('td_records')
+              .select('data')
+              .eq('id', id)
+              .single();
+
+          if (fetchError) throw fetchError;
+
+          // Създаваме обновения обект
+          const updatedData = {
+              ...(currentRecord.data || {}),
+              status: 'missed'
+          };
+
+          // Записваме обратно в базата
+          const { error: updateError } = await supabase
+              .from('td_records')
+              .update({ data: updatedData }) 
+              .eq('id', id);
+
+          if (updateError) throw updateError;
+          
+          await loadCalendarData(); 
+          alert("Часът е маркиран като пропуснат. Стопанинът е добавен в списъка.");
+      } catch (err) {
+          console.error("Грешка:", err);
+          alert("Грешка при обновяване: " + err.message);
+      }
+  };
+
   return (
     <div className="mt-10 bg-card p-6 rounded-xl shadow-lg border border-border calendar-container">
       <FullCalendar
@@ -150,6 +183,14 @@ const navigate = useNavigate();
                   title="Изтрий часа"
                 >
                   ✕ 
+                </button>
+
+                <button 
+                    onClick={(e) => handleMissed(e, eventInfo.event.id)}
+                    className="absolute top-0 right-7 p-1 text-orange-500 hover:text-orange-700 font-bold"
+                    title="Маркирай като пропуснат"
+                >
+                    🚫
                 </button>
 
                 {/* Основен акцент: ПОЛ И ВИД */}

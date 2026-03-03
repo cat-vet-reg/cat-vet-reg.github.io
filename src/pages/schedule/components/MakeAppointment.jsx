@@ -5,6 +5,8 @@ import supabase from "../../../utils/supabase"
 const MakeAppointment = ({ selectedDate, onAnimalAdd, prefillData }) => {
 
   const [isExistingOwner, setIsExistingOwner] = useState(false);
+	const [isBlacklisted, setIsBlacklisted] = useState(false);
+	const [ownerStats, setOwnerStats] = useState({ total: 0, donations: 0 });
   const [appointment, setAppointment] = useState({
       phone       : '',
       ownerName   : '',
@@ -23,35 +25,67 @@ const MakeAppointment = ({ selectedDate, onAnimalAdd, prefillData }) => {
       }
   }, [selectedDate]);
 
-  // Автоматично намиране на име на собственик по телефонен номер
-    useEffect(() => {
-        // Ако изтриеш телефона, нулираме статуса
-        if (!appointment.phone || appointment.phone.length < 6) {
-            setIsExistingOwner(false);
-            return;
-        }
+  // Автоматично намиране на име на собственик по телефонен номер и проверка за Черен списък
+	useEffect(() => {
+			if (!appointment.phone || appointment.phone.length < 6) {
+					setIsExistingOwner(false);
+					setIsBlacklisted(false);
+					return;
+			}
 
-        const timer = setTimeout(async () => {
-            try {
-                const { data } = await supabase
-                    .from('td_owners')
-                    .select('name')
-                    .eq('phone', appointment.phone)
-                    .maybeSingle();
+			const timer = setTimeout(async () => {
+					try {
+							// 1. Първо търсим името в td_owners
+							const { data: owner } = await supabase
+									.from('td_owners')
+									.select('name')
+									.eq('phone', appointment.phone)
+									.maybeSingle();
 
-                if (data && data.name) {
-                    setAppointment(prev => ({ ...prev, ownerName: data.name }));
-                    setIsExistingOwner(true); // <--- Намерен е!
-                } else {
-                    setIsExistingOwner(false); // <--- Нов човек
-                }
-            } catch (err) {
-                console.error("Грешка:", err);
-            }
-        }, 800);
+							if (owner) {
+									setAppointment(prev => ({ ...prev, ownerName: owner.name }));
+									setIsExistingOwner(true);
+							} else {
+									setIsExistingOwner(false);
+							}
 
-        return () => clearTimeout(timer);
-    }, [appointment.phone]);
+							// 2. ВАЖНО: Проверяваме в td_records за статус 'missed'
+							const { data: missedRecords } = await supabase
+									.from('td_records')
+									.select('id')
+									// Проверяваме и двата варианта за всеки случай
+									.or(`data->>ownerPhone.eq.${appointment.phone},data->>phone.eq.${appointment.phone}`)
+									.filter('data->>status', 'eq', 'missed')
+									.limit(1);
+
+							if (missedRecords && missedRecords.length > 0) {
+									console.log("Намерен в черния списък!");
+									setIsBlacklisted(true);
+							} else {
+									setIsBlacklisted(false);
+							}
+
+							// 3. Проверка за история на даренията
+							const { data: history } = await supabase
+									.from('td_records')
+									.select('data')
+									.filter('data->>ownerPhone', 'eq', appointment.phone);
+
+							if (history) {
+									const totalAnimals = history.length;
+									// Тук приемаме, че в JSON обекта 'data' записвате donation: true или подобно
+									const totalDonations = history.filter(h => h.data?.hasDonation === true || h.data?.donationAmount > 0).length;
+
+									setOwnerStats({ total: totalAnimals, donations: totalDonations });
+							}
+
+					} catch (err) {
+							console.error("Грешка при проверка:", err);
+					}
+			}, 800);
+
+			return () => clearTimeout(timer);
+	}, [appointment.phone]);
   
   const [currentAnimal, setCurrentAnimal] = useState({
       species: 'cat',
@@ -143,21 +177,48 @@ const MakeAppointment = ({ selectedDate, onAnimalAdd, prefillData }) => {
                   onChange={(e) => setAppointment({...appointment, phone: e.target.value})}
               />
               <input 
-              type="text" 
-              placeholder="Име и фамилия" 
-              className={`p-2 rounded border transition-colors duration-300 ${
-                  isExistingOwner 
-                  ? 'bg-red-50 border-red-300 text-red-900 shadow-[0_0_10px_rgba(230,64,114,0.2)]' 
-                  : 'bg-background border-border text-foreground'
-              }`} 
-              value={appointment.ownerName}
-              onChange={(e) => {
-                  setAppointment({...appointment, ownerName: e.target.value});
-                  // Ако потребителят реши ръчно да промени името, 
-                  // можеш да изключиш червеното, за да не го дразни
-                  setIsExistingOwner(false); 
-              }}
-          />
+									type="text" 
+									placeholder="Име и фамилия" 
+									className={`p-2 rounded border transition-colors duration-300 ${
+											isExistingOwner 
+											? 'bg-red-50 border-red-300 text-red-900 shadow-[0_0_10px_rgba(230,64,114,0.2)]' 
+											: 'bg-background border-border text-foreground'
+									}`} 
+									value={appointment.ownerName}
+									onChange={(e) => {
+											setAppointment({...appointment, ownerName: e.target.value});
+											// Ако потребителят реши ръчно да промени името, 
+											// можеш да изключиш червеното, за да не го дразни
+											setIsExistingOwner(false); 
+									}}
+							/>
+							{/* ПРЕДУПРЕЖДЕНИЕ ЗА ЧЕРЕН СПИСЪК */}
+							{isBlacklisted && (
+									<div className="col-span-1 md:col-span-2 bg-red-600 text-white p-3 rounded-lg flex items-center gap-3 shadow-lg border-2 border-red-800 mt-2">
+											<Icon name="AlertTriangle" size={24} className="animate-bounce" />
+											<div>
+													<p className="font-black text-sm uppercase">Внимание: Черен списък!</p>
+													<p className="text-xs">Този човек има пропуснати часове в миналото. Бъдете внимателни!</p>
+											</div>
+									</div>
+							)}
+							{/* Секция със статистика под името */}
+							{isExistingOwner && (
+									<div className="col-span-1 md:col-span-2 mt-1 flex gap-4 text-xs font-medium">
+											<span className="text-muted-foreground">
+													Донесени ЖВ: <strong className="text-foreground">{ownerStats.total}</strong>
+											</span>
+											<span className={ownerStats.donations < (ownerStats.total / 2) ? "text-orange-600" : "text-green-600"}>
+													Дарения: <strong>{ownerStats.donations}</strong>
+											</span>
+											
+											{ownerStats.total > 3 && ownerStats.donations <= 1 && (
+													<span className="text-red-500 font-bold animate-pulse">
+															(Рядко дарява!)
+													</span>
+											)}
+									</div>
+							)}
               <input 
                   type="date" 
                   className="p-2 rounded border bg-background border-border" 

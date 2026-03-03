@@ -216,7 +216,7 @@ export async function $apiGetRegistryOnly() {
         .select(`*, owner:td_owners(name, phone)`)
         // Филтърът: Дай ми тези, при които статусът НЕ Е 'recorded'
         // Използваме 'is.null', за да хванем всички твои стари записи (като №147)
-        .or('data->>status.neq.recorded,data->>status.is.null')
+        .not('data->>status', 'in', '("recorded","missed")')
         .order('castrated_at', { ascending: false });
 
     if (error) {

@@ -1,5 +1,6 @@
 export const breedOptions = [
   { value: "european", label: "Европейска" },
+  { value: "shotland", label: "Шотландска клепоуха" },
   { value: "exotic_shorthair", label: "Екзотична късокосместа (Exotic Shorthair)" },
   { value: "persian", label: "Персийска котка (Persian cat)" },
   { value: "ragdoll", label: "Рагдол (Ragdoll)" },

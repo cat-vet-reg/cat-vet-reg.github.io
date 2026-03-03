@@ -101,7 +101,7 @@ export const mapRecordToForm = (record) => {
         ageValue        : record.age_value || "",
         ageUnit         : record.age_unit || "months",
         color           : record.color || "",
-        customColor         : record.data?.customColor || "",
+        customColor     : record.data?.customColor || "",
         recordNotes     : record.notes || "",
         recordCity      : record.location_city || "",
         address         : record.location_address || "",

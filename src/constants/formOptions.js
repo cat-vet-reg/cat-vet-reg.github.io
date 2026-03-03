@@ -97,6 +97,7 @@ export const statusOptions = [
   { id: 'surgery',   label: 'В операция',     color: 'bg-red-500 text-white animate-pulse', icon: 'Stethoscope' },
   { id: 'recovery',  label: 'Възстановяване', color: 'bg-amber-400 text-amber-950',         icon: 'Sun' },
   { id: 'released',  label: 'Върнато',        color: 'bg-green-100 text-green-700',         icon: 'Home' },
+  { id: 'missed',    label: 'Пропуснат',      color: 'bg-slate-100 text-slate-700',         icon: 'ClipboardList' },
   { id: 'treatment', label: 'За лечение',     color: 'bg-purple-100 text-purple-700',       icon: 'Thermometer' }
 ];
 

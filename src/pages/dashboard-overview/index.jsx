@@ -621,7 +621,7 @@ const DashboardOverview = () => {
     iconColor: "var(--color-primary)"
   },
   {
-    title: "Скорошни регистрирани котки",
+    title: "Скорошни кастрирани котки",
     value: stats.recent.toString(),
     change: `+${stats.recent}`,
     changeType: "positive",
