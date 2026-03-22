@@ -350,13 +350,33 @@ const DashboardOverview = () => {
       try {
         setIsLoading(true);
         const response = await $apiGetCats();
-        if (response.data) {
-          // Превръщаме суровите данни в обекти през твоя мапер
-          const mapped = response.data.map(record => {
-            const mappedObj = mapRecordToForm(record);
-            // Пазим created_at за изчисленията на датите
-            return { ...mappedObj, created_at: record.created_at };
-          });
+
+        if (response && response.data) {
+          // --- ПРОВЕРКА ЗА ЛИПСВАЩИТЕ ID-та ---
+        const missingIds = [15, 16, 17];
+        const foundMissing = response.data.filter(cat => missingIds.includes(Number(cat.id)));
+        
+        console.log("Намерени ли са 15, 16, 17 в RAW данните от сървъра?", foundMissing);
+        console.log("Общ брой записи от сървъра:", response.data.length);
+        // ------------------------------------
+        // 1. Копираме и сортираме веднага
+        const dataToSort = [...response.data];
+        
+        dataToSort.sort((a, b) => {
+          const idA = parseInt(a.id);
+          const idB = parseInt(b.id);
+          return idB - idA; // За низходящ ред (303, 302...)
+        });
+
+        // 2. ЛОГВАМЕ ТУК - провери дали първият елемент [0] е с най-голямо ID
+        console.log("СОРТИРАНИ ДАННИ:", dataToSort);
+        
+        // 3. Мапваме сортираните данни
+        const mapped = dataToSort.map(record => {
+          const mappedObj = mapRecordToForm(record);
+          // Важно: увери се, че ID-то се прехвърля в мапнатия обект
+          return { ...mappedObj, id: record.id, created_at: record.created_at };
+        });
           setRealCats(mapped);
         }
       } catch (err) {
@@ -377,19 +397,15 @@ const DashboardOverview = () => {
     // const globalTotal = realCats.length;
     // Филтрираме САМО кастрираните животни
     const operatedAnimals = realCats.filter(cat => {
-      // Ако няма дата, значи още не е обслужена
-      if (!cat.castratedAt) return false;
+      // 1. Проверяваме дали статусът НЕ Е 'recorded'
+      // (Това включва 'registered' и всякакви други активни статуси)
+      const isNotRecorded = cat.status !== 'recorded';
 
-      const castrationDate = new Date(cat.castratedAt);
+      // 2. Проверяваме дали изобщо има дата на кастрация
+      const hasDate = !!(cat.castratedAt || cat.castrated_at);
 
-      // Проверяваме две неща:
-      // 1. Дали датата е в миналото (преди 'now')
-      // 2. Дали статусът е 'registered' (за по-голяма сигурност)
-      const isPast = castrationDate <= now;
-      const isFinished = cat.status === 'registered';
-
-      // Връщаме true само ако часът е минал
-      return isPast || isFinished;
+      // Връщаме true само ако не е просто запис и има дата
+      return isNotRecorded && hasDate;
     });
 
     // 2. Вече използваме този филтриран масив за статистиките

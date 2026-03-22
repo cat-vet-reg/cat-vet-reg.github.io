@@ -11,6 +11,21 @@ import Icon from '../../components/AppIcon';
 import supabase from '../../utils/supabase'; 
 import Pagination from './components/Pagination';
 import { $apiGetRegistryOnly } from '../../services/create_new_record';
+import {  bcsScores,
+          getBcsDescription,
+          ageUnitOptions, 
+          colorOptions, 
+          habitat,
+          origin,
+          generalConditionOptions, 
+          statusOptions, 
+          complicationOptions,
+          staffOptions,
+          earStatusOptions,
+          parasiteOptions,
+          discoverySourceOptions,
+          reproductiveOptions
+          } from "../../constants/formOptions";
 
 const CatRegistryList = () => {
   const [currentPage, setCurrentPage] = useState(1);
@@ -31,27 +46,6 @@ const CatRegistryList = () => {
     { value: '', label: 'Всички полове' },
     { value: 'male', label: 'Мъжки' },
     { value: 'female', label: 'Женски' }
-  ];
-
-  const colorOptions = [
-    // Patterns
-    { value: 'tabby'        , label: 'Таби (тигрова)' },
-
-    // Bi-color & multi-color
-    { value: 'tabby_white'  , label: 'Таби-бяла (бяла с тигрово)' },
-    { value: 'calico'       , label: 'Калико (трицветна)' },
-    { value: 'tortoiseshell', label: 'Костенуркова' },
-    { value: 'tuxedo'       , label: 'Черно-бяла' },
-    { value: 'orange_white' , label: 'Рижо-бяла' },
-
-    // Solid colors
-    { value: 'orange'       , label: 'Рижа' },
-    { value: 'black'        , label: 'Черна' },
-    { value: 'white'        , label: 'Бяла' },
-    { value: 'gray'         , label: 'Сива (Синя)' },
-    { value: 'brown'        , label: 'Кафява' },
-    { value: 'cinnamon'     , label: 'Светлокафява' },
-    { value: 'fawn'         , label: 'Бежова' },
   ];
 
   const [sortConfig, setSortConfig] = useState({
@@ -248,8 +242,8 @@ const CatRegistryList = () => {
           filters={filters}
           onFilterChange={handleFilterChange}
           onClearFilters={handleClearFilters}
-          genderOptions={genderOptions} // Добави това
-          colorOptions={colorOptions}   // Добави това
+          genderOptions={genderOptions} 
+          colorOptions={colorOptions}   
           // Ако имаш локации, можеш да подадеш и тях, или празен масив за сега
           locationOptions={[]}          
         />

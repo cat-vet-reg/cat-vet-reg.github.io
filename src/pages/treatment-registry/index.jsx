@@ -104,6 +104,29 @@ const TreatmentRegistry = () => {
     fetchTreatmentRecords();
   }, []);
 
+// ОТКОМЕНТИРАЙ КОГАТО ИМА НОВА СТРУКТУРА В СУПАБЕЙС
+//   import { mapFormToRecord, mapRecordToForm } from '../cat-registration-form/utils/formMapper';
+
+// const handleAddNewPatient = async (formData) => {
+//   try {
+//     // И тук същата магия:
+//     const recordToSave = mapFormToRecord({ ...formData, status: 'treatment' });
+    
+//     const { data, error } = await supabase
+//       .from('td_records')
+//       .insert([recordToSave])
+//       .select();
+
+//     if (error) throw error;
+
+//     // Използваме другия мапър, за да го превърнем обратно в React формат
+//     setRecords(prev => [mapRecordToForm(data[0]), ...prev]);
+//     setIsModalOpen(false);
+//   } catch (err) {
+//     alert(err.message);
+//   }
+// };
+
   // Логика за запис на нов пациент директно в DB
   const handleAddNewPatient = async (formData) => {
     try {

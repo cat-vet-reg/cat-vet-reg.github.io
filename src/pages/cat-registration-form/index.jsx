@@ -538,15 +538,36 @@ const handleSuccessModalClose = (state) => {
                       error={errors?.recordName}
                     />
 
-                    <Select
-                      label="Пол"
-                      placeholder="Мъжки / Женски"
-                      required
-                      options={genderOptions}
-                      value={formData?.gender}
-                      onChange={(value) => handleInputChange("gender", value)}
-                      error={errors?.gender}
-                    />
+                    <label className="block text-sm font-medium text-slate-700 mb-2">Пол</label>
+                    <div className="flex justify-between items-center gap-2 mb-6">
+                      <button
+                        type="button"
+                        onClick={() => handleInputChange("gender", "female")}
+                        className={`flex-1 py-3 text-sm font-bold rounded-md transition-all flex items-center justify-center gap-2 ${
+                          formData?.gender === 'female' 
+                          ? "bg-secondary text-white ring-2 ring-offset-2 ring-secondary scale-105 z-10" 
+                          : "bg-slate-100 text-slate-500 hover:bg-slate-200"
+                        }`}
+                      >
+                        <span className="text-base">♀️</span> Женски
+                      </button>
+                      
+                      <button
+                        type="button"
+                        onClick={() => handleInputChange("gender", "male")}
+                        className={`flex-1 py-3 text-sm font-bold rounded-md transition-all flex items-center justify-center gap-2 ${
+                          formData?.gender === 'male' 
+                          ? "bg-primary text-white ring-2 ring-offset-2 ring-primary scale-105 z-10" 
+                          : "bg-slate-100 text-slate-500 hover:bg-slate-200"
+                        }`}
+                      >
+                        <span className="text-base">♂️</span> Мъжки
+                      </button>
+                    </div>
+
+                    {errors?.gender && (
+                      <p className="text-xs text-red-500 mt-[-1rem] mb-4">{errors.gender}</p>
+                    )}
 
                     <label className="block text-sm font-medium text-slate-700 mb-2">Вид животно</label>
                     <div className="flex justify-between items-center gap-2 mb-6">

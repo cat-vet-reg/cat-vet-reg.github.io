@@ -21,6 +21,26 @@ const CreatePatient = ({ isOpen, onClose, onSave }) => {
     }));
   };
 
+// ОТКОМЕНТИРАЙ КОГАТО ИМА НОВА СТРУКТУРА В СУПАБЕЙС
+  //   import { mapFormToRecord } from "../../cat-registration-form/utils/formMapper";
+
+// const handleSave = async () => {
+//   try {
+//     // ЕДИН РЕД КОД ПРАВИ ВСИЧКО:
+//     const recordToSave = mapFormToRecord({ ...formData, status: 'recorded' });
+
+//     const { data, error } = await supabase
+//       .from('td_records')
+//       .insert([recordToSave])
+//       .select();
+
+//     if (error) throw error;
+//     onSave(data[0]);
+//     onClose();
+//   } catch (error) {
+//     console.error(error);
+//   }
+// };
   const handleSave = async () => {
     try {
       // 1. Подготвяме обекта за Supabase спрямо твоите изисквания
