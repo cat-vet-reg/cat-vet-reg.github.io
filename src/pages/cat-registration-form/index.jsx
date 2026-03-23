@@ -83,9 +83,8 @@ const CatRegistrationForm = () => {
 
 
   const getCoordinates = async (city, address) => {
-
-    const fullAddress = `${city}, ${address}`;
-    const url = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(fullAddress)}&key=${mapUrl}`;
+    // Търсим само по чистия адрес, за да не объркваме Google с името на града в низа
+    const url = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(address)}&components=locality:${encodeURIComponent(city)}|country:BG&key=${mapUrl}`;
 
     try {
       const response = await fetch(url);
@@ -96,7 +95,7 @@ const CatRegistrationForm = () => {
         return { 
           lat: location.lat, 
           lng: location.lng,
-          address: address // Пазим адреса, за да знае useEffect кога да спре да търси
+          address: address 
         };
       } else {
         console.error("Geocoding Status Error:", data.status);
@@ -143,12 +142,10 @@ const CatRegistrationForm = () => {
     // 1. Проверяваме дали имаме град и адрес
     if (!formData.recordCity || !formData.address) return;
 
-    // 2. Дебънс (debounce) - изчакваме 1 сек. след спиране на писането, 
-    // за да не хабим излишни заявки към Google при всяка буква
+    // 2. Дебънс (debounce) - изчакваме 1 сек.
     const timer = setTimeout(async () => {
       
-      // Правим проверка: ако адресът е избран от Autocomplete, 
-      // той вече е сетнал координатите. Ако обаче са празни, значи е писано ръчно.
+      // Проверка: ако координатите за този адрес вече са налични, не търсим пак
       if (!coordinates || coordinates.address !== formData.address) {
         setIsValidatingAddress(true);
         
@@ -156,7 +153,6 @@ const CatRegistrationForm = () => {
         
         if (coords) {
           setCoordinates(coords);
-          // Записваме ги и в общия обект на формата
           setFormData(prev => ({ ...prev, coords }));
         }
         
@@ -165,7 +161,7 @@ const CatRegistrationForm = () => {
     }, 1000); 
 
     return () => clearTimeout(timer);
-  }); // Следи за промяна в адреса или града
+  }, [formData.recordCity, formData.address]); // <--- Добавено за стабилност
 
 
   useEffect(() => {
@@ -838,7 +834,7 @@ const handleSuccessModalClose = (state) => {
                             }}
                             options={{
                               componentRestrictions: { country: "bg" },
-                              types: ['geocode'], 
+                              types: [], 
                               fields: ["address_components", "geometry", "formatted_address"]
                             }}
                             // Тук ползваме твоите CSS класове за еднакъв дизайн
