@@ -10,7 +10,7 @@ import BulkActionsBar from './components/BulkActionsBar';
 import Icon from '../../components/AppIcon';
 import supabase from '../../utils/supabase'; 
 import Pagination from './components/Pagination';
-import { $apiGetRegistryOnly } from '../../services/create_new_record';
+import { $apiGetCats } from '../../services/create_new_record';
 import {  bcsScores,
           getBcsDescription,
           ageUnitOptions, 
@@ -39,7 +39,8 @@ const CatRegistryList = () => {
     search: '',
     gender: '',
     color: '',
-    location: ''
+    location: '',
+    showRecorded: false
   });
 
     const genderOptions = [
@@ -55,33 +56,13 @@ const CatRegistryList = () => {
 
   const [selectedCats, setSelectedCats] = useState([]);
 
-  // 1. Вземане на реалните данни от Supabase
-  // useEffect(() => {
-  //   async function fetchData() {
-  //     try {
-  //       setIsLoading(true);
-  //       const { data, error } = await supabase.from('td_records').select(`*, owner:owner_id (name, phone)`)
-  //       .order('castrated_at', { ascending: false }) // Първо по дата
-  //       .order('id', { ascending: false });
-        
-  //       if (error) throw error;
-  //       setCatCollection(data || []);
-  //     } catch (err) {
-  //       console.error("Грешка при зареждане:", err.message);
-  //     } finally {
-  //       setIsLoading(false);
-  //     }
-  //   }
-  //   fetchData();
-  // }, []);
-
   // 1. Вземане на данните, минаващи през филтъра за статуса "записани".
   useEffect(() => {
     async function fetchData() {
       try {
         setIsLoading(true);
         // Вече използваме готовата ни функция, която филтрира 'recorded'
-        const { data } = await $apiGetRegistryOnly();
+        const { data } = await $apiGetCats();
         setCatCollection(data || []);
       } catch (err) {
         console.error("Грешка при зареждане:", err.message);
@@ -96,14 +77,34 @@ const CatRegistryList = () => {
   const filteredAndSortedCats = useMemo(() => {
     let result = [...catCollection];
 
-    if (filters.search) {
-      const searchLower = filters.search.toLowerCase();
-      result = result.filter(cat =>
-        cat.name?.toLowerCase().includes(searchLower) ||
-        (cat.owner?.name || cat.owner_name)?.toLowerCase().includes(searchLower) ||
-        cat.location_address?.toLowerCase().includes(searchLower)
-      );
+    if (!filters.showRecorded) {
+      result = result.filter(cat => {
+        // Проверяваме статуса в обекта 'data' (както го записваш в recordAnimal)
+        const status = cat.data?.status || cat.status; 
+        return status !== 'recorded' && status !== 'missed';
+      });
     }
+
+    const searchLower = filters.search.toLowerCase();
+
+    result = result.filter(cat => {
+      // 1. Търсене по име на животно
+      const animalName = cat.name?.toLowerCase() || '';
+      
+      // 2. Търсене по име на собственик (проверяваме и в обекта 'owner', и в преформатираното поле)
+      const ownerName = (cat.owner?.name || cat.owner_name || '').toLowerCase();
+      
+      // 3. Търсене по ТЕЛЕФОНЕН НОМЕР
+      const ownerPhone = (cat.owner?.phone || cat.owner_phone || '').toLowerCase();
+      
+      // 4. Търсене по адрес
+      const address = (cat.location_address || '').toLowerCase();
+
+      return animalName.includes(searchLower) || 
+            ownerName.includes(searchLower) || 
+            ownerPhone.includes(searchLower) || // Тази линия добавя магията
+            address.includes(searchLower);
+    });
 
     if (filters.gender) {
       result = result.filter(cat => cat.gender === filters.gender);

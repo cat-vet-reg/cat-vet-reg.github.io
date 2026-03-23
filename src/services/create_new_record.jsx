@@ -208,28 +208,3 @@ export async function $apiGetCats() {
 
     return { data: formattedData };
 }
-
-// ЗА РЕГИСТЪРА - Скрива записаните часове
-export async function $apiGetRegistryOnly() {
-    const { data, error } = await supabase
-        .from('td_records')
-        .select(`*, owner:td_owners(name, phone)`)
-        // Филтърът: Дай ми тези, при които статусът НЕ Е 'recorded'
-        // Използваме 'is.null', за да хванем всички твои стари записи (като №147)
-        .not('data->>status', 'in', '("recorded","missed")')
-        .order('castrated_at', { ascending: false });
-
-    if (error) {
-        console.error("Грешка при зареждане:", error);
-        return { data: [] };
-    }
-
-    // Форматирането за таблицата
-    const formattedData = data.map(cat => ({
-        ...cat,
-        owner_name: cat?.owner?.name || cat?.owner_name || "—",
-        owner_phone: cat?.owner?.phone || cat?.owner_phone || "—",
-    }));
-
-    return { data: formattedData };
-}
