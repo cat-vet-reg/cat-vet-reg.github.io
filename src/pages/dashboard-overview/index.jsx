@@ -397,15 +397,10 @@ const DashboardOverview = () => {
     // const globalTotal = realCats.length;
     // Филтрираме САМО кастрираните животни
     const operatedAnimals = realCats.filter(cat => {
-      // 1. Проверяваме дали статусът НЕ Е 'recorded'
-      // (Това включва 'registered' и всякакви други активни статуси)
-      const isNotRecorded = cat.status !== 'recorded';
-
-      // 2. Проверяваме дали изобщо има дата на кастрация
+      const status = (cat.status || '').toLowerCase();
+      const isOperated = status !== 'recorded' && status !== 'missed' && status !== '';
       const hasDate = !!(cat.castratedAt || cat.castrated_at);
-
-      // Връщаме true само ако не е просто запис и има дата
-      return isNotRecorded && hasDate;
+      return isOperated && hasDate;
     });
 
     // 2. Вече използваме този филтриран масив за статистиките

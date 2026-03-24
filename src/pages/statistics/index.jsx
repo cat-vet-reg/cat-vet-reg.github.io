@@ -57,6 +57,12 @@ const StatisticsTable = () => {
       const rawDate = item.castrated_at;
       if (!rawDate) return;
 
+      const status = (item.data?.status || item.status || '').toLowerCase();
+
+      // 3. ФИЛТЪР: Ако статусът е един от тези двата, ПРЕКЪСВАМЕ изпълнението за този запис
+      if (status === 'recorded' || status === 'missed') {
+        return; // Това прескача текущата итерация и отива на следващата котка
+      }
       const fatalIDs = ['dead_anesthesia', 'dead_surgery', 'dead_postsurgery'];
       const dateObj = new Date(rawDate);
       const dateKey = rawDate.split('T')[0]; 

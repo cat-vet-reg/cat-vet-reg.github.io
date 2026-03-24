@@ -225,7 +225,13 @@ const CatRegistryList = () => {
           <div>
             <h1 className="text-3xl md:text-4xl lg:text-5xl mb-2 font-bold text-foreground">Регистър на животните</h1>
             <p className="text-base md:text-lg text-muted-foreground">
-              Общо регистрирани: {catCollection.length} животни
+              Общо регистрирани: {
+                catCollection.filter(cat => 
+                  cat.castrated_at && // Има записана дата на кастрация
+                  cat.data?.status !== 'recorded' && // Статусът в 'data' не е 'recorded'
+                  cat.data?.status !== 'missed'      // Изключваме и пропуснатите за всеки случай
+                ).length
+              } животни
             </p>
           </div>
 

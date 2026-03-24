@@ -5,8 +5,8 @@ import Breadcrumb       from "../../components/ui/Breadcrumb";
 import MakeAppointment  from "./components/MakeAppointment";
 import Calendar         from "./components/Calendar";
 import WaitingList      from "./components/WaitingList";
+import Blacklist        from "./components/Blacklist";
 import { $apiCreateNewRecord } from "services/create_new_record";
-
 
 const Schedule = () => {
 
@@ -90,8 +90,14 @@ const Schedule = () => {
             </p>
           </div>
 
+          {/* Секция: Календар */}
+          <div className="mb-10">
+              <Calendar selectedDate={date} key={refreshKey} />
+          </div>
 
-          {/* Секция 1: Формата за записване (отгоре) */}
+          <hr className="my-10 border-border" />
+
+          {/* Секция: Форма за записване */}
           <div className="mb-10">
               <MakeAppointment 
                 selectedDate={date}
@@ -99,16 +105,16 @@ const Schedule = () => {
                 onAnimalAdd={(e) => registerAnimalIntoTheSystem(e)} 
               />
           </div>
-
-          <hr className="my-10 border-border" />
-
-          {/* Секция 2: Календарът (отдолу) */}
-          <div className="mb-10">
-              <Calendar selectedDate={date} key={refreshKey} />
-          </div>
           
           <div className="mb-10 border-border">
             <WaitingList onSelectToSchedule={handleSelectFromWaitingList} />
+          </div>
+
+          {/* СЕКЦИЯ: Форма + Черен списък едно до друго */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-10">
+              <div className="lg:col-span-1">
+                  <Blacklist />
+              </div>
           </div>
 
         </div>
