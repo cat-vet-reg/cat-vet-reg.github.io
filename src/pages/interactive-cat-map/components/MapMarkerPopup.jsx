@@ -5,7 +5,7 @@ import Button from '../../../components/ui/Button';
 
 const MapMarkerPopup = ({ cats }) => {
   const navigate = useNavigate();
-  const STORAGE_URL = "https://gxnhbymgifwnkipdraye.supabase.co/storage/v1/object/public/protocol_images";
+  const STORAGE_URL = "https://gexgpozvrhurkhrlvaah.supabase.co/storage/v1/object/public/protocol_images";
 
   // Функция за навигация
   const goToProfile = (id) => {

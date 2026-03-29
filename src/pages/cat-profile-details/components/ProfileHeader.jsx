@@ -28,7 +28,7 @@ const ProfileHeader = ({ cat }) => {
     icon: 'AlertCircle'
   };
   
-  const STORAGE_URL = "https://gxnhbymgifwnkipdraye.supabase.co/storage/v1/object/public/protocol_images";
+  const STORAGE_URL = "https://gexgpozvrhurkhrlvaah.supabase.co/storage/v1/object/public/protocol_images";
 
     return (
     <div className="bg-card rounded-xl shadow-warm p-4 md:p-6 lg:p-8 mb-4 md:mb-6">
