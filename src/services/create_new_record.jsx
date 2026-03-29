@@ -6,13 +6,13 @@ import supabase from 'utils/supabase';
  * @returns 
  */
 async function recordAnimal(formData, ownerId) {
-    
-    const dataToSave = { 
-        ...formData, 
-        status: formData.status || 'registered'
-    };
 
     const parseNum = (val) => (val !== "" && val !== null && val !== undefined) ? Number(val) : null;
+
+    const dataToSave = { 
+        ...formData, 
+        status: formData.status || 'recorded'
+    };
 
 
     // 1. Първо създаваме записа
@@ -36,7 +36,7 @@ async function recordAnimal(formData, ownerId) {
         // New Mappings
         breed                   :   formData?.breed || null,
         origin                  :   formData?.origin || null,
-        status                  :   formData?.status || 'registered',
+        status                  :   formData?.status || 'recorded',
         species                 :   formData?.species || null,
         bcs_score               :   parseNum(formData?.bcsScore),
         donation                :   formData?.donation || null,

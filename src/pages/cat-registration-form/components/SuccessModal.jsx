@@ -36,6 +36,10 @@ const SuccessModal = ({ isOpen, onClose, catData }) => {
           {catData && (
             <div className="w-full bg-muted/50 rounded-md p-4 space-y-2 text-left">
               <div className="flex items-center justify-between text-sm">
+                <span className="text-muted-foreground">Собственик:</span>
+                <span className="font-medium text-foreground">{catData?.ownerName}</span>
+              </div>
+              <div className="flex items-center justify-between text-sm">
                 <span className="text-muted-foreground">Пол:</span>
                 <span className="font-medium text-foreground capitalize">
                   {catData?.gender === 'male' ? 'Мъжки' : 
@@ -43,8 +47,12 @@ const SuccessModal = ({ isOpen, onClose, catData }) => {
                 </span>
               </div>
               <div className="flex items-center justify-between text-sm">
-                <span className="text-muted-foreground">Тегло:</span>
-                <span className="font-medium text-foreground">{catData?.weight} кг</span>
+                <span className="text-muted-foreground">Дата на кастрация:</span>
+                <span className="font-medium text-foreground">{catData?.castratedAt}</span>
+              </div>
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-muted-foreground">Статус:</span>
+                <span className="font-medium text-foreground">{catData?.status}</span>
               </div>
               <div className="flex items-center justify-between text-sm">
                 <span className="text-muted-foreground">Цвят:</span>
@@ -64,10 +72,6 @@ const SuccessModal = ({ isOpen, onClose, catData }) => {
                         catData?.color === 'fawn'         ? 'Бежова' : 'неизвестен'
                       }
                 </span>
-              </div>
-              <div className="flex items-center justify-between text-sm">
-                <span className="text-muted-foreground">Собственик:</span>
-                <span className="font-medium text-foreground">{catData?.ownerName}</span>
               </div>
             </div>
           )}

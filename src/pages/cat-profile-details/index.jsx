@@ -55,27 +55,36 @@ const CatProfileDetails = () => {
     const fetchCatDetails = async () => {
       try {
         setIsLoading(true);
+        
+        // 1. Търсим в td_records по ID
         const { data, error } = await supabase
-          .from('td_owners') // Провери дали таблицата ти се казва така (или 'owners')
-          .select('name')
-          .eq('phone', formData.ownerPhone)
-          .maybeSingle();
+          .from('td_records') 
+          .select('*')
+          .eq('id', id)
+          .single(); // Използваме single(), защото търсим точно един запис
 
         if (error) throw error;
 
-        setCatData({
-          ...data,
-          status: data.status || data.data?.status || 'recorded',
-          foundLocation: data.location_address,
-          coordinates: { lat: data.latitude, lng: data.longitude },
-          owner: {
-            name: data.owner?.name || data.owner_name,
-            phone: data.owner?.phone || data.owner_phone,
-            email: "Няма предоставен имейл" 
-          }
-        });
+        if (data) {
+          // Мапваме данните към структурата, която компонентите ти очакват
+          setCatData({
+            ...data,
+            // Тук подсигуряваме, че статусът и координатите са в правилния формат
+            status: data.status || 'recorded',
+            foundLocation: data.address,
+            coordinates: { 
+              lat: data.coords?.lat || data.latitude, 
+              lng: data.coords?.lng || data.longitude 
+            },
+            owner: {
+              name: data.owner_name || "Неизвестен",
+              phone: data.owner_phone || "Няма телефон",
+              email: "Няма предоставен имейл" 
+            }
+          });
+        }
       } catch (error) {
-        console.error("Грешка при зареждане:", error.message);
+        console.error("Грешка при зареждане на профила:", error.message);
       } finally {
         setIsLoading(false);
       }

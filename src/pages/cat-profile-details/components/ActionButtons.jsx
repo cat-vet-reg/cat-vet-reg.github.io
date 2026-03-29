@@ -67,7 +67,7 @@ const ActionButtons = ({ onEdit, onDelete }) => {
                 </svg>
               </div>
               <h3 className="text-xl md:text-2xl font-heading font-semibold text-foreground">
-                Confirm Deletion
+                Потвърди изтриване
               </h3>
             </div>
             

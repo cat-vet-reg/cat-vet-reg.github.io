@@ -22,7 +22,7 @@ export const defaultFormData = {
     recordCity      : "",
     address         : "",
     zonaNumber      : "",
-    livingCondition : [], // Changed to array for better compatibility
+    livingCondition : [],
     coords          : null,
     
     breed           : "european",
