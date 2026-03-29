@@ -56,10 +56,10 @@ const CatProfileDetails = () => {
       try {
         setIsLoading(true);
         const { data, error } = await supabase
-          .from('td_records')
-          .select(`*, owner:td_owners(name, phone)`)
-          .eq('id', id)
-          .single();
+          .from('td_owners') // Провери дали таблицата ти се казва така (или 'owners')
+          .select('name')
+          .eq('phone', formData.ownerPhone)
+          .maybeSingle();
 
         if (error) throw error;
 

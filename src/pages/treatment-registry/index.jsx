@@ -63,7 +63,7 @@ const TreatmentRegistry = () => {
         if (error) throw error;
 
         const onlyWithProtocols = data.filter(record => 
-          record.td_protocols && record.td_protocols.length > 0
+          record.status === 'treatment' || (record.td_protocols && record.td_protocols.length > 0)
         );
 
         const mappedData = onlyWithProtocols.map(record => {
@@ -128,27 +128,18 @@ const TreatmentRegistry = () => {
 // };
 
   // Логика за запис на нов пациент директно в DB
-  const handleAddNewPatient = async (formData) => {
-    try {
-      // Тук добавяме автоматично статуса, за да се появи в този списък
-      const recordToSave = { 
-        ...formData, 
-        status: 'treatment',
-        created_at: new Date().toISOString() 
-      };
-      
-      const { data, error } = await supabase
-        .from('records')
-        .insert([recordToSave])
-        .select();
-
-      if (error) throw error;
-
-      setRecords(prev => [mapRecordToForm(data[0]), ...prev]);
-      setIsModalOpen(false);
-    } catch (err) {
-      alert("Грешка при запис: " + err.message);
-    }
+  const handleAddNewPatient = async (newRecordFromDB) => {
+    // не записваме тук, защото CreatePatient го прави. 
+    // Тук само обновяваме списъка в React:
+    const mappedRecord = {
+      ...mapRecordToForm(newRecordFromDB),
+      latestAnamnesis: "Няма вписана анамнеза",
+      latestTreatment: "Няма вписано лечение",
+      diagnoses: "-"
+    };
+    
+    setRecords(prev => [mappedRecord, ...prev]);
+    setIsModalOpen(false);
   };
 
   const filteredRecords = useMemo(() => {

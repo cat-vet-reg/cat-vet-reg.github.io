@@ -1,4 +1,4 @@
-import React, { useState }  from 'react';
+import React, { useState, useEffect }  from 'react';
 import { X, Save }          from 'lucide-react';
 import { defaultFormData }  from "../../cat-registration-form/utils/formMapper";
 import Button       from "../../../components/ui/Button"; 
@@ -41,36 +41,82 @@ const CreatePatient = ({ isOpen, onClose, onSave }) => {
 //     console.error(error);
 //   }
 // };
-  const handleSave = async () => {
-    try {
-      // 1. Подготвяме обекта за Supabase спрямо твоите изисквания
-      const recordToSave = {
-        name: formData.recordName,
-        species: formData.species,
-        gender: formData.gender,
-        weight: formData.weight,
-        owner_name: formData.ownerName,
-        owner_phone: formData.ownerPhone,
-        location_address: formData.address,
-        status: 'recorded',
-        created_at: new Date().toISOString(),
-        // Тук добавяш и останалите полета, които са важни за базата
-      };
+const handleSave = async () => {
+  try {
+    // 1. Подготвяме данните внимателно
+    const recordToSave = {
+      name: formData.recordName || "Без име", // Важно: провери дали името е задължително
+      species: formData.species,
+      gender: formData.gender,
+      // Ако теглото е празно, го пращаме като null, а не като ""
+      weight: formData.weight ? parseFloat(formData.weight) : null, 
+      owner_name: formData.ownerName,
+      owner_phone: formData.ownerPhone,
+      location_address: formData.address,
+      status: 'treatment',
+      created_at: new Date().toISOString(),
+    };
 
-      const { data, error } = await supabase
-        .from('records') // Увери се, че това е името на таблицата ти
-        .insert([recordToSave])
-        .select();
+    console.log("Опит за запис на:", recordToSave); // Виж в конзолата какво пращаш
 
-      if (error) throw error;
+    const { data, error } = await supabase
+      .from('td_records')
+      .insert([recordToSave])
+      .select();
 
-      onSave(data[0]);
-      onClose();
-    } catch (error) {
-      console.error("Грешка при запис:", error.message);
-      alert("Възникна грешка при създаването на пациента.");
+    if (error) {
+      // Това ще ни каже точно коя колона липсва или е сгрешена
+      console.error("Supabase детайли за грешката:", error);
+      throw error;
     }
-  };
+
+    onSave(data[0]);
+    onClose();
+  } catch (error) {
+    console.error("Грешка при запис:", error.message);
+    // Показваме по-ясно съобщение за потребителя
+    alert(`Грешка: ${error.message || "Проверете полетата"}`);
+  }
+};
+
+  useEffect(() => {
+    // 1. Изчистваме интервалите, ако има такива
+    const phoneToSearch = formData.ownerPhone?.trim();
+
+    // 2. Търсим само ако имаме 6+ символа и модалът е отворен
+    if (isOpen && phoneToSearch && phoneToSearch.length >= 6) {
+      console.log("Търсене на собственик с телефон:", phoneToSearch); // За дебъгване в конзолата
+
+      const timer = setTimeout(async () => {
+        try {
+          const { data, error } = await supabase
+            .from('td_owners') 
+            .select('name')
+            .eq('phone', phoneToSearch)
+            .maybeSingle();
+
+          if (error) {
+            console.error("Supabase грешка:", error);
+            return;
+          }
+
+          if (data) {
+            console.log("Намерен собственик:", data);
+            setFormData(prev => ({
+              ...prev,
+              // Попълваме само ако потребителят още не е написал нещо различно
+              ownerName: prev.ownerName === "" ? data.name : prev.ownerName,
+              address: prev.address === "" ? (data.location_address || "") : prev.address
+            }));
+          }
+        } catch (err) {
+          console.error("Грешка при изпълнение на заявката:", err);
+        }
+      }, 800);
+
+      return () => clearTimeout(timer);
+    }
+  }, [formData.ownerPhone, isOpen]); // Добавяме isOpen като зависимост
 
   if (!isOpen) return null;
 
