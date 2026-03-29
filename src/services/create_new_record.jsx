@@ -12,6 +12,9 @@ async function recordAnimal(formData, ownerId) {
         status: formData.status || 'registered'
     };
 
+    const parseNum = (val) => (val !== "" && val !== null && val !== undefined) ? Number(val) : null;
+
+
     // 1. Първо създаваме записа
     const tdRecordsResponse = await supabase.from('td_records').insert({
         name                    : formData?.recordName,
@@ -30,7 +33,43 @@ async function recordAnimal(formData, ownerId) {
         record_complications    : formData.recordComplications,
         castrated_at            : formData?.castratedAt,
 
-        data: dataToSave
+        // New Mappings
+        breed                   :   formData?.breed || null,
+        origin                  :   formData?.origin || null,
+        status                  :   formData?.status || 'registered',
+        species                 :   formData?.species || null,
+        bcs_score               :   parseNum(formData?.bcsScore),
+        donation                :   formData?.donation || null,
+        ear_status              :   formData?.earStatus || null,
+        has_ear_tag             :   formData?.hasEarTag || 'N',
+        parasites               :   formData?.parasites || null,
+        signature               :   formData?.signature || null,
+        owner_name              :   formData?.ownerName || null,
+        owner_phone             :   formData?.ownerPhone || null,
+        zona_number             :   formData?.zonaNumber || null,
+        custom_color            :   formData?.custom_color || null,
+        temperament             :   formData?.temperament || null,
+        time_to_sleep           :   formData?.timeToSleep || null,
+        ear_tag_number          :   formData?.earTagNumber || null,
+        image_preview           :   formData?.imagePreview || null,
+        propofol_used           :   Boolean(formData?.propofolUsed),
+        staff_surgeon           :   formData?.staffSurgeon || null,
+        induction_dose          :   parseNum(formData?.inductionDose),
+        outdoor_access          :   formData?.outdoorAccess || null,
+        staff_received          :   formData?.staffReceived || null,
+        staff_released          :   formData?.staffReleased || null,
+        discovery_source        :   formData?.discoverySource || null,
+        has_induction_add       :   Boolean(formData?.hasInductionAdd),
+        propofol_total_ml       :   parseNum(formData?.propofolTotalMl),
+        surgery_duration        :   formData?.surgeryDuration || null,
+        general_condition       :   formData?.generalCondition || null,
+        propofol_first_min      :   parseNum(formData?.propofolFirstMin),
+        induction_add_amount    :   parseNum(formData?.inductionAddAmount),
+        is_already_castrated    :   formData?.isAlreadyCastrated || 'N',
+        reproductive_status     :   formData?.reproductiveStatus || null,
+        selected_complications  :   formData?.selectedComplications || [],
+
+        data                    : dataToSave
     }).select();
 
     // ПРОВЕРКА: Ако има грешка, не продължавай надолу
@@ -201,9 +240,9 @@ export async function $apiGetCats() {
 
     const formattedData = data.map(cat => ({
         ...cat,
-        owner_name: cat.owner?.name,
-        owner_phone: cat.owner?.phone,
-        address: cat.location_address
+        owner_name  : cat.owner?.name,
+        owner_phone : cat.owner?.phone,
+        address     : cat.location_address
     }));
 
     return { data: formattedData };
