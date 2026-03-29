@@ -5,7 +5,7 @@ import Breadcrumb       from "../../components/ui/Breadcrumb";
 import MakeAppointment  from "./components/MakeAppointment";
 import Calendar         from "./components/Calendar";
 import WaitingList      from "./components/WaitingList";
-import Blacklist        from "./components/Blacklist";
+// import Blacklist        from "./components/Blacklist";
 import { $apiCreateNewRecord } from "services/create_new_record";
 
 const Schedule = () => {
@@ -113,7 +113,7 @@ const Schedule = () => {
           {/* СЕКЦИЯ: Форма + Черен списък едно до друго */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-10">
               <div className="lg:col-span-1">
-                  <Blacklist />
+                  {/* <Blacklist /> */}
               </div>
           </div>
 
