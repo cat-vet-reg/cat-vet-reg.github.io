@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import supabase from '../../utils/supabase';
 import { convertDate } from '../../utils/date';
 import Header from "../../components/ui/Header";
@@ -6,6 +6,7 @@ import Breadcrumb from '../../components/ui/Breadcrumb';
 import Icon from '../../components/AppIcon';
 import ZoneStatisticsTable from './components/ZoneStatisticsTable';
 import * as XLSX from 'xlsx';
+import { mapDbToUi } from '../cat-registration-form/utils/formMapper';
 
 
 const StatisticsTable = () => {
@@ -19,6 +20,7 @@ const StatisticsTable = () => {
 
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1);
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+  const fatalIDs = ['dead_anesthesia', 'dead_surgery', 'dead_postsurgery'];
 
   const months = [
     { v: 1, n: "Януари" }   , { v: 2, n: "Февруари" } , { v: 3, n: "Март" },
@@ -27,7 +29,7 @@ const StatisticsTable = () => {
     { v: 10, n: "Октомври" }, { v: 11, n: "Ноември" } , { v: 12, n: "Декември" }
   ];
 
-  const years = [2025, 2026];
+  const years = [2025, 2026, 2027, 2028, 2029, 2030];
 
   useEffect(() => {
     fetchStatistics();
@@ -36,13 +38,35 @@ const StatisticsTable = () => {
   const fetchStatistics = async () => {
     try {
       setLoading(true);
-      // Взимаме основните колони + обекта 'data', където са species и останалите
       const { data: rawData, error } = await supabase
         .from('td_records')
-        .select('castrated_at, gender, has_complications, data'); 
+        .select('*'); // Взимаме всичко, за да може маперът да работи коректно
 
       if (error) throw error;
-      processData(rawData);
+      
+      // --- ФИЛТРИРАН ЛОГ САМО ЗА СПОРНИТЕ ДАТИ ---
+      const suspiciousDates = ['2026-03-02', '2026-03-26'];
+      
+      const filteredDebug = rawData.filter(item => {
+        const date = item.castrated_at || item.data?.castratedAt;
+        return date && suspiciousDates.some(sDate => date.includes(sDate));
+      });
+
+      console.log(`=== ДЕТАЙЛИ ЗА ${suspiciousDates.join(' и ')} ===`);
+      console.table(filteredDebug.map(item => ({
+        ID: item.id,
+        Name: item.data?.recordName || item.name,
+        Status: item.data?.status || item.status || "НЯМА СТАТУС",
+        Gender: item.gender,
+        Raw_Date: item.castrated_at
+      })));
+      // ------------------------------------------
+
+      // 1. Мапваме данните веднага
+      const mappedData = rawData.map(mapDbToUi);
+      
+      // 2. Групираме
+      processData(mappedData);
     } catch (error) {
       console.error('Грешка при статистика:', error.message);
     } finally {
@@ -50,32 +74,21 @@ const StatisticsTable = () => {
     }
   };
 
-  const processData = (rawData) => {
+  const processData = (mappedData) => {
     const grouped = {};
     
-    rawData.forEach(item => {
-      const rawDate = item.castrated_at;
-      if (!rawDate) return;
-
-      const status = (item.data?.status || item.status || '').toLowerCase();
-
-      // 3. ФИЛТЪР: Ако статусът е един от тези двата, ПРЕКЪСВАМЕ изпълнението за този запис
-      if (status === 'recorded' || status === 'missed') {
-        return; // Това прескача текущата итерация и отива на следващата котка
-      }
-      const fatalIDs = ['dead_anesthesia', 'dead_surgery', 'dead_postsurgery'];
-      const dateObj = new Date(rawDate);
-      const dateKey = rawDate.split('T')[0]; 
+    mappedData.forEach(item => {
+      if (!item.castratedAt) return;
       
-      // ИЗВЛИЧАНЕ НА ДАННИТЕ ОТ JSON ОБЕКТА
-      const animalSpecies = item.data?.species || item.species || "cat";
-      // Логика за проверка на смъртност:
-      // 1. Проверяваме дали изобщо има отбелязано усложнение (Y)
-      // 2. Проверяваме дали някое от избраните усложнения е в списъка fatalIDs
-      const hasComplication = item.data?.hasComplications || item.has_complications || "N";
-      const selectedComps = item.data?.selectedComplications || []; // Масив от ID-та
+      // Филтър за статуси (вече ползваме чистия статус от мапера)
+      if (['recorded', 'missed'].includes(item.status)) return;
+
+      const dateObj = new Date(item.castratedAt);
+      const dateKey = item.castratedAt.split('T')[0];
       
-      const isDead = hasComplication === 'Y' && selectedComps.some(id => fatalIDs.includes(id));
+      // Проверка за смъртност (ползваме чистите полета от мапера/DB)
+      const selectedComps = item.selected_complications || item.data?.selectedComplications || [];
+      const isDead = item.hasComplications === 'Y' && selectedComps.some(id => fatalIDs.includes(id));
       
       if (!grouped[dateKey]) {
         grouped[dateKey] = { 
@@ -83,29 +96,23 @@ const StatisticsTable = () => {
           month: dateObj.getMonth() + 1,
           year: dateObj.getFullYear(),
           total: 0, 
-          femaleCats: 0, 
-          maleCats: 0, 
-          femaleDogs: 0, 
-          maleDogs: 0, 
+          femaleCats: 0, maleCats: 0, 
+          femaleDogs: 0, maleDogs: 0, 
           dead: 0 
         };
       }
 
       grouped[dateKey].total += 1;
       
-      // Логика за Котки vs Кучета
-      if (animalSpecies === 'cat') {
+      if (item.species === 'cat') {
         if (item.gender === 'female') grouped[dateKey].femaleCats += 1;
-        if (item.gender === 'male') grouped[dateKey].maleCats += 1;
-      } else if (animalSpecies === 'dog') {
+        else if (item.gender === 'male') grouped[dateKey].maleCats += 1;
+      } else if (item.species === 'dog') {
         if (item.gender === 'female') grouped[dateKey].femaleDogs += 1;
-        if (item.gender === 'male') grouped[dateKey].maleDogs += 1;
+        else if (item.gender === 'male') grouped[dateKey].maleDogs += 1;
       }
 
-      // Добавяме към колона "Умрели" само ако е потвърдено фатално ID
-      if (isDead) {
-        grouped[dateKey].dead += 1;
-      }
+      if (isDead) grouped[dateKey].dead += 1;
     });
 
     const sortedStats = Object.values(grouped).sort((a, b) => 
@@ -114,35 +121,23 @@ const StatisticsTable = () => {
     setStats(sortedStats);
   };
 
-  // Филтрираме данните според избора
-  const filteredStats = stats.filter(row => 
-    row.month === Number(selectedMonth) && row.year === Number(selectedYear)
-  );
+  // Използваме useMemo за филтрираните данни, за да не се преизчисляват при всеки рендер
+  const filteredStats = useMemo(() => {
+    return stats.filter(row => row.month === Number(selectedMonth) && row.year === Number(selectedYear));
+  }, [stats, selectedMonth, selectedYear]);
 
-  // Изчисляваме общо само за филтрираните данни
-  const totals = filteredStats.reduce((acc, row) => ({
-    total: acc.total + row.total,
-    femaleCats: acc.femaleCats + row.femaleCats,
-    maleCats: acc.maleCats + row.maleCats,
-    dead: acc.dead + row.dead
-  }), { total: 0, femaleCats: 0, maleCats: 0, dead: 0 });
-
-  if (loading) return <div className="p-10 text-center">Зареждане на статистика за Пловдив...</div>;
+  const totals = useMemo(() => {
+    return filteredStats.reduce((acc, row) => ({
+      total: acc.total + row.total,
+      femaleCats: acc.femaleCats + row.femaleCats,
+      maleCats: acc.maleCats + row.maleCats,
+      femaleDogs: acc.femaleDogs + row.femaleDogs,
+      maleDogs: acc.maleDogs + row.maleDogs,
+      dead: acc.dead + row.dead
+    }), { total: 0, femaleCats: 0, maleCats: 0, femaleDogs: 0, maleDogs: 0, dead: 0 });
+  }, [filteredStats]);
 
   const exportDailyStatsToExcel = () => {
-    // Подготвяме данните за Excel
-    // const excelData = filteredStats.map(row => ({
-    //   "Ден": row.day,
-    //   "Месец": row.month,
-    //   "Година": row.year,
-    //   "Общо": row.total,
-    //   "Женски котки": row.femaleCats,
-    //   "Мъжки котки": row.maleCats,
-    //   "Женски кучета": row.femaleDogs,
-    //   "Мъжки кучета": row.maleDogs,
-    //   "Умрели": row.dead || 0
-    // }));
-
     const excelData = filteredStats.map(row => ({
       "Day": row.day,
       "Month": row.month,
@@ -158,10 +153,10 @@ const StatisticsTable = () => {
     const worksheet = XLSX.utils.json_to_sheet(excelData);
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, "Clinic");
-    
-    // Генериране на файл
     XLSX.writeFile(workbook, `Otchet_Dni_${selectedMonth}_${selectedYear}.xlsx`);
   };
+
+  if (loading) return <div className="p-10 text-center text-xl">Зареждане на статистиката...</div>;
 
   return (
     <div className="w-full bg-background">
@@ -240,7 +235,7 @@ const StatisticsTable = () => {
                           </tr>
                       </thead>
                       <tbody>
-                          {filteredStats.map((row, index) => (
+                          {filteredStats.length > 0 ? filteredStats.map((row, index) => (
                           <tr key={index} className="hover:bg-muted/50 text-center border-b border-gray-200">
                               <td className="p-4 border-b">{row.day}</td>
                               <td className="p-4 border-b">{row.month}</td>
@@ -254,7 +249,11 @@ const StatisticsTable = () => {
                               <td className="p-4 border-b">{row.dead || 0}</td>
                               <td className="p-4 border-b text-muted-foreground">—</td>
                           </tr>
-                          ))}
+                          )) : (
+                          <tr>
+                            <td colSpan="9" className="p-10 text-center text-muted-foreground">Няма данни за избрания период.</td>
+                          </tr>
+                        )}
                       </tbody>
                     </table>
 

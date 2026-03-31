@@ -33,17 +33,17 @@ const RegistryTable = ({
   onViewDetails,
   onEdit 
 }) => {
+  
+  // Помощна функция за иконата за сортиране
   const getSortIcon = (column) => {
     if (sortConfig?.column !== column) return 'ChevronsUpDown';
     return sortConfig?.direction === 'asc' ? 'ChevronUp' : 'ChevronDown';
   };
 
   const handleSort = (column) => {
-    const direction = 
-      sortConfig?.column === column && sortConfig?.direction === 'asc' ?'desc' :'asc';
+    const direction = sortConfig?.column === column && sortConfig?.direction === 'asc' ? 'desc' : 'asc';
     onSort(column, direction);
   };
-  // console.log("Данни за първата котка:", cats[0]);
 
   return (
     <div className="bg-card rounded-lg shadow-warm">
@@ -54,194 +54,98 @@ const RegistryTable = ({
               <th className="hidden md:table-cell px-4 py-3 text-left">
                 <Checkbox
                   checked={selectedCats?.length === cats?.length && cats?.length > 0}
-                  indeterminate={selectedCats?.length > 0 && selectedCats?.length < cats?.length}
                   onChange={(e) => onSelectAll(e?.target?.checked)}
                 />
               </th>
 
-
-              <th className="px-4 py-3 text-left">
-                <button
-                  onClick={() => handleSort('id')}
-                  className="flex items-center gap-2 font-semibold text-sm text-foreground hover:text-primary transition-smooth"
-                >
-                  #
-                  <Icon name={getSortIcon('id')} size={16} />
-                </button>
-              </th>
-
-
-              <th className="px-4 py-3 text-left">
-                <button
-                  onClick={() => handleSort('name')}
-                  className="flex items-center gap-2 font-semibold text-sm text-foreground hover:text-primary transition-smooth"
-                >
-                  Име
-                  <Icon name={getSortIcon('name')} size={16} />
-                </button>
-              </th>
-              {/* <th className="px-4 py-3 text-left">
-                <button
-                  onClick={() => handleSort('gender')}
-                  className="flex items-center gap-2 font-semibold text-sm text-foreground hover:text-primary transition-smooth"
-                >
-                  Пол
-                  <Icon name={getSortIcon('gender')} size={16} />
-                </button>
-              </th> */}
-              <th className="hidden md:table-cell px-4 py-3 text-left">
-                <button
-                  onClick={() => handleSort('color')}
-                  className="flex items-center gap-2 font-semibold text-sm text-foreground hover:text-primary transition-smooth"
-                >
-                  Цвят
-                  <Icon name={getSortIcon('color')} size={16} />
-                </button>
-              </th>
-              <th className="hidden md:table-cell px-4 py-3 text-left">
-                <button
-                  onClick={() => handleSort('weight')}
-                  className="flex items-center gap-2 font-semibold text-sm text-foreground hover:text-primary transition-smooth"
-                >
-                  Тегло
-                  <Icon name={getSortIcon('weight')} size={16} />
-                </button>
-              </th>
-              <th className="px-4 py-3 text-left">
-                <button
-                  onClick={() => handleSort('owner_name')}
-                  className="flex items-center gap-2 font-semibold text-sm text-foreground hover:text-primary transition-smooth"
-                >
-                  Собственик
-                  <Icon name={getSortIcon('owner_name')} size={16} />
-                </button>
-              </th>
-
-              <th className="hidden md:table-cell px-4 py-3 text-left">
-                <button
-                  onClick={() => handleSort('owner_phone')}
-                  className="flex items-center gap-2 font-semibold text-sm text-foreground hover:text-primary transition-smooth"
-                >
-                  Телефон
-                  <Icon name={getSortIcon('owner_phone')} size={16} />
-                </button>
-              </th>
-
-              <th className="hidden md:table-cell px-4 py-3 text-left">
-                <button
-                  onClick={() => handleSort('castrated_at')}
-                  className="flex items-center gap-2 font-semibold text-sm text-foreground hover:text-primary transition-smooth"
-                >
-                  Кастрирана на
-                  <Icon name={getSortIcon('castrated_at')} size={16} />
-                </button>
-              </th>
-              <th className="px-4 py-3 text-left">
-                <button
-                  onClick={() => handleSort('has_complications')}
-                  className="flex items-center gap-2 font-semibold text-sm text-foreground hover:text-primary transition-smooth"
-                >
-                  Усложнения
-                  <Icon name={getSortIcon('has_complications')} size={16} />
-                </button>
-              </th>
-              <th className="px-4 py-3 text-right">
-                <span className="font-semibold text-sm text-foreground">Действия</span>
-              </th>
+              {/* Колонките използват новите ключове от мапера */}
+              {[
+                { id: 'id', label: '#' },
+                { id: 'recordName', label: 'Име' },
+                { id: 'color', label: 'Цвят', hideMobile: true },
+                { id: 'weight', label: 'Тегло', hideMobile: true },
+                { id: 'ownerName', label: 'Собственик' },
+                { id: 'ownerPhone', label: 'Телефон', hideMobile: true },
+                { id: 'castratedAt', label: 'Кастрирана на', hideMobile: true },
+                { id: 'hasComplications', label: 'Усложнения' }
+              ].map(col => (
+                <th key={col.id} className={`${col.hideMobile ? 'hidden md:table-cell' : ''} px-4 py-3 text-left`}>
+                  <button
+                    onClick={() => handleSort(col.id)}
+                    className="flex items-center gap-2 font-semibold text-sm text-foreground hover:text-primary transition-smooth"
+                  >
+                    {col.label}
+                    <Icon name={getSortIcon(col.id)} size={16} />
+                  </button>
+                </th>
+              ))}
+              <th className="px-4 py-3 text-right font-semibold text-sm text-foreground">Действия</th>
             </tr>
           </thead>
+
           <tbody className="divide-y divide-border">
             {cats?.map((cat) => (
-              <tr 
-                key={cat?.id} 
-                className="hover:bg-muted/50 transition-smooth"
-              >
-
+              <tr key={cat.id} className="hover:bg-muted/50 transition-smooth">
                 <td className="hidden md:table-cell px-4 py-3">
                   <Checkbox
-                    checked={selectedCats?.includes(cat?.id)}
-                    onChange={() => onSelectCat(cat?.id)}
+                    checked={selectedCats?.includes(cat.id)}
+                    onChange={() => onSelectCat(cat.id)}
                   />
                 </td>
 
-                <td className="px-4 py-3">
-                  
-                  <div className="flex items-center gap-2">
-                    <span className="font-medium text-foreground">{cat?.id}</span>
-                  </div>
-                </td>
+                <td className="px-4 py-3 font-medium text-foreground">{cat.id}</td>
 
                 <td className="px-4 py-3">
-                  
                   <div className="flex items-center gap-2">
                     <Icon 
-                      name={cat?.gender === 'male' ? 'Mars' : 'Venus'} 
+                      name={cat.gender === 'male' ? 'Mars' : 'Venus'} 
                       size={16} 
-                      color={cat?.gender === 'male' ? 'var(--color-primary)' : 'var(--color-secondary)'} 
+                      color={cat.gender === 'male' ? 'var(--color-primary)' : 'var(--color-secondary)'} 
                     />
-                    <span className="font-medium text-foreground">{cat?.name}</span>
+                    <span className="font-medium text-foreground">{cat.recordName}</span>
                   </div>
                 </td>
 
                 <td className="hidden md:table-cell px-4 py-3">
                   <div className="flex items-center gap-2">
                     <div 
-                      className="w-4 h-4 rounded-full border border-border"
-                      style={{ background: colorStyles[cat?.color] || '#ccc',
-                               border: '1px solid #000000'
-                       }} 
+                      className="w-4 h-4 rounded-full border"
+                      style={{ background: colorStyles[cat.color] || '#ccc' }} 
                     />
                     <span className="text-sm text-muted-foreground">
-                      {colorOptions.find(opt => opt.value === cat?.color)?.label || cat?.color}
+                      {colorOptions.find(opt => opt.value === cat.color)?.label || cat.color}
                     </span>
                   </div>
                 </td>
-                <td className="hidden md:table-cell px-4 py-3">
-                  <span className="text-sm text-muted-foreground data-text">
-                    {cat?.weight ? `${cat?.weight} кг` : '—'}
-                  </span>
+
+                <td className="hidden md:table-cell px-4 py-3 text-sm text-muted-foreground">
+                  {cat.weight ? `${cat.weight} кг` : '—'}
                 </td>
-                <td className="px-4 py-3">
-                  <span className="text-sm text-muted-foreground">{cat?.owner?.name || cat?.owner_name || "—"}</span>
+
+                <td className="px-4 py-3 text-sm text-muted-foreground">{cat.ownerName}</td>
+                
+                <td className="hidden md:table-cell px-4 py-3 text-sm text-muted-foreground">
+                  {cat.ownerPhone}
                 </td>
-                <td className="hidden md:table-cell px-4 py-3">
-                  <span className="text-sm text-muted-foreground">{cat?.owner?.phone || cat?.owner_phone || "—"}</span>
-                </td>                
-                <td className="hidden md:table-cell px-4 py-3">
-                  <span className="text-sm text-muted-foreground data-text">
-                    {convertDate(cat?.castrated_at || cat?.castratedAt || "—")}
-                  </span>
+
+                <td className="hidden md:table-cell px-4 py-3 text-sm text-muted-foreground data-text">
+                  {convertDate(cat.castratedAt)}
                 </td>
+
                 <td className="px-4 py-3 text-center">
-                  {(() => {
-                    const value = cat?.hasComplications || cat?.has_complications || cat?.complications;
-                    if (value?.toString().toUpperCase() === 'Y') {
-                      return (
-                        <div className="flex items-center justify-center text-destructive" title="Настъпило усложнение">
-                          <AlertTriangle size={20} strokeWidth={2.5} />
-                        </div>
-                      );
-                    }
-                    
-                    return <span className="text-muted-foreground/20">—</span>;
-                  })()}
+                  {cat.hasComplications === 'Y' ? (
+                    <div className="flex items-center justify-center text-destructive" title="Настъпило усложнение">
+                      <AlertTriangle size={20} strokeWidth={2.5} />
+                    </div>
+                  ) : (
+                    <span className="text-muted-foreground/20">—</span>
+                  )}
                 </td>
+
                 <td className="px-4 py-3">
                   <div className="flex items-center justify-end gap-2">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      iconName="Eye"
-                      onClick={() => onViewDetails(cat?.id)}
-                      aria-label={`View details for ${cat?.name}`}
-                    />
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      iconName="Edit"
-                      onClick={() => onEdit(cat)}
-                      aria-label={`Edit ${cat?.name}`}
-                    />
+                    <Button variant="ghost" size="icon" iconName="Eye" onClick={() => onViewDetails(cat.id)} />
+                    <Button variant="ghost" size="icon" iconName="Edit" onClick={() => onEdit(cat)} />
                   </div>
                 </td>
               </tr>

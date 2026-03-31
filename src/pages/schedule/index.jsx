@@ -5,7 +5,7 @@ import Breadcrumb       from "../../components/ui/Breadcrumb";
 import MakeAppointment  from "./components/MakeAppointment";
 import Calendar         from "./components/Calendar";
 import WaitingList      from "./components/WaitingList";
-// import Blacklist        from "./components/Blacklist";
+import Blacklist        from "./components/Blacklist";
 import { $apiCreateNewRecord } from "services/create_new_record";
 
 const Schedule = () => {
@@ -74,6 +74,30 @@ const Schedule = () => {
     }
   };
 
+  const handleMarkAsMissed = async (recordId) => {
+    try {
+        // Намираме записа и му сменяме статуса вътре в JSON обекта 'data'
+        const { error } = await supabase
+            .from('td_records')
+            .update({ 
+                'data': supabase.rpc('jsonb_set', {
+                    target: 'data',
+                    path: '{status}',
+                    value: '"missed"'
+                })
+            })
+            .eq('id', recordId);
+
+        if (error) throw error;
+
+        // Обновяваме календара и черния списък
+        setRefreshKey(prev => prev + 1);
+        alert("Животното е отбелязано като 'Пропуснато'.");
+    } catch (err) {
+        console.error("Грешка при обновяване на статус:", err);
+    }
+  };
+
   return (
     <>
       <Header />
@@ -97,24 +121,22 @@ const Schedule = () => {
 
           <hr className="my-10 border-border" />
 
-          {/* Секция: Форма за записване */}
+          {/* СЕКЦИЯ: Форма + Черен списък едно до друго */}
           <div className="mb-10">
-              <MakeAppointment 
+            <MakeAppointment 
                 selectedDate={date}
                 prefillData={prefillData} 
                 onAnimalAdd={(e) => registerAnimalIntoTheSystem(e)} 
-              />
+            />
+          </div>
+          
+          <div className="mb-10 items-start">
+                  {/* Подаваме refreshKey, за да се обновява списъка автоматично */}
+                  <Blacklist key={`blacklist-${refreshKey}`} />
           </div>
           
           <div className="mb-10 border-border">
             <WaitingList onSelectToSchedule={handleSelectFromWaitingList} />
-          </div>
-
-          {/* СЕКЦИЯ: Форма + Черен списък едно до друго */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-10">
-              <div className="lg:col-span-1">
-                  {/* <Blacklist /> */}
-              </div>
           </div>
 
         </div>
