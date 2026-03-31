@@ -26,6 +26,7 @@ import {  bcsScores,
           discoverySourceOptions,
           reproductiveOptions
           } from "../../constants/formOptions";
+import { mapDbToUi } from '../cat-registration-form/utils/formMapper';
 
 const CatRegistryList = () => {
   const [currentPage, setCurrentPage] = useState(1);
@@ -61,11 +62,12 @@ const CatRegistryList = () => {
     async function fetchData() {
       try {
         setIsLoading(true);
-        // Вече използваме готовата ни функция, която филтрира 'recorded'
         const { data } = await $apiGetCats();
-        setCatCollection(data || []);
+        // ТУК ПРИЛАГАМЕ formMapper
+        const mappedCats = (data || []).map(mapDbToUi);
+        setCatCollection(mappedCats);
       } catch (err) {
-        console.error("Грешка при зареждане:", err.message);
+        console.error("Грешка:", err.message);
       } finally {
         setIsLoading(false);
       }
@@ -77,98 +79,46 @@ const CatRegistryList = () => {
   const filteredAndSortedCats = useMemo(() => {
     let result = [...catCollection];
 
+    // 1. Филтър за записани
     if (!filters.showRecorded) {
-      result = result.filter(cat => {
-        // Проверяваме статуса в обекта 'data' (както го записваш в recordAnimal)
-        const status = cat.data?.status || cat.status; 
-        return status !== 'recorded' && status !== 'missed';
-      });
+      result = result.filter(cat => cat.status !== 'recorded' && cat.status !== 'missed');
     }
 
+    // 2. Търсене (изключително чисто вече!)
     const searchLower = filters.search.toLowerCase();
+    if (searchLower) {
+      result = result.filter(cat => 
+        cat.recordName.toLowerCase().includes(searchLower) ||
+        cat.ownerName.toLowerCase().includes(searchLower) ||
+        cat.ownerPhone.toLowerCase().includes(searchLower) ||
+        cat.address.toLowerCase().includes(searchLower)
+      );
+    }
 
-    result = result.filter(cat => {
-      // 1. Търсене по име на животно
-      const animalName = cat.name?.toLowerCase() || '';
-      
-      // 2. Търсене по име на собственик (проверяваме и в обекта 'owner', и в преформатираното поле)
-      const ownerName = (cat.owner?.name || cat.owner_name || '').toLowerCase();
-      
-      // 3. Търсене по ТЕЛЕФОНЕН НОМЕР
-      const ownerPhone = (cat.owner?.phone || cat.owner_phone || '').toLowerCase();
-      
-      // 4. Търсене по адрес
-      const address = (cat.location_address || '').toLowerCase();
+    // 3. Филтри по пол и цвят
+    if (filters.gender) result = result.filter(cat => cat.gender === filters.gender);
+    if (filters.color) result = result.filter(cat => cat.color === filters.color);
+    
+    // 4. Сортиране
+    result.sort((a, b) => {
+      const col = sortConfig.column;
+      const dir = sortConfig.direction === 'asc' ? 1 : -1;
 
-      return animalName.includes(searchLower) || 
-            ownerName.includes(searchLower) || 
-            ownerPhone.includes(searchLower) || // Тази линия добавя магията
-            address.includes(searchLower);
+      // Специално за дати
+      if (col === 'castrated_at') {
+        const dateA = new Date(a.castratedAt || 0).getTime();
+        const dateB = new Date(b.castratedAt || 0).getTime();
+        return (dateA - dateB) * dir;
+      }
+
+      // За текст (Кирилица)
+      const valA = String(a[col] || '').toLowerCase();
+      const valB = String(b[col] || '').toLowerCase();
+      return valA.localeCompare(valB, 'bg') * dir;
     });
 
-    if (filters.gender) {
-      result = result.filter(cat => cat.gender === filters.gender);
-    }
-
-    if (filters.color) {
-      result = result.filter(cat => cat.color === filters.color);
-    }
-    
-    result.sort((a, b) => {
-    // 1. СПЕЦИАЛНО СОРТИРАНЕ ЗА УСЛОЖНЕНИЯ
-      if (sortConfig.column === 'has_complications' || sortConfig.column === 'hasComplications') {
-        const aValue = (a.has_complications || a.data?.has_complications || 'N').toString();
-        const bValue = (b.has_complications || b.data?.has_complications || 'N').toString();
-        
-        // При 'desc' (низходящо) 'Y' ще бъде преди 'N' (т.е. усложненията най-отгоре)
-        if (sortConfig.direction === 'desc') {
-          return bValue.localeCompare(aValue);
-        } else {
-          return aValue.localeCompare(bValue);
-        }
-      }
-    
-      let aValue, bValue;
-
-    if (sortConfig.column === 'owner_name') {
-      aValue = a.owner?.name || a.owner_name || '';
-      bValue = b.owner?.name || b.owner_name || '';
-    } else if (sortConfig.column === 'owner_phone') {
-      aValue = a.owner?.phone || a.owner_phone || '';
-      bValue = b.owner?.phone || b.owner_phone || '';
-    } else if (sortConfig.column === 'castrated_at') {
-      // Вземаме времето на кастрация
-      const aDate = a.castrated_at ? new Date(a.castrated_at).getTime() : 0;
-      const bDate = b.castrated_at ? new Date(b.castrated_at).getTime() : 0;
-
-      if (aDate !== bDate) {
-        // Ако датите са различни, сортираме по тях
-        return sortConfig.direction === 'asc' ? aDate - bDate : bDate - aDate;
-      } else {
-        // АКО ДАТИТЕ СА ЕДНАКВИ: Винаги слагаме по-голямото ID (най-новия запис) отгоре
-        const aId = Number(a.id) || 0;
-        const bId = Number(b.id) || 0;
-        return bId - aId; // Низходящ ред по ID за еднакви дати
-      }
-    } else {
-      aValue = a[sortConfig.column] || '';
-      bValue = b[sortConfig.column] || '';
-    }
-
-    // Сравнение за текст (Кирилица)
-    if (typeof aValue === 'string') {
-      const comparison = aValue.localeCompare(bValue, 'bg');
-      return sortConfig.direction === 'asc' ? comparison : -comparison;
-    }
-
-    // Сравнение за числа/дати
-    if (aValue < bValue) return sortConfig.direction === 'asc' ? -1 : 1;
-    if (aValue > bValue) return sortConfig.direction === 'asc' ? 1 : -1;
-    return 0;
-  });
-
-  return result;
-}, [catCollection, filters, sortConfig]);
+    return result;
+  }, [catCollection, filters, sortConfig]);
 
   const handleFilterChange = (key, value) => {
     setFilters(prev => ({ ...prev, [key]: value }));
