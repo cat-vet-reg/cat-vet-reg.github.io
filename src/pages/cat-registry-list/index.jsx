@@ -99,7 +99,7 @@ const CatRegistryList = () => {
       );
     }
 
-    // Филтри по пол, цвят, статус
+    // Филтри: пол, цвят, статус, локация
     if (filters.gender) result = result.filter(cat => cat.gender === filters.gender);
     if (filters.color) result = result.filter(cat => cat.color === filters.color);
     if (filters.species) result = result.filter(cat => cat.species === filters.species);
