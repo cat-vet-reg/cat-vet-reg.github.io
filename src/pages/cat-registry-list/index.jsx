@@ -40,7 +40,6 @@ const CatRegistryList = () => {
     search: '',
     gender: '',
     color: '',
-    location: '',
     species: '',
     status: '',
     staffSurgeon: '',
