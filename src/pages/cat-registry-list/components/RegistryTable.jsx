@@ -45,6 +45,9 @@ const RegistryTable = ({
     onSort(column, direction);
   };
 
+  // Намираме етикета (label) на хирурга по неговата стойност (value)
+  const surgeonLabel = staffOptions.find(opt => opt.value === cats.staffSurgeon)?.label || cats.staffSurgeon || '—';
+
   return (
     <div className="bg-card rounded-lg shadow-warm">
       <div className="overflow-x-auto scrollbar-custom">
@@ -63,10 +66,11 @@ const RegistryTable = ({
                 { id: 'id', label: '#' },
                 { id: 'recordName', label: 'Име' },
                 { id: 'color', label: 'Цвят', hideMobile: true },
-                { id: 'weight', label: 'Тегло', hideMobile: true },
+                // { id: 'weight', label: 'Тегло', hideMobile: true },
                 { id: 'ownerName', label: 'Собственик' },
-                { id: 'ownerPhone', label: 'Телефон', hideMobile: true },
+                // { id: 'ownerPhone', label: 'Телефон', hideMobile: true },
                 { id: 'castratedAt', label: 'Кастрирана на', hideMobile: true },
+                { id: 'staffSurgeon', label: 'Хирург',  hideMobile: true },
                 { id: 'hasComplications', label: 'Усложнения' }
               ].map(col => (
                 <th key={col.id} className={`${col.hideMobile ? 'hidden md:table-cell' : ''} px-4 py-3 text-left`}>
@@ -85,7 +89,9 @@ const RegistryTable = ({
 
           <tbody className="divide-y divide-border">
             {cats?.map((cat) => (
-              <tr key={cat.id} className="hover:bg-muted/50 transition-smooth">
+              <tr key={cat.id} className={`
+                hover:bg-muted/50 transition-smooth
+                ${cat.ownerBlacklistReason ? 'bg-red-50/30' : ''}`}>
                 <td className="hidden md:table-cell px-4 py-3">
                   <Checkbox
                     checked={selectedCats?.includes(cat.id)}
@@ -93,18 +99,42 @@ const RegistryTable = ({
                   />
                 </td>
 
-                <td className="px-4 py-3 font-medium text-foreground">{cat.id}</td>
-
                 <td className="px-4 py-3">
-                  <div className="flex items-center gap-2">
-                    <Icon 
-                      name={cat.gender === 'male' ? 'Mars' : 'Venus'} 
-                      size={16} 
-                      color={cat.gender === 'male' ? 'var(--color-primary)' : 'var(--color-secondary)'} 
-                    />
-                    <span className="font-medium text-foreground">{cat.recordName}</span>
+                  <div className="flex items-center gap-3">
+                    {/* ID като дискретен етикет */}
+                    <span className="text-[11px] font-mono bg-muted px-1.5 py-0.5 rounded text-muted-foreground border border-border/50">
+                      {cat.id}
+                    </span>
                   </div>
                 </td>
+
+                <td className="px-4 py-3">
+                  <div className="flex items-center gap-3">
+                    <div className="flex flex-col">
+                      <div className="flex items-center gap-1.5">
+                        <Icon 
+                          name={cat.species === 'dog' ? 'Dog' : 'Cat'} 
+                          size={16} 
+                          className="text-foreground/60"
+                        />
+                        <Icon 
+                          name={cat.gender === 'male' ? 'Mars' : 'Venus'} 
+                          size={14} 
+                          color={cat.gender === 'male' ? 'var(--color-primary)' : 'var(--color-secondary)'} 
+                        />
+                        {/* Името - водещ елемент */}
+                        <span className="text-muted-foreground">
+                          {cat.recordName?.startsWith('Котка №') ? (
+                            <span className="text-muted-foreground/30 font-normal italic"></span>
+                          ) : (
+                            cat.recordName
+                          )}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </td>
+                
 
                 <td className="hidden md:table-cell px-4 py-3">
                   <div className="flex items-center gap-2">
@@ -118,24 +148,61 @@ const RegistryTable = ({
                   </div>
                 </td>
 
-                <td className="hidden md:table-cell px-4 py-3 text-sm text-muted-foreground">
+                {/* <td className="hidden md:table-cell px-4 py-3 text-sm text-muted-foreground">
                   {cat.weight ? `${cat.weight} кг` : '—'}
-                </td>
+                </td> */}
 
-                <td className="px-4 py-3 text-sm text-muted-foreground">{cat.ownerName}</td>
-                
-                <td className="hidden md:table-cell px-4 py-3 text-sm text-muted-foreground">
-                  {cat.ownerPhone}
+                <td className="px-4 py-3">
+                  <div className="flex flex-col">
+                    <span className={`text-sm font-bold ${cat.ownerBlacklistReason ? 'text-destructive' : 'text-foreground'}`}>
+                      {cat.ownerName}
+                    </span>
+                    <span className="text-xs text-muted-foreground">{cat.ownerPhone}</span>
+                  </div>
                 </td>
 
                 <td className="hidden md:table-cell px-4 py-3 text-sm text-muted-foreground data-text">
                   {convertDate(cat.castratedAt)}
                 </td>
 
-                <td className="px-4 py-3 text-center">
+                <td className="px-4 py-3">
+                  <div className="flex flex-col items-start">
+                    <span className="text-sm font-medium text-primary">
+                      {staffOptions.find(opt => opt.value === cat.staffSurgeon)?.label || cat.staffSurgeon || '—'}
+                    </span>
+                  </div>
+                </td>
+
+                <td className="px-4 py-3 text-center relative group">
                   {cat.hasComplications === 'Y' ? (
-                    <div className="flex items-center justify-center text-destructive" title="Настъпило усложнение">
+                    <div className="flex items-center justify-center text-destructive cursor-help">
                       <AlertTriangle size={20} strokeWidth={2.5} />
+                      
+                      <div className="absolute bottom-full mb-2 hidden group-hover:block z-50 w-64 p-3 bg-white text-slate-900 text-xs rounded-lg shadow-xl border border-destructive/20 pointer-events-none">
+                        <ul className="space-y-1.5">
+                          {cat.selectedComplications && cat.selectedComplications.length > 0 ? (
+                            cat.selectedComplications.map((compId, index) => {
+                              // Събираме всички опции в един общ масив за търсене
+                              const allOptions = [
+                                ...complicationOptions.female,
+                                ...complicationOptions.male,
+                                ...complicationOptions.general
+                              ];
+                              const label = allOptions.find(opt => opt.id === compId)?.label || compId;
+                              
+                              return (
+                                <li key={index} className="flex items-start gap-1.5 leading-tight">
+                                  <span className="text-destructive mt-0.5">•</span>
+                                  <span>{label}</span>
+                                </li>
+                              );
+                            })
+                          ) : (
+                            <li className="italic text-muted-foreground text-center">Няма детайли</li>
+                          )}
+                        </ul>
+                        <div className="absolute top-full left-1/2 -translate-x-1/2 border-8 border-transparent border-t-white"></div>
+                      </div>
                     </div>
                   ) : (
                     <span className="text-muted-foreground/20">—</span>

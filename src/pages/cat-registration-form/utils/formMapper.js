@@ -67,6 +67,8 @@ export const defaultFormData = {
  * @param {Object} record - The database record object.
  * @returns {Object} Populated form data.
  */
+
+//mapRecordToForm подготвя данните така, че Формата (Input) да ги разбере. Тя трябва да попълни всеки checkbox, input и select точно с очакваните стойности.
 export const mapRecordToForm = (record) => {
   if (!record) return { ...defaultFormData };
 
@@ -170,37 +172,30 @@ export const defaultRecordStructure = {
     // ... всички останали полета от defaultFormData
 };
 
+//mapDbToUi подготвя данните за Списъка (Read-only). Тук не ни трябват 50 полета, а само тези, по които филтрираме и сортираме.
 export const mapDbToUi = (record) => {
   if (!record) return {};
 
-  // Извличане на координати (поддържаме всички възможни формати от DB)
-  const coords = record.map_coordinates || record.coordinates || null;
-  
-  // Медицинска логика за лечебния регистър
-  const allProtocols = record.td_protocols || [];
-  const lastProtocol = allProtocols[allProtocols.length - 1]?.data;
-  const uniqueDiagnoses = [...new Set(allProtocols.map(p => p.data?.diagnosis).filter(Boolean))];
-
   return {
-    ...record, // Пазим оригинала
-    // Уеднаквени полета за UI:
+    // 1. Вземаме всичко от топ нивото на записа
+    ...record, 
+    
+    // 2. Уеднаквяваме имената към camelCase за твоя React код
     id              : record.id,
-    recordName      : record.name || record.recordName || `Животно №${record.id}`,
-    ownerName       : record.owner?.name || record.owner_name || record.data?.ownerName || "Няма име",
-    ownerPhone      : record.owner?.phone || record.owner_phone || record.data?.ownerPhone || "Няма телефон",
-    species         : record.species || record.data?.species || "cat",
-    gender          : record.gender || record.data?.gender || "female",
-    status          : record.status || record.data?.status || "recorded",
-    color           : record.color || record.data?.color || "",
-    castratedAt     : record.castrated_at || "",
-    address         : record.location_address || record.address || "",
-    hasComplications: record.has_complications || record.data?.has_complications || "N",
+    recordName      : record.name || `Животно №${record.id}`,
+    ownerName       : record.owner_name || record.owner?.name || "Няма име",
+    ownerPhone      : record.owner_phone || record.owner?.phone || "Няма телефон",
+    castratedAt     : record.castrated_at, 
+    status          : record.status || "recorded",
+    staffReceived   : record.staffReceived || "",
+    staffSurgeon    : record.staff_surgeon || "",
+    staffReleased   : record.staffReleased || "",
     
-    // Медицински полета (за TreatmentRegistry)
-    latestAnamnesis : lastProtocol?.anamnesis || "Няма вписана анамнеза",
-    latestTreatment : lastProtocol?.treatment || "Няма вписано лечение",
-    diagnoses       : uniqueDiagnoses.length > 0 ? uniqueDiagnoses.join(", ") : "-",
+    // 3. Вадим усложненията (гледаме директно топ нивото, както се вижда в записа ти)
+    hasComplications: record.has_complications || "N",
+    selectedComplications: record.selected_complications || [],
     
-    coords: coords
+    // 4. Подсигуряваме координатите
+    coords: record.map_coordinates || null
   };
 };
