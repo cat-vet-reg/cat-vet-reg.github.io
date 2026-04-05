@@ -10,6 +10,8 @@ import ActionButtons    from './components/ActionButtons';
 import supabase         from '../../utils/supabase';
 import ProtocolsCard    from './components/ProtocolsCard';
 import AddProtocol      from './components/AddProtocol';
+import Icon             from '../../components/AppIcon';
+
 
 const CatProfileDetails = () => {
   const navigate = useNavigate();
@@ -107,64 +109,69 @@ const CatProfileDetails = () => {
   return (
     <div className="min-h-screen bg-background">
       <Header />
-      <main className="max-w-7xl mx-auto px-4 py-8">
-        <Breadcrumb items={[
+      <main className="max-w-[1600px] mx-auto px-4 py-6">
+        {/* <Breadcrumb items={[
           { label: 'Табло', path: '/dashboard-overview' },
           { label: 'Регистрация', path: '/cat-registry-list' },
           { label: 'Профил', path: '#' }
-        ]} />
+        ]} /> */}
         
-        <ProfileHeader cat={catData} />
-        
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          <div className="lg:col-span-2 space-y-6">
-            <BasicInfoCard cat={catData} />
-            <LocationMapCard cat={catData} />
-            
-            {/* Секция Протоколи */}
-            <ProtocolsCard 
-              protocols={protocols} 
-              onAddProtocol={() => {
-                setEditingProtocol(null);
-                setIsProtocolModalOpen(true);
-              }}
-              onEditProtocol={handleEditProtocol}
-            />
-
-            {/* Използваме само isProtocolModalOpen, за да няма объркване */}
-            <AddProtocol 
-              isOpen={isProtocolModalOpen}
-              onClose={() => {
-                setIsProtocolModalOpen(false);
-                setEditingProtocol(null);
-              }}
-              petId={id}
-              protocolToEdit={editingProtocol} // Не забравяй да подадеш това!
-              onSave={(updatedProtocol) => {
-                // Ако редактираме, обновяваме масива, ако е нов - добавяме го най-отгоре
-                if (editingProtocol) {
-                  setProtocols(prev => prev.map(p => p.db_id === updatedProtocol.db_id ? updatedProtocol : p));
-                } else {
-                  setProtocols(prev => [updatedProtocol, ...prev]);
-                }
-                setIsProtocolModalOpen(false);
-                setEditingProtocol(null);
-              }}
-              lastProtocolNumber={protocols.length > 0 ? Math.max(...protocols.map(p => p.protocol_number || 0)) : 0}
-            />
-          </div>
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start mt-4">
           
-          <div className="space-y-6">
-            <OwnerContactCard owner={catData?.owner} />
-            <ActionButtons 
-              onEdit={() => navigate('/cat-registration-form', { state: { catData, isEditing: true } })} 
-              onDelete={async () => {
-                if(window.confirm("Изтриване?")) {
-                  await supabase.from('td_records').delete().eq('id', id);
-                  navigate('/cat-registry-list');
-                }
-              }} 
-            />
+          {/* ЛЯВА КОЛОНА (САЙДБАР): Всички данни за животното (Фиксирани) */}
+          <aside className="lg:col-span-4 space-y-6 lg:sticky lg:top-6 h-[calc(100vh-40px)] overflow-y-auto no-scrollbar pb-10">
+            
+            {/* Обединяваме хедъра и инфо картата за компактност */}
+            <div className="space-y-4">
+              <ProfileHeader cat={catData} isSidebar={true} /> 
+              <BasicInfoCard cat={catData} />
+              <OwnerContactCard owner={catData?.owner} />
+              <LocationMapCard cat={catData} />
+              
+              <div className="pt-2">
+                <ActionButtons 
+                  onEdit={() => navigate('/cat-registration-form', { state: { catData, isEditing: true } })} 
+                  onDelete={async () => { /* ... */ }} 
+                />
+              </div>
+            </div>
+          </aside>
+          
+          {/* ДЯСНА КОЛОНА (РАБОТНА ЗОНА): Само протоколите */}
+          <div className="lg:col-span-8">
+              <div className="p-0">
+                {/* Секция Протоколи */}
+                <ProtocolsCard 
+                  protocols={protocols} 
+                  onAddProtocol={() => {
+                    setEditingProtocol(null);
+                    setIsProtocolModalOpen(true);
+                  }}
+                  onEditProtocol={handleEditProtocol}
+                />
+
+                {/* Използваме само isProtocolModalOpen, за да няма объркване */}
+                <AddProtocol 
+                  isOpen={isProtocolModalOpen}
+                  onClose={() => {
+                    setIsProtocolModalOpen(false);
+                    setEditingProtocol(null);
+                  }}
+                  petId={id}
+                  protocolToEdit={editingProtocol} // Не забравяй да подадеш това!
+                  onSave={(updatedProtocol) => {
+                    // Ако редактираме, обновяваме масива, ако е нов - добавяме го най-отгоре
+                    if (editingProtocol) {
+                      setProtocols(prev => prev.map(p => p.db_id === updatedProtocol.db_id ? updatedProtocol : p));
+                    } else {
+                      setProtocols(prev => [updatedProtocol, ...prev]);
+                    }
+                    setIsProtocolModalOpen(false);
+                    setEditingProtocol(null);
+                  }}
+                  lastProtocolNumber={protocols.length > 0 ? Math.max(...protocols.map(p => p.protocol_number || 0)) : 0}
+                />
+              </div>
           </div>
         </div>
       </main>

@@ -83,19 +83,7 @@ const BasicInfoCard = ({ cat }) => {
       </div>
     );
   };
-  const infoItems = [
-    {
-      icon: 'User',
-      label: 'Пол',
-      value: genderOptions.find(opt => opt.value === cat?.gender)?.label || cat?.gender || 'Неизвестен',
-      color: cat?.gender === 'male' ? 'text-primary' : 'text-secondary'
-    },
-    {
-      icon: 'Palette',
-      label: 'Цвят',
-      value: colorOptions.find(opt => opt.value === cat?.color)?.label || cat?.color || 'Неизвестен',
-      color: cat?.gender === 'male' ? 'text-primary' : 'text-secondary'
-    },
+const infoItems = [
     {
       icon: 'Weight',
       label: 'Тегло',
@@ -104,86 +92,65 @@ const BasicInfoCard = ({ cat }) => {
     },
     {
       icon: 'Sprout',
-      label: 'Възраст на кастрация',
-      value: `${cat?.age_value} ${ageUnitOptions.find(opt => opt.value === cat?.age_unit)?.label || cat?.age_unit || 'Неизвестен'}`,
+      label: 'Възраст (кастр.)',
+      value: `${cat?.age_value} ${ageUnitOptions.find(opt => opt.value === cat?.age_unit)?.label || ''}`,
       color: 'text-warning'
     },
     {
-      icon: 'MapPin',
-      label: 'Локация',
-      value: cat?.foundLocation,
-      color: 'text-success'
-    },
-    {
-      icon: 'House',
-      label: 'Къде живее:',
-      value: renderLivingCondition(),
-      color: 'text-success'
-    },
-    {
       icon: 'Calendar',
-      label: 'Дата на кастрация',
+      label: 'Дата кастрация',
       value: neuterDate,
       color: 'text-warning'
     },
     {
+      icon: 'House', // КЪДЕ ЖИВЕЕ
+      label: 'Местообитание',
+      value: renderLivingCondition(),
+      color: 'text-success'
+    },
+    {
+      icon: 'Scissors',
+      label: 'Маркирано ухо',
+      value: hasEarMarked ? 'Да' : 'Не',
+      color: hasEarMarked ? 'text-success' : 'text-muted-foreground'
+    },
+    {
       icon: 'AlertTriangle',
-      label: 'Статус на усложненията',
+      label: 'Усложнения',
       value: renderComplications(),
       color: hasComp ? 'text-destructive' : 'text-success'
     },
     {
       icon: 'FileText',
       label: 'Бележки',
-      value: cat?.notes || '—',
+      value: <div className="max-w-[150px] truncate text-right ml-auto">{cat?.notes || '—'}</div>,
       color: 'text-primary'
-    },
-    {
-      icon: 'Scissors', // Ножица е много подходяща икона за рязано ухо
-      label: 'Маркирано ухо',
-      value: (
-        <div className="flex items-center gap-2">
-          {hasEarMarked ? (
-            <span className="text-success flex items-center gap-1">
-              <Icon name="Check" size={16} /> Да
-            </span>
-          ) : (
-            <span className="text-muted-foreground flex items-center gap-1">
-              <Icon name="X" size={16} /> Не
-            </span>
-          )}
-        </div>
-      ),
-      color: hasEarMarked ? 'text-success' : 'text-muted-foreground'
-    },
+    }
   ];
 
-  return (
-    <div className="bg-card rounded-xl shadow-warm p-4 md:p-6 lg:p-8">
-      <div className="flex items-center gap-3 mb-4 md:mb-6">
-        <div className="flex items-center justify-center w-10 h-10 md:w-12 md:h-12 bg-primary/10 rounded-lg">
-          <Icon name="Info" size={20} color="var(--color-primary)" className="md:w-6 md:h-6" />
-        </div>
-        <h2 className="text-xl md:text-2xl lg:text-3xl font-heading font-semibold text-foreground">
-          Основна информация
+ return (
+    <div className="bg-card rounded-xl shadow-sm border border-border p-4">
+      <div className="flex items-center gap-2 mb-3 pb-2 border-b border-border">
+        <Icon name="Info" size={16} className="text-primary" />
+        <h2 className="text-xs font-heading font-bold text-foreground uppercase tracking-wider">
+          Данни на пациента
         </h2>
       </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
-        {infoItems?.map((item, index) => (
+
+      <div className="grid grid-cols-1 gap-y-2">
+        {infoItems.map((item, index) => (
           <div 
             key={index}
-            className="flex items-start gap-3 md:gap-4 p-3 md:p-4 rounded-lg bg-muted/30 hover:bg-muted/50 transition-smooth"
+            className="flex justify-between items-start py-1.5 border-b border-dotted border-muted last:border-0"
           >
-            <div className={`flex-shrink-0 w-10 h-10 md:w-12 md:h-12 rounded-lg bg-background flex items-center justify-center ${item?.color}`}>
-              <Icon name={item?.icon} size={20} className="md:w-6 md:h-6" />
+            <div className="flex items-center gap-2 shrink-0">
+              <Icon name={item.icon} size={13} className={`${item.color} opacity-80`} />
+              <span className="text-[10px] text-muted-foreground font-semibold uppercase tracking-wider">
+                {item.label}
+              </span>
             </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-xs md:text-sm text-muted-foreground mb-1">
-                {item?.label}
-              </p>
-              <div className="text-sm md:text-base lg:text-lg font-medium text-foreground break-words">
-                {item?.value}
-              </div>
+            <div className="text-xs font-bold text-foreground text-right pl-4">
+              {item.value}
             </div>
           </div>
         ))}

@@ -103,6 +103,16 @@ const FilterPanel = ({
                 searchable
               />
 
+              {/* ХИРУРГ */}
+              <Select
+                label="Хирург"
+                options={staffOptions}
+                value={filters?.staffSurgeon}
+                onChange={(val) => onFilterChange('staffSurgeon', val)}
+                clearable
+                searchable
+              />
+
               {/* МЕСТОЖИВЕЕНЕ */}
               <Input
                 label="Местоживеене (Квартал/Улица)"

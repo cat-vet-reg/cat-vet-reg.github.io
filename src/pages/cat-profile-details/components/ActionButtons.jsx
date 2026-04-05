@@ -20,7 +20,7 @@ const ActionButtons = ({ onEdit, onDelete }) => {
   return (
     <>
       <div className="bg-card rounded-xl shadow-warm p-4 md:p-6 lg:p-8">
-        <h2 className="text-xl md:text-2xl lg:text-3xl font-heading font-semibold text-foreground mb-4 md:mb-6">
+        <h2 className="text-xl font-heading font-bold text-foreground truncate leading-tight mb-4 md:mb-6">
           Действия
         </h2>
         
@@ -33,16 +33,6 @@ const ActionButtons = ({ onEdit, onDelete }) => {
             fullWidth
           >
             Редактирай
-          </Button>
-          
-          <Button
-            variant="outline"
-            iconName="MapPin"
-            iconPosition="left"
-            onClick={() => window.location.href = '/interactive-cat-map'}
-            fullWidth
-          >
-            Виж на картата
           </Button>
           
           <Button

@@ -11,41 +11,46 @@ const OwnerContactCard = ({ owner }) => {
     window.location.href = `mailto:${owner?.email}`;
   };
 
-  return (
-    <div className="bg-card rounded-xl shadow-warm p-4 md:p-6 lg:p-8">
-      <div className="flex items-center gap-3 mb-4 md:mb-6">
-        <div className="flex items-center justify-center w-10 h-10 md:w-12 md:h-12 bg-primary/10 rounded-lg">
-          <Icon name="UserCircle" size={20} color="var(--color-primary)" className="md:w-6 md:h-6" />
-        </div>
-        <h2 className="text-xl md:text-2xl lg:text-3xl font-heading font-semibold text-foreground">
+return (
+    <div className="bg-card rounded-xl shadow-sm border border-border p-4">
+      {/* Малко хедърче */}
+      <div className="flex items-center gap-2 mb-3 pb-2 border-b border-border">
+        <Icon name="UserCircle" size={16} className="text-primary" />
+        <h2 className="text-xs font-heading font-bold text-foreground uppercase tracking-wider">
           Лице за контакт
         </h2>
       </div>
-      <div className="space-y-4 md:space-y-6">
-        <div className="flex items-start gap-3 md:gap-4 p-3 md:p-4 rounded-lg bg-muted/30">
-          <div className="flex-shrink-0 w-10 h-10 md:w-12 md:h-12 rounded-lg bg-background flex items-center justify-center text-primary">
-            <Icon name="User" size={20} className="md:w-6 md:h-6" />
+
+      <div className="space-y-2">
+        {/* ИМЕ - Компактен ред */}
+        <div className="flex items-center gap-3 p-2 rounded-lg bg-muted/20 border border-transparent">
+          <div className="flex-shrink-0 w-8 h-8 rounded bg-background flex items-center justify-center text-muted-foreground border border-border/50">
+            <Icon name="User" size={14} />
           </div>
-          <div className="flex-1 min-w-0">
-            <p className="text-xs md:text-sm text-muted-foreground mb-1">Име на собственика</p>
-            <p className="text-sm md:text-base lg:text-lg font-medium text-foreground break-words">
-              {owner?.name}
+          <div className="min-w-0">
+            <p className="text-[10px] text-muted-foreground leading-none mb-0.5 uppercase font-medium">Собственик</p>
+            <p className="text-sm font-bold text-foreground truncate">
+              {owner?.name || "Неизвестен"}
             </p>
           </div>
         </div>
 
-        <div className="flex items-start gap-3 md:gap-4 p-3 md:p-4 rounded-lg bg-muted/30">
-          <div className="flex-shrink-0 w-10 h-10 md:w-12 md:h-12 rounded-lg bg-background flex items-center justify-center text-success">
-            <Icon name="Phone" size={20} className="md:w-6 md:h-6" />
+        {/* ТЕЛЕФОН - Интерактивен ред */}
+        <button 
+          onClick={handleCall}
+          className="w-full flex items-center gap-3 p-2 rounded-lg bg-success/5 border border-success/10 hover:bg-success/10 transition-colors group text-left"
+        >
+          <div className="flex-shrink-0 w-8 h-8 rounded bg-success/10 flex items-center justify-center text-success group-hover:scale-110 transition-transform">
+            <Icon name="Phone" size={14} />
           </div>
-          <div className="flex-1 min-w-0">
-            <p className="text-xs md:text-sm text-muted-foreground mb-1">Телефонен номер</p>
-            <p className="text-sm md:text-base lg:text-lg font-medium text-foreground font-mono data-text whitespace-nowrap">
-              {owner?.phone}
+          <div className="min-w-0">
+            <p className="text-[10px] text-success/70 leading-none mb-0.5 uppercase font-medium">Телефон</p>
+            <p className="text-sm font-mono font-bold text-foreground tracking-tight">
+              {owner?.phone || "—"}
             </p>
           </div>
-        </div>
-
+          <Icon name="ExternalLink" size={12} className="ml-auto text-success/40 opacity-0 group-hover:opacity-100 transition-opacity" />
+        </button>
       </div>
     </div>
   );

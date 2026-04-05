@@ -45,9 +45,6 @@ const RegistryTable = ({
     onSort(column, direction);
   };
 
-  // Намираме етикета (label) на хирурга по неговата стойност (value)
-  const surgeonLabel = staffOptions.find(opt => opt.value === cats.staffSurgeon)?.label || cats.staffSurgeon || '—';
-
   return (
     <div className="bg-card rounded-lg shadow-warm">
       <div className="overflow-x-auto scrollbar-custom">

@@ -1,6 +1,22 @@
 import React from 'react';
 import Icon from '../../../components/AppIcon';
-import { statusOptions } from '../../../constants/formOptions';
+import {  genderOptions, 
+          bcsScores,
+          getBcsDescription,
+          ageUnitOptions, 
+          colorOptions, 
+          habitat,
+          origin,
+          generalConditionOptions, 
+          statusOptions, 
+          complicationOptions,
+          staffOptions,
+          earStatusOptions,
+          parasiteOptions,
+          discoverySourceOptions,
+          reproductiveOptions 
+          } from "../../../constants/formOptions";
+import { cityOptions } from '../../../constants/city_options';
 
 const ProfileHeader = ({ cat }) => {
   // 1. Дефинираме функцията за формат на датата ВЪТРЕ в компонента
@@ -30,59 +46,70 @@ const ProfileHeader = ({ cat }) => {
   
   const STORAGE_URL = "https://gexgpozvrhurkhrlvaah.supabase.co/storage/v1/object/public/protocol_images";
 
-    return (
-    <div className="bg-card rounded-xl shadow-warm p-4 md:p-6 lg:p-8 mb-4 md:mb-6">
-      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 md:gap-6">
-        <div className="flex items-start gap-4 md:gap-6">
-          <div className="flex-shrink-0 w-16 h-16 md:w-20 md:h-20 lg:w-24 lg:h-24 bg-primary/10 rounded-xl flex items-center justify-center overflow-hidden relative">
-            {cat?.id ? (
-              <>
-                <img
-                  src={`${STORAGE_URL}/records/${cat.id}/avatar.png?t=${new Date(cat.updated_at || cat.created_at).getTime()}`}
-                  alt={cat?.name}
-                  className="w-full h-full object-cover"
-                  onError={(e) => {
-                    // Ако в Storage НЯМА снимка, скриваме счупеното изображение и показваме иконата
-                    e.target.style.display = 'none';
-                    e.target.nextSibling.style.display = 'flex';
-                  }}
-                />
-                {/* Тази икона ще е скрита първоначално и ще се покаже само при грешка (onError) */}
-                <div style={{ display: 'none' }} className="w-full h-full items-center justify-center">
-                  <Icon name="Cat" size={40} color="var(--color-primary)" />
-                </div>
-              </>
-            ) : (
-              <Icon name="Cat" size={40} color="var(--color-primary)" />
-            )}
-          </div>
-          
-          <div className="flex-1 min-w-0">
-            <h1 className="text-2xl md:text-3xl lg:text-4xl font-heading font-semibold text-foreground mb-2">
-              {cat?.name}
-            </h1>
-            <div className="flex flex-wrap items-center gap-2 md:gap-3 text-sm md:text-base text-muted-foreground">
-              <div className="flex items-center gap-1.5">
-                <Icon name="Hash" size={16} className="md:w-5 md:h-5" />
-                <span className="font-mono data-text">{cat?.id}</span>
-              </div>
-              <span className="hidden sm:inline">•</span>
-              <div className="flex items-center gap-1.5">
-                <Icon name="Calendar" size={16} className="md:w-5 md:h-5" />
-                <span>{formatDate(cat?.created_at)}</span>
+  // Намираме обекта на града по неговото value (напр. Mokren_SLV)
+  const cityObj = cityOptions.find(opt => opt.value === cat?.location_city);
+
+  // Ако намерим града, взимаме label-а, иначе показваме оригиналния ключ или '—'
+  const displayCity = cityObj ? cityObj.label : (cat?.location_city || '—');
+
+  return (
+    <div className="bg-card rounded-xl shadow-sm border border-border p-4 mb-4">
+      <div className="flex items-start gap-4">
+        {/* Снимка */}
+        <div className="flex-shrink-0 w-16 h-16 bg-primary/10 rounded-lg overflow-hidden relative border border-primary/20">
+           <img
+              src={`${STORAGE_URL}/records/${cat.id}/avatar.png?t=${new Date(cat.updated_at || cat.created_at).getTime()}`}
+              alt={cat?.name}
+              className="w-full h-full object-cover"
+              onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'flex'; }}
+            />
+            <div style={{ display: 'none' }} className="w-full h-full items-center justify-center">
+              <Icon name="Cat" size={24} color="var(--color-primary)" />
+            </div>
+        </div>
+        
+        <div className="flex-1 min-w-0">
+          <div className="flex items-start justify-between gap-2">
+            <div>
+              <h1 className="text-xl font-heading font-bold text-foreground truncate leading-tight">
+                {cat?.name}
+              </h1>
+              {/* НОМЕР (ID) веднага под името */}
+              <div className="flex items-center gap-1 text-[10px] font-mono text-muted-foreground bg-muted/50 px-1.5 py-0.5 rounded w-fit mt-0.5">
+                <Icon name="Hash" size={10} />
+                {cat?.id}
               </div>
             </div>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-2 md:gap-3">
-          <span className={`
-              inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs md:text-sm font-bold uppercase tracking-wider shadow-sm
-              ${currentStatus.color}
-            `}>
-              <Icon name={currentStatus.icon} size={14} />
+            <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border ${currentStatus.color} shrink-0`}>
               {currentStatus.label}
-          </span>
+            </span>
+          </div>
+
+          {/* Параметри + Дата на регистрация */}
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-2 text-xs text-muted-foreground border-t border-border/50 pt-2">
+            <div className="flex items-center gap-1">
+              <Icon name={cat?.gender === 'male' ? 'Mars' : 'Venus'} size={12} className={cat?.gender === 'male' ? 'text-blue-500' : 'text-pink-500'} />
+              <span className="capitalize">{cat?.gender === 'male' ? 'Мъжки' : 'Женски'}</span>
+            </div>
+            <span>•</span>
+            <div className="flex items-center gap-1">
+              <Icon name="Palette" size={12} />
+              <span className="truncate max-w-[70px]">{colorOptions.find(opt => opt.value === cat?.color)?.label || cat?.color || '—'}</span>
+            </div>
+            <span>•</span>
+            <div className="flex items-center gap-1" title={cityObj?.description}> 
+              <Icon name="MapPin" size={12} className="text-success" />
+              <span className="truncate max-w-[100px] font-medium">
+                {displayCity}
+              </span>
+            </div>
+          </div>
+          
+          {/* ДАТА НА РЕГИСТРАЦИЯ */}
+          <div className="mt-2 flex items-center gap-1.5 text-[10px] text-muted-foreground/70 italic">
+             <Icon name="Calendar" size={10} />
+             Регистриран на: {formatDate(cat?.created_at)}
+          </div>
         </div>
       </div>
     </div>

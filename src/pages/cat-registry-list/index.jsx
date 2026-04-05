@@ -43,6 +43,7 @@ const CatRegistryList = () => {
     location: '',
     species: '',
     status: '',
+    staffSurgeon: '',
     location: '',
     showRecorded: false
   });
@@ -103,7 +104,7 @@ const CatRegistryList = () => {
     if (filters.color) result = result.filter(cat => cat.color === filters.color);
     if (filters.species) result = result.filter(cat => cat.species === filters.species);
     if (filters.status)  result = result.filter(cat => cat.status === filters.status);
-    
+    if (filters.staffSurgeon) result = result.filter(cat => cat.staffSurgeon === filters.staffSurgeon);
     if (filters.location) {
       const locLower = filters.location.toLowerCase();
       result = result.filter(cat => cat.address?.toLowerCase().includes(locLower));
@@ -220,7 +221,7 @@ const CatRegistryList = () => {
           onClearFilters={handleClearFilters}
           genderOptions={genderOptions} 
           colorOptions={colorOptions}   
-          // Ако имаш локации, можеш да подадеш и тях, или празен масив за сега
+          staffOptions={staffOptions}   
           locationOptions={[]}          
         />
 
