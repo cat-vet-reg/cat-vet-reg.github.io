@@ -34,82 +34,93 @@ const FilterPanel = ({
     <div className="bg-card rounded-2xl p-4 md:p-6 shadow-warm mb-4 md:mb-6 border border-border/50">
       <div className="flex flex-col gap-6">
         
-        {/* 1. ГЛАВНА СЕКЦИЯ: Търсачка и Бутони */}
+        {/* 1. ГЛАВНА СЕКЦИЯ */}
         <div className="flex flex-col sm:flex-row sm:items-end gap-4">
           <div className="flex-1">
             <Input
               type="search"
               label="Бързо търсене"
-              placeholder="Търси по животно, собственик или телефонен номер..."
+              placeholder="Търси по име, адрес или телефон..."
               value={filters?.search}
               onChange={(e) => onFilterChange('search', e?.target?.value)}
               className="w-full"
             />
           </div>
-
           <div className="flex items-center gap-3">
             <Button
               variant="secondary"
               onClick={() => setIsAdvancedVisible(!isAdvancedVisible)}
               iconName={isAdvancedVisible ? "ChevronUp" : "SlidersHorizontal"}
-              iconPosition="left"
               className="flex-shrink-0"
             >
               {isAdvancedVisible ? "Скрий филтрите" : "Детайлни филтри"}
             </Button>
-            
-            <Button
-              variant="ghost"
-              onClick={onClearFilters}
-              iconName="X"
-              iconPosition="left"
-              className="text-xs py-1"
-            >
+            <Button variant="ghost" onClick={onClearFilters} iconName="X" className="text-xs py-1">
               Изчисти
             </Button>
           </div>
         </div>
 
-        {/* 2. ДЕТАЙЛНИ ФИЛТРИ (Сгъваема секция) */}
+        {/* 2. ДЕТАЙЛНИ ФИЛТРИ */}
         {isAdvancedVisible && (
           <div className="pt-6 border-t border-border/70 animate-in fade-in slide-in-from-top-3">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
-              <Select
-                label="Пол на животното"
-                placeholder="Избери пол"
-                options={genderOptions}
-                value={filters?.gender}
-                onChange={(value) => onFilterChange('gender', value)}
-                clearable
-              />
+              
+              {/* ВИД (Куче/Котка) */}
               <Select
                 label="Вид животно"
-                placeholder="Избери вид"
                 options={speciesOptions}
                 value={filters?.species}
-                onChange={(value) => onFilterChange('species', value)}
-                searchable
+                onChange={(val) => onFilterChange('species', val)}
                 clearable
               />
+
+              {/* ПОЛ */}
+              <Select
+                label="Пол"
+                options={genderOptions}
+                value={filters?.gender}
+                onChange={(val) => onFilterChange('gender', val)}
+                clearable
+              />
+
+              {/* СТАТУС */}
+              <Select
+                label="Статус"
+                options={statusOptions.map(s => ({ value: s.id, label: s.label }))}
+                value={filters?.status}
+                onChange={(val) => onFilterChange('status', val)}
+                clearable
+              />
+
+              {/* ЦВЯТ */}
               <Select
                 label="Цвят на козината"
-                placeholder="Избери цвят"
                 options={colorOptions}
                 value={filters?.color}
-                onChange={(value) => onFilterChange('color', value)}
-                searchable
+                onChange={(val) => onFilterChange('color', val)}
                 clearable
+                searchable
               />
+
+              {/* МЕСТОЖИВЕЕНЕ */}
+              <Input
+                label="Местоживеене (Квартал/Улица)"
+                placeholder="Напр. Тракия..."
+                value={filters?.location}
+                onChange={(e) => onFilterChange('location', e.target.value)}
+              />
+
             </div>
           </div>
         )}
 
-        {/* 3. ОПЦИИ ЗА АРХИВА (Винаги видима) */}
+        {/* 3. АРХИВ */}
         <div className="flex items-center justify-between border-t border-border/70 pt-4">
           <label className="flex items-center gap-3 cursor-pointer text-sm font-medium text-slate-700">
             <input 
               type="checkbox" 
-              className="w-5 h-5 rounded border-gray-300 text-primary focus:ring-primary transition-all cursor-pointer"
+              className="w-5 h-5 rounded border-gray-300 text-primary cursor-pointer"
               checked={filters?.showRecorded || false}
               onChange={(e) => onFilterChange('showRecorded', e.target.checked)}
             />

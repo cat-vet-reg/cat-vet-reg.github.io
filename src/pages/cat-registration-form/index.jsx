@@ -46,40 +46,24 @@ import { findDistrict }                     from "../../constants/zona_find";
 
 const CatRegistrationForm = () => {
 
-  const navigate = useNavigate();
-
+const navigate = useNavigate();
   const location = useLocation(); 
 
-  // Вземаме данните, ако идваме от бутона "Редактирай"
+  // Вземаме данните от навигацията
   const editingData = location.state?.catData;
   const [isEditing, setIsEditing] = useState(!!location.state?.isEditing);
-  //const isEditing = !!location.state?.isEditing;
 
-  // Initial state derived from editingData (if present) or defaults
+  // ГЛАВНО: Инициализираме formData директно през мапера
   const [formData, setFormData] = useState(() => mapRecordToForm(editingData));
-  const [coordinates, setCoordinates] = useState(formData.coords || null);
   const [mapUrl, setMapUrl]     = useState('AIzaSyCSyjPTq09LYc7lcBxotOnv-KBTiEfNbOI');
 
 
   useEffect(() => {
-
-    fetch(
-      `https://mihail-petrov.me/apimap/index.php`
-    )
-      .then(res => {
-        if (!res.ok) {
-          throw new Error('Failed to load map');
-        }
-        return res.json();
-      })
-      .then(data => {
-        setMapUrl(data.mapUrl);
-      })
-      .catch(() => {
-        setMapUrl(null);
-      })
-
-  });
+    fetch(`https://mihail-petrov.me/apimap/index.php`)
+      .then(res => res.ok ? res.json() : Promise.reject())
+      .then(data => setMapUrl(data.mapUrl))
+      .catch(() => console.log("Using default API key"));
+  }, []); // Празен масив = изпълнява се само при "Mount"
 
 
   const getCoordinates = async (city, address) => {
@@ -112,64 +96,42 @@ const CatRegistrationForm = () => {
     if (editingData) {
       const mappedData = mapRecordToForm(editingData);
       setFormData(mappedData);
-      
-      if (mappedData.coords) {
-        setCoordinates(mappedData.coords);
-      }
-      
-      if (mappedData.livingCondition) {
-        setLivingConditions(new Set(mappedData.livingCondition));
-      }
-      
       // console.log("Данни за редактиране (mapped):", mappedData);
     }
   }, [editingData]);
 
   useEffect(() => {
-    if (!isEditing || !formData.inductionDose) {
-      if (formData.gender === "female") {
-        handleInputChange("inductionDose", "0.11");
-      } else if (formData.gender === "male") {
-        handleInputChange("inductionDose", "0.12");
-      }
+    if (isEditing) return; // Не пипаме автоматично, ако редактираме
+
+    const dose = formData.gender === "female" ? "0.11" : "0.12";
+    handleInputChange("inductionDose", dose);
+    
+    if (!formData.reproductiveStatus) {
+      handleInputChange("reproductiveStatus", "none_visible");
     }
-    if (!formData.reproductiveStatus || formData.reproductiveStatus === "") {
-        handleInputChange("reproductiveStatus", "none_visible");
-    }
-  }, [formData.gender]);
+  }, [formData.gender]); // Гледа само пола
 
   useEffect(() => {
-    // 1. Проверяваме дали имаме град и адрес
     if (!formData.recordCity || !formData.address) return;
 
-    // 2. Дебънс (debounce) - изчакваме 1 сек.
     const timer = setTimeout(async () => {
-      
-      // Проверка: ако координатите за този адрес вече са налични, не търсим пак
-      if (!coordinates || coordinates.address !== formData.address) {
+      // Проверяваме директно в formData
+      if (formData.coords?.address !== formData.address) {
         setIsValidatingAddress(true);
-        
         const coords = await getCoordinates(formData.recordCity, formData.address);
-        
         if (coords) {
-          setCoordinates(coords);
-          setFormData(prev => ({ ...prev, coords }));
+          // Записваме директно в общия обект
+          handleInputChange("coords", coords); 
+          
+          const detectedZone = findDistrict(coords.lat, coords.lng);
+          handleInputChange("zonaNumber", detectedZone);
         }
-        
         setIsValidatingAddress(false);
       }
-    }, 1000); 
+    }, 1000);
 
     return () => clearTimeout(timer);
-  }, [formData.recordCity, formData.address]); // <--- Добавено за стабилност
-
-
-  useEffect(() => {
-      if (coordinates && coordinates.lat) { // Тук вече няма да има грешка
-        const detectedZone = findDistrict(coordinates.lat, coordinates.lng);
-        handleInputChange("zonaNumber", detectedZone);
-      }
-  }, [coordinates]);
+  }, [formData.recordCity, formData.address]);
 
   // Автоматично намиране на име на собственик по телефонен номер
   useEffect(() => {
@@ -265,7 +227,6 @@ const CatRegistrationForm = () => {
   const [isSubmitting         , setIsSubmitting         ] = useState(false);
   const [showSuccessModal     , setShowSuccessModal     ] = useState(false);
   const [registeredCatData    , setRegisteredCatData    ] = useState(null);
-  const [livingConditions     , setLivingConditions     ] = useState(new Set(formData.livingCondition || []));
 
   const breadcrumbItems = [
     { label: "Табло"              , path: "/dashboard-overview" },
@@ -362,34 +323,30 @@ const CatRegistrationForm = () => {
     return Object.keys(newErrors)?.length === 0;
   };
 
-const handleSubmit = (e) => {
-  e?.preventDefault();
-  if (!validateForm()) return;
+  const handleSubmit = (e) => {
+    e?.preventDefault();
+    if (!validateForm()) return;
 
-  setIsSubmitting(true);
+    setIsSubmitting(true);
 
-  // Важно: Подаваме formData, isEditing и ID-то на котката
-  $apiCreateNewRecord(formData, isEditing, editingData?.id)
-    .then(() => {
-      setRegisteredCatData({
-        ...formData,
-        registeredAt: new Date()?.toISOString(),
+    // Вече подаваме директно formData.id, което дойде от мапера
+    $apiCreateNewRecord(formData, isEditing, formData.id)
+      .then(() => {
+        setRegisteredCatData({ ...formData, registeredAt: new Date().toISOString() });
+        setIsSubmitting(false);
+        setShowSuccessModal(true);
+      })
+      .catch((err) => {
+        console.error("Грешка при запис:", err);
+        setIsSubmitting(false);
       });
-      setIsSubmitting(false);
-      setShowSuccessModal(true);
-    })
-    .catch((err) => {
-      console.error("Грешка при запис:", err);
-      setIsSubmitting(false);
-    });
-};
+  };
 
 const handleSuccessModalClose = (state) => {
   setShowSuccessModal(false);
 
   if (state == "close") {
     setFormData(defaultFormData);
-    setLivingConditions(new Set());
   }
 
   if (state == "same_owner") {
@@ -400,16 +357,7 @@ const handleSuccessModalClose = (state) => {
       ownerPhone: formData.ownerPhone,
       donation: formData.donation
     });
-
-    setLivingConditions(new Set());
     navigate(location.pathname, { replace: true, state: {} }); // <--- ТОВА ИЗЧИСТВА ID-то от паметта на браузъра
-  }
-
-  setCoordinates(null);
-  setRegisteredCatData(null);
-
-  if(state != "same_owner") {
-    navigate("/cat-registry-list");
   }
 };
 
@@ -418,19 +366,17 @@ const handleSuccessModalClose = (state) => {
   };
 
   const onCheckLocation = (id) => {
-
-    setLivingConditions((prev) => {
-      const abc = new Set(prev);
-
-      if (abc.has(id)) {
-        abc.delete(id);
+    setFormData(prev => {
+      const currentConditions = new Set(prev.livingCondition || []);
+      if (currentConditions.has(id)) {
+        currentConditions.delete(id);
       } else {
-        abc.add(id);
+        currentConditions.add(id);
       }
-
-      handleInputChange("livingCondition", Array.from(abc));
-
-      return abc;
+      return {
+        ...prev,
+        livingCondition: Array.from(currentConditions)
+      };
     });
   };
 
@@ -818,9 +764,6 @@ const handleSuccessModalClose = (state) => {
 
                               const lat = place.geometry.location.lat();
                               const lng = place.geometry.location.lng();
-
-                              // 1. Сетваме координатите веднага
-                              setCoordinates({ lat, lng });
                               
                               // 2. Спираме лоудинг индикатора веднага
                               setIsValidatingAddress(false); 
@@ -863,17 +806,17 @@ const handleSuccessModalClose = (state) => {
                   <Checkbox
                     label="на улицата"
                     onChange={(e) => onCheckLocation("street")}
-                    checked={livingConditions.has("street")}
+                    checked={formData.livingCondition?.includes("street")}
                   />
                   <Checkbox
                     label="на двора"
                     onChange={(e) => onCheckLocation("outdoor")}
-                    checked={livingConditions.has("outdoor")}
+                    checked={formData.livingCondition?.includes("outdoor")}
                   />
                   <Checkbox
                     label="в дома"
                     onChange={(e) => onCheckLocation("indoor")}
-                    checked={livingConditions.has("indoor")}
+                    checked={formData.livingCondition?.includes("indoor")}
                   />
 
                   {/* Достъп навън */}
@@ -1353,7 +1296,7 @@ const handleSuccessModalClose = (state) => {
                 >
                   <MapPreview
                     address={formData?.address}
-                    coordinates={coordinates}
+                    coordinates={formData?.coords}
                     isValidating={isValidatingAddress}
                   />
                 </FormSection>
@@ -1430,7 +1373,7 @@ const handleSuccessModalClose = (state) => {
 
       <InformedConsent 
         key={formData.signature ? 'signed' : 'empty'}
-        data={{...formData, livingConditions: livingConditions}} 
+        data={{formData}} 
         signature={formData.signature}
       />
 

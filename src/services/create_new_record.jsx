@@ -132,20 +132,31 @@ async function recordAnimal(formData, ownerId) {
  * @param {*} formData 
  * @returns 
  */
-// async function recordOwner(formData) {
- 
-//     return await supabase.from('td_owners').insert({
-//         name              : formData?.ownerName,
-//         phone             : formData?.ownerPhone,
-//     }).select();
-// }
 async function recordOwner(formData) {
-    // Използваме upsert с опция onConflict: 'phone'
-    // Така ако телефонът съществува, автоматично ще обнови името
-    return await supabase.from('td_owners').upsert({
-        name: formData?.ownerName,
-        phone: formData?.ownerPhone,
-    }, { onConflict: 'phone' }).select();
+    if (!formData?.ownerPhone) {
+        throw new Error("Телефонният номер е задължителен.");
+    }
+
+    // ВАЖНО: Създаваме чисто нов обект БЕЗ 'id'
+    const cleanOwnerData = {
+        name: formData.ownerName,
+        phone: formData.ownerPhone
+    };
+
+    const { data, error } = await supabase
+        .from('td_owners')
+        .upsert(cleanOwnerData, { 
+            onConflict: 'phone', 
+            ignoreDuplicates: false 
+        })
+        .select();
+
+    if (error) {
+        console.error("Owner Upsert Error Details:", error);
+        throw error;
+    }
+
+    return { data };
 }
 
 /**

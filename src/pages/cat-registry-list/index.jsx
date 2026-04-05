@@ -41,6 +41,9 @@ const CatRegistryList = () => {
     gender: '',
     color: '',
     location: '',
+    species: '',
+    status: '',
+    location: '',
     showRecorded: false
   });
 
@@ -57,7 +60,7 @@ const CatRegistryList = () => {
 
   const [selectedCats, setSelectedCats] = useState([]);
 
-  // 1. Вземане на данните, минаващи през филтъра за статуса "записани".
+  // 1. Вземане на данните
   useEffect(() => {
     async function fetchData() {
       try {
@@ -79,12 +82,12 @@ const CatRegistryList = () => {
   const filteredAndSortedCats = useMemo(() => {
     let result = [...catCollection];
 
-    // 1. Филтър за записани
+    // Филтър за записани и липсващи
     if (!filters.showRecorded) {
       result = result.filter(cat => cat.status !== 'recorded' && cat.status !== 'missed');
     }
 
-    // 2. Търсене (изключително чисто вече!)
+    // Търсене (изключително чисто вече!)
     const searchLower = filters.search.toLowerCase();
     if (searchLower) {
       result = result.filter(cat => 
@@ -95,11 +98,18 @@ const CatRegistryList = () => {
       );
     }
 
-    // 3. Филтри по пол и цвят
+    // Филтри по пол, цвят, статус
     if (filters.gender) result = result.filter(cat => cat.gender === filters.gender);
     if (filters.color) result = result.filter(cat => cat.color === filters.color);
+    if (filters.species) result = result.filter(cat => cat.species === filters.species);
+    if (filters.status)  result = result.filter(cat => cat.status === filters.status);
     
-    // 4. Сортиране
+    if (filters.location) {
+      const locLower = filters.location.toLowerCase();
+      result = result.filter(cat => cat.address?.toLowerCase().includes(locLower));
+    }
+
+    // Сортиране
     result.sort((a, b) => {
       const col = sortConfig.column;
       const dir = sortConfig.direction === 'asc' ? 1 : -1;
@@ -120,12 +130,21 @@ const CatRegistryList = () => {
     return result;
   }, [catCollection, filters, sortConfig]);
 
-  const handleFilterChange = (key, value) => {
-    setFilters(prev => ({ ...prev, [key]: value }));
+  // ОБНОВЕНО: Изчистване на всички филтри
+  const handleClearFilters = () => {
+    setFilters({ 
+      search: '', 
+      gender: '', 
+      color: '', 
+      species: '', 
+      status: '', 
+      location: '', 
+      showRecorded: false 
+    });
   };
 
-  const handleClearFilters = () => {
-    setFilters({ search: '', gender: '', color: '', location: '' });
+  const handleFilterChange = (key, value) => {
+    setFilters(prev => ({ ...prev, [key]: value }));
   };
 
   const handleSort = (column, direction) => {
