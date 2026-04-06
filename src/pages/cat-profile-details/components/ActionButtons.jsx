@@ -71,7 +71,7 @@ const ActionButtons = ({ onEdit, onDelete }) => {
                 onClick={handleCancelDelete}
                 fullWidth
               >
-                Cancel
+                Отказ
               </Button>
               <Button
                 variant="destructive"

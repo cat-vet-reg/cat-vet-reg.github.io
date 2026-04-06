@@ -7,8 +7,8 @@ export const defaultFormData = {
   
   // Данни на КТ
   recordName      : "",
-  gender          : "female",
   species         : "cat",
+  gender          : "female",
   hasEarTag       : "N",
   earTagNumber    : "",
   weight          : "",
@@ -31,7 +31,7 @@ export const defaultFormData = {
   generalCondition: "good",
   discoverySource : "friends",
   
-  castratedAt     : "",
+  castratedAt     : null,
   isAlreadyCastrated: "N",
   
   // Усложнения
@@ -62,12 +62,6 @@ export const defaultFormData = {
   signature               : ""
 };
 
-/**
- * Maps a database record to the form data structure.
- * @param {Object} record - The database record object.
- * @returns {Object} Populated form data.
- */
-
 //mapRecordToForm подготвя данните така, че Формата (Input) да ги разбере. Тя трябва да попълни всеки checkbox, input и select точно с очакваните стойности.
 export const mapRecordToForm = (record) => {
   if (!record) return { ...defaultFormData };
@@ -87,31 +81,31 @@ export const mapRecordToForm = (record) => {
   return {
     ...defaultFormData,
     
-    ownerName       : record.owner?.name || record.owner_name || "",
-    ownerPhone      : record.owner?.phone || record.owner_phone || "",
+    ownerName       : record.owner_name || "",
+    ownerPhone      : record.owner_phone || "",
     donation        : record.data?.donation || "",
 
     id              : record.id,
     recordName      : record.name || "",
+    species         : record.species || "cat",
     gender          : record.gender || "",
-    species         : record.species || record.data?.species || "cat",
     hasEarTag       : record.data?.hasEarTag || "N",
-    earTagNumber    : record.data?.earTagNumber || record.ear_tag_number || "",
-    weight          : record.weight || "",
+    earTagNumber    : record.data?.earTagNumber || "",
+    weight          : record.data?.weight || "",
     bcsScore        : record.data?.bcsScore || "5",
     
-    ageValue        : record.age_value || "",
-    ageUnit         : record.age_unit || "months",
-    color           : record.color || "",
+    ageValue        : record.data?.age_value || "",
+    ageUnit         : record.data?.age_unit || "months",
+    color           : record.data?.color || "",
     customColor     : record.data?.customColor || "",
-    recordNotes     : record.notes || "",
+    recordNotes     : record.data?.notes || "",
     recordCity      : record.location_city || "",
     address         : record.location_address || "",
-    zonaNumber      : record.zona_number || "",
+    zonaNumber      : record.map_coordinates?.zona_number || "",
     livingCondition : record.living_condition || [],
     coords          : foundCoords,
 
-    temperament     : record.data?.temperament || record.temperament || "mild",
+    temperament     : record.data?.temperament || "mild",
     origin          : record.data?.origin || "street",
     breed           : record.data?.breed || "european",
     outdoorAccess   : record.data?.outdoorAccess || "Y",
@@ -121,7 +115,7 @@ export const mapRecordToForm = (record) => {
     imagePreview    : data?.publicUrl || "",
     signature       : record.data?.signature || "",
     
-    castratedAt             : record.castrated_at || "",
+    castratedAt             : record.castrated_at || null,
     isAlreadyCastrated      : record.data?.isAlreadyCastrated || record.is_already_castrated || "N",
 
     hasComplications        : record.data?.has_complications || record.has_complications || "N",

@@ -1,16 +1,17 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import Header           from '../../components/ui/Header';
-import Breadcrumb       from '../../components/ui/Breadcrumb';
-import ProfileHeader    from './components/ProfileHeader';
-import BasicInfoCard    from './components/BasicInfoCard';
-import LocationMapCard  from './components/LocationMapCard';
-import OwnerContactCard from './components/OwnerContactCard';
-import ActionButtons    from './components/ActionButtons';
-import supabase         from '../../utils/supabase';
-import ProtocolsCard    from './components/ProtocolsCard';
-import AddProtocol      from './components/AddProtocol';
-import Icon             from '../../components/AppIcon';
+import Header               from '../../components/ui/Header';
+import Breadcrumb           from '../../components/ui/Breadcrumb';
+import ProfileHeader        from './components/ProfileHeader';
+import BasicInfoCard        from './components/BasicInfoCard';
+import LocationMapCard      from './components/LocationMapCard';
+import OwnerContactCard     from './components/OwnerContactCard';
+import ActionButtons        from './components/ActionButtons';
+import supabase             from '../../utils/supabase';
+import ProtocolsCard        from './components/ProtocolsCard';
+import AddProtocol          from './components/AddProtocol';
+import Icon                 from '../../components/AppIcon';
+import { $apiDeleteRecord } from '../../services/create_new_record'
 
 
 const CatProfileDetails = () => {
@@ -103,6 +104,21 @@ const CatProfileDetails = () => {
     setIsModalOpen(false);
   };
 
+  const handleDelete = async () => {
+    console.log("Опит за изтриване на запис с ID:", catData?.id); // Добави това за дебъг
+    if (!catData?.id) {
+      alert("Грешка: Липсва ID на записа.");
+      return;
+    }
+    
+    try {
+      await $apiDeleteRecord(catData.id);
+      navigate('/cat-registry-list'); 
+    } catch (err) {
+      alert("Неуспешно изтриване: " + err.message);
+    }
+  };
+
   if (isLoading) return <div className="p-10 text-center">Зареждане...</div>;
   if (!catData) return <div className="p-10 text-center text-red-500">Животното не е намерено!</div>;
 
@@ -131,7 +147,7 @@ const CatProfileDetails = () => {
               <div className="pt-2">
                 <ActionButtons 
                   onEdit={() => navigate('/cat-registration-form', { state: { catData, isEditing: true } })} 
-                  onDelete={async () => { /* ... */ }} 
+                  onDelete={handleDelete} 
                 />
               </div>
             </div>

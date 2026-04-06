@@ -112,26 +112,29 @@ const navigate = useNavigate();
   }, [formData.gender]); // Гледа само пола
 
   useEffect(() => {
-    if (!formData.recordCity || !formData.address) return;
+    // Ако няма град или адрес, или АКО ВЕЧЕ ИМАМЕ ЗОНА (за да не преизчисляваме Autocomplete-а), излизаме
+    if (!formData.recordCity || !formData.address || formData.zonaNumber) return;
 
     const timer = setTimeout(async () => {
-      // Проверяваме директно в formData
-      if (formData.coords?.address !== formData.address) {
-        setIsValidatingAddress(true);
-        const coords = await getCoordinates(formData.recordCity, formData.address);
-        if (coords) {
-          // Записваме директно в общия обект
-          handleInputChange("coords", coords); 
-          
-          const detectedZone = findDistrict(coords.lat, coords.lng);
-          handleInputChange("zonaNumber", detectedZone);
-        }
-        setIsValidatingAddress(false);
+      setIsValidatingAddress(true);
+      const coords = await getCoordinates(formData.recordCity, formData.address);
+      
+      if (coords) {
+        // 1. Намираме зоната
+        const detectedZone = findDistrict(coords.lat, coords.lng);
+        
+        // 2. Обновяваме всичко наведнъж, за да не тригърваме useEffect пак
+        setFormData(prev => ({
+          ...prev,
+          coords: { lat: coords.lat, lng: coords.lng },
+          zonaNumber: detectedZone
+        }));
       }
+      setIsValidatingAddress(false);
     }, 1000);
 
     return () => clearTimeout(timer);
-  }, [formData.recordCity, formData.address]);
+  }, [formData.recordCity, formData.address, formData.zonaNumber]); // Добавяме zonaNumber тук
 
   // Автоматично намиране на име на собственик по телефонен номер
   useEffect(() => {
@@ -342,24 +345,24 @@ const navigate = useNavigate();
       });
   };
 
-const handleSuccessModalClose = (state) => {
-  setShowSuccessModal(false);
+  const handleSuccessModalClose = (state) => {
+    setShowSuccessModal(false);
 
-  if (state == "close") {
-    setFormData(defaultFormData);
-  }
+    if (state == "close") {
+      setFormData(defaultFormData);
+    }
 
-  if (state == "same_owner") {
-    setIsEditing(false)
-    setFormData({
-      ...defaultFormData,
-      ownerName: formData.ownerName,
-      ownerPhone: formData.ownerPhone,
-      donation: formData.donation
-    });
-    navigate(location.pathname, { replace: true, state: {} }); // <--- ТОВА ИЗЧИСТВА ID-то от паметта на браузъра
-  }
-};
+    if (state == "same_owner") {
+      setIsEditing(false)
+      setFormData({
+        ...defaultFormData,
+        ownerName: formData.ownerName,
+        ownerPhone: formData.ownerPhone,
+        donation: formData.donation
+      });
+      navigate(location.pathname, { replace: true, state: {} }); // <--- ТОВА ИЗЧИСТВА ID-то от паметта на браузъра
+    }
+  };
 
   const isFormValid = () => {
     return true;
@@ -757,14 +760,11 @@ const handleSuccessModalClose = (state) => {
                           <Autocomplete
                             apiKey={mapUrl}
                             onPlaceSelected={(place) => {
-
                               console.log(place)
-
                               if (!place.geometry) return;
-
                               const lat = place.geometry.location.lat();
                               const lng = place.geometry.location.lng();
-                              
+                              const detectedZone = findDistrict(lat, lng);
                               // 2. Спираме лоудинг индикатора веднага
                               setIsValidatingAddress(false); 
 
@@ -772,7 +772,8 @@ const handleSuccessModalClose = (state) => {
                               setFormData((prev) => ({
                                 ...prev,
                                 address: place.formatted_address,
-                                coords: { lat, lng }
+                                coords: { lat, lng },
+                                zonaNumber: detectedZone
                               }));
                             }}
                             options={{

@@ -5,7 +5,7 @@ import Breadcrumb       from "../../components/ui/Breadcrumb";
 import MakeAppointment  from "./components/MakeAppointment";
 import Calendar         from "./components/Calendar";
 import WaitingList      from "./components/WaitingList";
-// import Blacklist        from "./components/Blacklist";
+import Blacklist        from "./components/Blacklist";
 import { $apiCreateNewRecord } from "services/create_new_record";
 
 const Schedule = () => {

@@ -1,143 +1,159 @@
 import supabase from 'utils/supabase';
 
-/**ss
- * @author Mihail Petrov
- * @param {*} formData 
- * @returns 
+const parseNum = (val) => (val !== "" && val !== null && val !== undefined) ? Number(val) : null;
+
+/**
+ * 1. Подготвяме JSON обектите, като махаме излишните данни от основната таблица.
+ * Подготвя обектите DATA и MEDICAL_DETAILS
  */
-async function recordAnimal(formData, ownerId) {
-
-    const parseNum = (val) => (val !== "" && val !== null && val !== undefined) ? Number(val) : null;
-
-    const dataToSave = { 
-        ...formData, 
-        status: formData.status || 'recorded'
+function prepareJsonFields(formData) {
+    const customDataField = {
+        donation          : formData.donation || "N",
+        // Тези вече ще живеят САМО тук:
+        age_value         : parseNum(formData.ageValue),
+        age_unit          : formData.ageUnit || "months",
+        weight            : parseNum(formData.weight),
+        color             : formData.color || "",
+        custom_color      : formData.customColor || "",
+        has_ear_tag       : formData.hasEarTag || "N",
+        ear_tag_number    : formData.earTagNumber || "",
+        bcs_score         : formData.bcsScore || "5",
+        temperament       : formData.temperament || "mild",
+        notes             : formData.recordNotes || "",
+        breed             : formData.breed || "european",
+        outdoor_access    : formData.outdoorAccess || "Y",
+        origin            : formData.origin || "street",
+        general_condition : formData.generalCondition || "good",
+        discovery_source  : formData.discoverySource || "friends",
+        image_preview     : formData.imagePreview || "",
+        signature         : formData.signature || ""
     };
 
+    const medicalDetailsField = {
+        is_already_castrated   : formData.isAlreadyCastrated || "N",
+        induction_dose         : parseNum(formData.inductionDose),
+        time_to_sleep          : formData.timeToSleep || "",
+        has_induction_add      : Boolean(formData.hasInductionAdd),
+        induction_add_amount   : parseNum(formData.inductionAddAmount),
+        propofol_used          : Boolean(formData.propofolUsed),
+        propofol_total_ml      : parseNum(formData.propofolTotalMl),
+        propofol_first_min     : parseNum(formData.propofolFirstMin),
+        surgery_duration       : formData.surgeryDuration || "",
+        recovery_time          : formData.recoveryTime || "",
+        staff_received         : formData.staffReceived || "",
+        staff_released         : formData.staffReleased || "",
+        ear_status             : formData.earStatus || "marked",
+        parasites              : formData.parasites || "none",
+        reproductive_status    : formData.reproductiveStatus || "none_visible"
+    };
 
-    // 1. Първо създаваме записа
+    // Почистваме map_coordinates да НЕ съдържа address, но да съдържа zona_number
+    const mapCoordinatesField = {
+        lat: formData.coords?.lat || null,
+        lng: formData.coords?.lng || null,
+        zona_number: parseNum(formData.zonaNumber)
+    };
+
+    return { customDataField, medicalDetailsField, mapCoordinatesField };
+}
+
+async function recordAnimal(formData, ownerId) {
+    const { customDataField, medicalDetailsField, mapCoordinatesField } = prepareJsonFields(formData);
+
     const tdRecordsResponse = await supabase.from('td_records').insert({
-        name                    : formData?.recordName,
-        notes                   : formData?.recordNotes,
-        gender                  : formData?.gender,
-        weight                  : formData.weight ? Number(formData.weight)     : null,
-        age_value               : formData.ageValue ? Number(formData.ageValue)     : null,
-        age_unit                : formData.ageUnit,
-        color                   : formData.color,
-        location_address        : formData?.address,
-        location_city           : formData?.recordCity,
-        living_condition        : formData.livingCondition ? Array.from(formData.livingCondition) : [],
-        map_coordinates         : formData?.coords,
+        name                    : formData.recordName,
+        species                 : formData.species || 'cat',
+        gender                  : formData.gender,
+        status                  : formData.status || 'recorded',
+        castrated_at            : formData.castratedAt,
+        staff_surgeon           : formData.staffSurgeon || "dr_taneva",
+        location_city           : formData.recordCity,
+        map_coordinates         : mapCoordinatesField,
+        location_address        : formData.address,
         owner_id                : ownerId,
-        has_complications       : formData.hasComplications,
-        record_complications    : formData.recordComplications,
-        castrated_at            : formData?.castratedAt,
-
-        // New Mappings
-        breed                   :   formData?.breed || null,
-        origin                  :   formData?.origin || null,
-        status                  :   formData?.status || 'recorded',
-        species                 :   formData?.species || null,
-        bcs_score               :   parseNum(formData?.bcsScore),
-        donation                :   formData?.donation || null,
-        ear_status              :   formData?.earStatus || null,
-        has_ear_tag             :   formData?.hasEarTag || 'N',
-        parasites               :   formData?.parasites || null,
-        signature               :   formData?.signature || null,
-        owner_name              :   formData?.ownerName || null,
-        owner_phone             :   formData?.ownerPhone || null,
-        zona_number             :   formData?.zonaNumber || null,
-        custom_color            :   formData?.custom_color || null,
-        temperament             :   formData?.temperament || null,
-        time_to_sleep           :   formData?.timeToSleep || null,
-        ear_tag_number          :   formData?.earTagNumber || null,
-        image_preview           :   formData?.imagePreview || null,
-        propofol_used           :   Boolean(formData?.propofolUsed),
-        staff_surgeon           :   formData?.staffSurgeon || null,
-        induction_dose          :   parseNum(formData?.inductionDose),
-        outdoor_access          :   formData?.outdoorAccess || null,
-        staff_received          :   formData?.staffReceived || null,
-        staff_released          :   formData?.staffReleased || null,
-        discovery_source        :   formData?.discoverySource || null,
-        has_induction_add       :   Boolean(formData?.hasInductionAdd),
-        propofol_total_ml       :   parseNum(formData?.propofolTotalMl),
-        surgery_duration        :   formData?.surgeryDuration || null,
-        general_condition       :   formData?.generalCondition || null,
-        propofol_first_min      :   parseNum(formData?.propofolFirstMin),
-        induction_add_amount    :   parseNum(formData?.inductionAddAmount),
-        is_already_castrated    :   formData?.isAlreadyCastrated || 'N',
-        reproductive_status     :   formData?.reproductiveStatus || null,
-        selected_complications  :   formData?.selectedComplications || [],
-
-        data                    : dataToSave
+        owner_name              : formData.ownerName,
+        owner_phone             : formData.ownerPhone,
+        living_condition        : formData.livingCondition ? Array.from(formData.livingCondition) : [],
+        has_complications       : formData.hasComplications || "N",
+        selected_complications  : formData.selectedComplications || [],
+        record_complications    : formData.recordComplications || "",
+        
+        // ВАЖНО: Тук НЕ изброяваме weight, color и т.н., защото те влизат в 'data'
+        data                    : customDataField,
+        medical_details         : medicalDetailsField
     }).select();
 
-    // ПРОВЕРКА: Ако има грешка, не продължавай надолу
     if (tdRecordsResponse.error || !tdRecordsResponse.data) {
-        console.error("Supabase Insert Error:", tdRecordsResponse.error);
-        throw new Error(tdRecordsResponse.error?.message || "Грешка при създаване на записа");
+        throw new Error(tdRecordsResponse.error?.message || "Грешка при запис");
     }
 
     const newCat = tdRecordsResponse.data[0];
 
-    // 2. АКО потребителят НЕ е въвел име, обновяваме с "Котка №ID"
-    // if (!formData?.recordName?.trim()) {
-    //     await supabase
-    //         .from('td_records')
-    //         .update({ name: `Котка №${newCat.id}` })
-    //         .eq('id', newCat.id);
-        
-    //     // Обновяваме обекта в паметта, за да може SuccessModal да го види веднага
-    //     newCat.name = `Котка №${newCat.id}`;
-    // }
-
-    // 2. АКО потребителят НЕ е въвел име, обновяваме спрямо вида на животното
-    if (!formData?.recordName || formData.recordName.trim() === '') {
-        // 1. Проверяваме вида, като добавяме fallback (ако няма species, приемаме 'cat')
-        const species = formData?.species || 'cat'; 
-        const speciesLabel = species === 'cat' ? 'Котка' : 'Куче';
-        
+    // Автоматично именуване
+    if (!formData.recordName || formData.recordName.trim() === '') {
+        const speciesLabel = (formData.species || 'cat') === 'cat' ? 'Котка' : 'Куче';
         const autoName = `${speciesLabel} №${newCat.id}`;
-
-        // 2. Използваме .select() при ъпдейта, за да сме сигурни, че данните се връщат
-        const { data: updatedData, error: updateError } = await supabase
-            .from('td_records')
-            .update({ name: autoName })
-            .eq('id', newCat.id)
-            .select();
-
-        if (updateError) {
-            console.error("Грешка при автоматично именуване:", updateError);
-        } else if (updatedData && updatedData.length > 0) {
-            // 3. Обновяваме референцията, която функцията ще върне
-            newCat.name = autoName;
-            // Важно: Тъй като връщаш целия tdRecordsResponse накрая, 
-            // трябва да обновиш данните и в неговия обект
-            tdRecordsResponse.data[0].name = autoName;
-        }
+        await supabase.from('td_records').update({ name: autoName }).eq('id', newCat.id);
+        newCat.name = autoName;
     }
 
-    // 3. Качване на снимката
+     // Обработка на снимка, ако има
     if (formData.image) {
         await supabase.storage
             .from('protocol_images')
             .upload(`records/${newCat.id}/avatar.png`, formData.image);
     }
-    
+
     return tdRecordsResponse;
 }
 
-/**
- * 
- * @param {*} formData 
- * @returns 
- */
-async function recordOwner(formData) {
-    if (!formData?.ownerPhone) {
-        throw new Error("Телефонният номер е задължителен.");
-    }
+export async function $apiCreateNewRecord(formData, isEditing = false, catId = null) {
+    // 1. Първо оправяме собственика
+    const ownerData = await recordOwner(formData);
+    const finalOwnerId = ownerData.data[0].id;
 
-    // ВАЖНО: Създаваме чисто нов обект БЕЗ 'id'
+    // 2. Подготвяме чистите данни
+    const { customDataField, medicalDetailsField, mapCoordinatesField } = prepareJsonFields(formData);
+
+    const recordPayload = {
+        name                    : formData.recordName,
+        species                 : formData.species || 'cat',
+        gender                  : formData.gender,
+        status                  : formData.status || 'recorded',
+        castrated_at            : formData.castratedAt,
+        staff_surgeon           : formData.staffSurgeon,
+        location_city           : formData.recordCity,
+        location_address        : formData.address,
+        owner_id                : finalOwnerId,
+        owner_name              : formData.ownerName,
+        owner_phone             : formData.ownerPhone,
+        map_coordinates         : mapCoordinatesField,
+        living_condition        : formData.livingCondition ? Array.from(formData.livingCondition) : [],
+        has_complications       : formData.hasComplications || "N",
+        selected_complications  : formData.selectedComplications || [],
+        record_complications    : formData.recordComplications,
+        data                    : customDataField, 
+        medical_details         : medicalDetailsField
+    };
+
+    if (isEditing && catId) {
+        const { data, error } = await supabase
+            .from('td_records')
+            .upsert({ id: catId, ...recordPayload })
+            .select();
+
+        if (error) throw error;
+        return data[0]; 
+    } 
+
+    const response = await recordAnimal(formData, finalOwnerId);
+    return response.data?.[0] || null;
+}
+
+// Помощни функции за собственик...
+async function recordOwner(formData) {
+    if (!formData?.ownerPhone) throw new Error("Телефонният номер е задължителен.");
+
     const cleanOwnerData = {
         name: formData.ownerName,
         phone: formData.ownerPhone
@@ -145,116 +161,53 @@ async function recordOwner(formData) {
 
     const { data, error } = await supabase
         .from('td_owners')
-        .upsert(cleanOwnerData, { 
-            onConflict: 'phone', 
-            ignoreDuplicates: false 
-        })
+        .upsert(cleanOwnerData, { onConflict: 'phone' })
         .select();
 
-    if (error) {
-        console.error("Owner Upsert Error Details:", error);
-        throw error;
-    }
-
+    if (error) throw error;
     return { data };
 }
 
-/**
- * 
- * @param {*} ownerPhone 
- * @returns 
- */
-async function getOwnerIdByPhone(ownerPhone) {
-
-    const {error, data} = await supabase.from('td_owners')
-                                    .select('*')
-                                    .eq('phone', ownerPhone);
-
-    if(error) {
-        return null;
-    }
-
-    if(data.length == 0) {
-        return null;
-    }
-
-    return data[0].id;
-}
 
 /**
- * 
- * @param {*} formData 
- * @param {*} isEditing 
- * @param {*} catId 
- * @returns 
- */
-export async function $apiCreateNewRecord(
-    formData, 
-    isEditing   = false, 
-    catId       = null
-) {
-    const ownerData = await recordOwner(formData);
-    
-    if (!ownerData?.data || ownerData.data.length === 0) {
-        throw new Error("Неуспешно обработване на данните за собственика.");
-    }
-
-    const finalOwnerId = ownerData.data[0].id;
-
-    // 3. Сега вече имаме ID (старо или ново) и записваме/обновяваме жв
-    if (isEditing && catId) {
-
-        return await supabase
-            .from('td_records')
-            .upsert({
-                id : catId,
-                name                : formData?.recordName,
-                notes               : formData?.recordNotes,
-                gender              : formData?.gender,
-                weight              : formData.weight   ? Number(formData.weight) : null,
-                age_value           : formData.ageValue ? Number(formData.ageValue) : null,
-                age_unit            : formData.ageUnit,
-                color               : formData.color,
-                location_address    : formData?.address,
-                location_city       : formData?.recordCity,
-                living_condition    : formData.livingCondition ? Array.from(formData.livingCondition) : [],
-                map_coordinates     : formData?.coords,
-                owner_id            : finalOwnerId,
-
-                has_complications   : formData?.hasComplications,
-                record_complications: formData.recordComplications,
-                castrated_at        : formData?.castratedAt,
-                data                : formData
-            });
-    } 
-
-    return await recordAnimal(formData, finalOwnerId);
-}
-
-/**
- * 
- * @returns 
+ * ФУНКЦИЯ ЗА ЗАРЕЖДАНЕ (Използвана в Dashboard, Registry и Map)
+ * Синхронизирана с твоите UI компоненти
  */
 export async function $apiGetCats() {
-    
     const { data, error } = await supabase
         .from('td_records')
         .select(`
             *,
             owner:td_owners(name, phone)
-        `);
+        `)
+        .order('created_at', { ascending: false }); // Винаги най-новите отгоре
 
     if (error) {
         console.error("Грешка при вземане на котките:", error);
         return { data: [] };
     }
 
+    // Форматираме данните, така че компонентите ти да не забележат разликата в имената на колоните
     const formattedData = data.map(cat => ({
         ...cat,
-        owner_name  : cat.owner?.name,
-        owner_phone : cat.owner?.phone,
-        address     : cat.location_address
+        owner_name  : cat.owner?.name || cat.owner_name,
+        owner_phone : cat.owner?.phone || cat.owner_phone,
+        address     : cat.location_address // Map-ваме го обратно за компоненти, които ползват .address
     }));
 
     return { data: formattedData };
+}
+
+export async function $apiDeleteRecord(id) {
+  const { error } = await supabase
+    .from('td_records')
+    .delete()
+    .eq('id', id);
+
+  if (error) {
+    console.error("Грешка при изтриване:", error);
+    throw error;
+  }
+
+  return true;
 }
