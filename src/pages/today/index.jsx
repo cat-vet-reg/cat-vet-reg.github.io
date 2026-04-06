@@ -23,6 +23,8 @@ import {  speciesOptions,
           discoverySourceOptions,
           reproductiveOptions 
           } from "../../constants/formOptions";
+import { breedOptions         } from "../../constants/breed_options";
+import { cityOptions          } from "../../constants/city_options";
 
 const Today = () => {
 
@@ -224,7 +226,7 @@ const Today = () => {
                       </span>
                       <span className="text-slate-400 text-xs">•</span>
                       <span className="text-[11px] text-slate-500 self-center font-medium">
-                        {animal.data?.breed || '-'}
+                        {breedOptions.find(opt => opt.value === animal.data?.breed)?.label || animal.data?.breed}
                       </span>
                       <span className="text-slate-400 text-xs">•</span>
                       <div className="text-[11px] text-slate-500 self-center font-medium">
@@ -233,10 +235,10 @@ const Today = () => {
                     </div>
 
                     {/* 4. ОПИСАНИЕ (Цвят, Темперамент, Порода) */}
-                    <div className="flex flex-wrap gap-1 items-center text-xs">
+                    <div className="flex flex-wrap gap-1 items-center text-[11px] text-slate-500 font-medium">
                       <span className="flex items-center gap-1">
                         {spicyOptions.find(opt => opt.id === animal.data?.temperament)?.icon} 
-                        {spicyOptions.find(opt => opt.id === animal.data?.temperament)?.label}
+                        {spicyOptions.find(opt => opt.id === animal.data?.temperament)?.desc}
                       </span>
                       <span className="text-slate-400 text-xs">•</span>
                       <div className="flex items-center bg-amber-50 text-amber-700 px-1.5 py-0.5 rounded text-[11px] font-bold border border-amber-100">
@@ -257,7 +259,9 @@ const Today = () => {
                       </div>
                       <div className="flex items-center gap-1.5 text-slate-500">
                         <Icon name="MapPin" size={11} />
-                        <span>{animal.location_city}</span>
+                        <span>
+                          {cityOptions.find(opt => opt.value === animal.location_city)?.label || animal.location_city}
+                        </span>
                         <span className="text-slate-300">|</span>
                         <span>
                           {habitat.find(opt => opt.value === animal.living_condition?.[0])?.label || animal.living_condition}
@@ -331,9 +335,15 @@ const Today = () => {
                     </td>
 
                     <td className="border p-2 text-xs">
-                      <p>Приел - {animal.medical_details?.staff_received}</p>
-                      <p className='font-bold'>🩺 {animal.staff_surgeon}</p>
-                      <p>Върнал - {animal.medical_details?.staff_released}</p>
+                      <p>Приел -
+                        {staffOptions.find(opt => opt.value === animal.medical_details?.staff_received)?.label || animal.medical_details?.staff_received}
+                      </p>
+                      <p className='font-bold'>🩺
+                        {staffOptions.find(opt => opt.value === animal?.staff_surgeon)?.label || animal?.staff_surgeon}
+                      </p>
+                      <p>Върнал - 
+                        {staffOptions.find(opt => opt.value === animal.medical_details?.staff_released)?.label || animal.medical_details?.staff_released}
+                      </p>
                     </td>
                   </tr>
                 ))}

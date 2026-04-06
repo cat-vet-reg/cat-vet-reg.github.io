@@ -8,7 +8,7 @@ import Input                    from "../../components/ui/Input";
 import Select                   from "../../components/ui/Select";
 import Button                   from "../../components/ui/Button";
 import { Checkbox }             from "../../components/ui/Checkbox";
-
+import Icon                     from "../../components/AppIcon";
 import FormSection              from "./components/FormSection";
 import MapPreview               from "./components/MapPreview";
 import SuccessModal             from "./components/SuccessModal";
@@ -399,9 +399,63 @@ const navigate = useNavigate();
     }));
   }
 
+      const sectionRefs = {
+      owner: React.useRef(null),
+      basic: React.useRef(null),
+      spicy: React.useRef(null),
+      location: React.useRef(null),
+      status: React.useRef(null),
+      anesthesia: React.useRef(null)
+    };
+
+    const scrollToSection = (ref) => {
+      if (ref.current) {
+        ref.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    };
+
+    const NavButton = ({ icon, label, onClick, isCritical = false }) => (
+  <button 
+    onClick={onClick}
+    className={`
+      flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-bold transition-all group
+      ${isCritical 
+        ? 'bg-pink-50 text-pink-600 hover:bg-pink-600 hover:text-white' 
+        : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'}
+    `}
+  >
+    <Icon name={icon} size={16} className="group-hover:scale-110 transition-transform" />
+    <span className="hidden lg:block uppercase tracking-tighter">{label}</span>
+  </button>
+);
+
   return (
     <>
       <Header />
+      <div className="fixed left-6 top-1/2 -translate-y-1/2 z-50 hidden xl:flex flex-col gap-3">
+        {/* Десктоп версия - Вертикална лента вляво */}
+        <nav className="bg-white/80 backdrop-blur-md p-3 rounded-2xl shadow-2xl border border-pink-100 flex flex-col gap-2">
+          <div className="text-[10px] font-black text-pink-500 mb-2 px-2 border-b border-pink-50 pb-1">НАВИГАЦИЯ</div>
+          
+          <NavButton icon="User" label="Owner" onClick={() => scrollToSection(sectionRefs.owner)} />
+          <NavButton icon="Cat" label="Info" onClick={() => scrollToSection(sectionRefs.basic)} />
+          <NavButton icon="Zap" label="Spicy" onClick={() => scrollToSection(sectionRefs.spicy)} />
+          <NavButton icon="MapPin" label="Address" onClick={() => scrollToSection(sectionRefs.location)} />
+          <NavButton icon="Syringe" label="Anesthesia" onClick={() => scrollToSection(sectionRefs.anesthesia)} isCritical />
+          <NavButton icon="Camera" label="Photo" onClick={() => scrollToSection(sectionRefs.photo)} />
+        </nav>
+      </div>
+
+      {/* Мобилна версия - Долен плаващ "Dock" */}
+      <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 xl:hidden w-[90%] max-w-md">
+        <div className="bg-slate-900/90 backdrop-blur-lg p-2 rounded-2xl shadow-2xl flex justify-around items-center border border-white/10">
+          <button onClick={() => scrollToSection(sectionRefs.owner)} className="p-2 text-white"><Icon name="User" size={20}/></button>
+          <button onClick={() => scrollToSection(sectionRefs.basic)} className="p-2 text-white"><Icon name="Cat" size={20}/></button>
+          <button onClick={() => scrollToSection(sectionRefs.location)} className="p-2 text-pink-400"><Icon name="MapPin" size={20}/></button>
+          <button onClick={() => scrollToSection(sectionRefs.status)} className="p-2 text-white"><Icon name="Cat" size={20}/></button>
+          <button onClick={() => scrollToSection(sectionRefs.anesthesia)} className="p-2 text-white"><Icon name="Syringe" size={20}/></button>
+        </div>
+      </div>
       <div className="min-h-screen bg-background">
         <div className="max-w-7xl mx-auto px-4 md:px-6 lg:px-8 py-6 md:py-8">
           <Breadcrumb items={breadcrumbItems} />
@@ -421,7 +475,7 @@ const navigate = useNavigate();
 
           <form onSubmit={handleSubmit} className="space-y-6 md:space-y-8">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-8">
-              <div className="space-y-6 md:space-y-8">
+              <div className="space-y-6 md:space-y-8" ref={sectionRefs.owner}>
                 <FormSection title="Лице за контакти / Собственик" className="bg-[#e64072]/20 rounded-[20px] p-3">
                   <Input
                     label="Име"
@@ -469,7 +523,8 @@ const navigate = useNavigate();
                   </div>
 
                 </FormSection>
-
+                
+                <div ref={sectionRefs.basic}>
                 <FormSection title="Основна информация">
                   <div className="bg-[#e64072]/20 rounded-[20px] p-3">
                     <Input
@@ -705,7 +760,7 @@ const navigate = useNavigate();
                     />
                   )}
                 </FormSection>
-                
+                </div>
                 <FormSection title="Темперамент (Spicy Scale)">
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
                     {spicyOptions.map((opt) => {
@@ -742,130 +797,132 @@ const navigate = useNavigate();
                     })}
                   </div>
                 </FormSection>
-
-                <FormSection title="Къде е намерено / отглеждано животното" className="bg-[#e64072]/20 rounded-[20px] p-3">
-                  <Select
-                    label="Град / село"
-                    placeholder="Започнете да пишете град или село..."
-                    required
-                    searchable
-                    options={cityOptions}
-                    value={formData?.recordCity}
-                    onChange={(value) => handleInputChange("recordCity", value)}
-                    error={errors?.recordCity}
-                  />
-                  <div className="space-y-2">
-                      <label className="text-sm font-medium text-foreground">Адрес</label>
-                        <If condition={mapUrl}>
-                          <Autocomplete
-                            apiKey={mapUrl}
-                            onPlaceSelected={(place) => {
-                              console.log(place)
-                              if (!place.geometry) return;
-                              const lat = place.geometry.location.lat();
-                              const lng = place.geometry.location.lng();
-                              const detectedZone = findDistrict(lat, lng);
-                              // 2. Спираме лоудинг индикатора веднага
-                              setIsValidatingAddress(false); 
-
-                              // 3. Обновяваме формата
-                              setFormData((prev) => ({
-                                ...prev,
-                                address: place.formatted_address,
-                                coords: { lat, lng },
-                                zonaNumber: detectedZone
-                              }));
-                            }}
-                            options={{
-                              componentRestrictions: { country: "bg" },
-                              types: [], 
-                              fields: ["address_components", "geometry", "formatted_address"]
-                            }}
-                            // Тук ползваме твоите CSS класове за еднакъв дизайн
-                            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                            placeholder="Започнете да пишете адрес..."
-                            defaultValue={formData?.address}
-                          />
-                        </If>
-                    {errors?.address && <p className="text-xs text-destructive">{errors.address}</p>}
-                  </div>
-
-                  <div className="mt-4">
-                    <label className="text-sm font-medium text-foreground">Идентифицирана Зона</label>
-                    <div className="flex h-10 w-full rounded-md border border-input bg-slate-100 px-3 py-2 text-sm font-bold text-pink-600">
-                      {formData?.zonaNumber || "Търсене на зона..."}
-                    </div>
-                    <p className="text-[10px] text-slate-500 mt-1 italic">
-                      *Зоната се определя автоматично според картата на Пловдив
-                    </p>
-                  </div>
-
-                  <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 mb-2 block text-foreground">
-                    Къде живее
-                  </label>
-
-                  <Checkbox
-                    label="на улицата"
-                    onChange={(e) => onCheckLocation("street")}
-                    checked={formData.livingCondition?.includes("street")}
-                  />
-                  <Checkbox
-                    label="на двора"
-                    onChange={(e) => onCheckLocation("outdoor")}
-                    checked={formData.livingCondition?.includes("outdoor")}
-                  />
-                  <Checkbox
-                    label="в дома"
-                    onChange={(e) => onCheckLocation("indoor")}
-                    checked={formData.livingCondition?.includes("indoor")}
-                  />
-
-                  {/* Достъп навън */}
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium block text-foreground">Има ли достъп навън?</label>
-                    <div className="flex gap-4">
-                      {[{ v: "Y", l: "Да" }, { v: "N", l: "Не" }].map((opt) => (
-                        <button
-                          key={opt.v}
-                          type="button"
-                          onClick={() => handleInputChange("outdoorAccess", opt.v)}
-                          className={`flex-1 py-2 rounded-md border transition-all ${
-                            formData.outdoorAccess === opt.v 
-                            ? "bg-primary text-white border-primary shadow-sm" 
-                            : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50"
-                          }`}
-                        >
-                          {opt.l}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Произход */}
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium block text-foreground">Откъде е животното?</label>
-                    <div className="flex gap-4">
-                      {origin.map((opt) => (
-                        <button
-                          key={opt.value}
-                          type="button"
-                          onClick={() => handleInputChange("origin", opt.value)}
-                          className={`flex-1 py-2 rounded-md border transition-all ${
-                            formData.origin === opt.value 
-                            ? "bg-primary text-white border-primary shadow-sm" 
-                            : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50"
-                          }`}
-                        >
-                          {opt.label}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                </FormSection>
                 
-                <FormSection title="Сегашен статус и отчетност">
+                <div ref={sectionRefs.location}>
+                  <FormSection title="Къде е намерено / отглеждано животното" className="bg-[#e64072]/20 rounded-[20px] p-3">
+                    <Select
+                      label="Град / село"
+                      placeholder="Започнете да пишете град или село..."
+                      required
+                      searchable
+                      options={cityOptions}
+                      value={formData?.recordCity}
+                      onChange={(value) => handleInputChange("recordCity", value)}
+                      error={errors?.recordCity}
+                    />
+                    <div className="space-y-2">
+                        <label className="text-sm font-medium text-foreground">Адрес</label>
+                          <If condition={mapUrl}>
+                            <Autocomplete
+                              apiKey={mapUrl}
+                              onPlaceSelected={(place) => {
+                                console.log(place)
+                                if (!place.geometry) return;
+                                const lat = place.geometry.location.lat();
+                                const lng = place.geometry.location.lng();
+                                const detectedZone = findDistrict(lat, lng);
+                                // 2. Спираме лоудинг индикатора веднага
+                                setIsValidatingAddress(false); 
 
+                                // 3. Обновяваме формата
+                                setFormData((prev) => ({
+                                  ...prev,
+                                  address: place.formatted_address,
+                                  coords: { lat, lng },
+                                  zonaNumber: detectedZone
+                                }));
+                              }}
+                              options={{
+                                componentRestrictions: { country: "bg" },
+                                types: [], 
+                                fields: ["address_components", "geometry", "formatted_address"]
+                              }}
+                              // Тук ползваме твоите CSS класове за еднакъв дизайн
+                              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                              placeholder="Започнете да пишете адрес..."
+                              defaultValue={formData?.address}
+                            />
+                          </If>
+                      {errors?.address && <p className="text-xs text-destructive">{errors.address}</p>}
+                    </div>
+
+                    <div className="mt-4">
+                      <label className="text-sm font-medium text-foreground">Идентифицирана Зона</label>
+                      <div className="flex h-10 w-full rounded-md border border-input bg-slate-100 px-3 py-2 text-sm font-bold text-pink-600">
+                        {formData?.zonaNumber || "Търсене на зона..."}
+                      </div>
+                      <p className="text-[10px] text-slate-500 mt-1 italic">
+                        *Зоната се определя автоматично според картата на Пловдив
+                      </p>
+                    </div>
+
+                    <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 mb-2 block text-foreground">
+                      Къде живее
+                    </label>
+
+                    <Checkbox
+                      label="на улицата"
+                      onChange={(e) => onCheckLocation("street")}
+                      checked={formData.livingCondition?.includes("street")}
+                    />
+                    <Checkbox
+                      label="на двора"
+                      onChange={(e) => onCheckLocation("outdoor")}
+                      checked={formData.livingCondition?.includes("outdoor")}
+                    />
+                    <Checkbox
+                      label="в дома"
+                      onChange={(e) => onCheckLocation("indoor")}
+                      checked={formData.livingCondition?.includes("indoor")}
+                    />
+
+                    {/* Достъп навън */}
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium block text-foreground">Има ли достъп навън?</label>
+                      <div className="flex gap-4">
+                        {[{ v: "Y", l: "Да" }, { v: "N", l: "Не" }].map((opt) => (
+                          <button
+                            key={opt.v}
+                            type="button"
+                            onClick={() => handleInputChange("outdoorAccess", opt.v)}
+                            className={`flex-1 py-2 rounded-md border transition-all ${
+                              formData.outdoorAccess === opt.v 
+                              ? "bg-primary text-white border-primary shadow-sm" 
+                              : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50"
+                            }`}
+                          >
+                            {opt.l}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Произход */}
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium block text-foreground">Откъде е животното?</label>
+                      <div className="flex gap-4">
+                        {origin.map((opt) => (
+                          <button
+                            key={opt.value}
+                            type="button"
+                            onClick={() => handleInputChange("origin", opt.value)}
+                            className={`flex-1 py-2 rounded-md border transition-all ${
+                              formData.origin === opt.value 
+                              ? "bg-primary text-white border-primary shadow-sm" 
+                              : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50"
+                            }`}
+                          >
+                            {opt.label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                  </FormSection>
+                </div>
+
+                <div ref={sectionRefs.status}>
+                <FormSection title="Сегашен статус и отчетност">
                   {/* Общо състояние */}
                   <Select
                     label="Общо състояние"
@@ -958,6 +1015,8 @@ const navigate = useNavigate();
                       </div>
                     )}
                 </FormSection>
+                </div>
+
 
                 <FormSection title="Откъде разбрахте за нас?">
                   {/* Източник на информация */}
@@ -1103,6 +1162,7 @@ const navigate = useNavigate();
                   />
                 </FormSection>
 
+                <div ref={sectionRefs.anesthesia}>
                 <FormSection title="Анестезиологичен протокол (Интерактивен)">
                   <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mb-6">
                     
@@ -1190,7 +1250,8 @@ const navigate = useNavigate();
                     </button>
                   </div>
                 </FormSection>
-
+                </div>
+                
                 <FormSection title="Медицински усложнения">
                   <label className="text-sm font-medium mb-3 block text-foreground">
                     Имаше ли усложнения?
@@ -1378,7 +1439,7 @@ const navigate = useNavigate();
         signature={formData.signature}
       />
 
-      <FloatingActionButton onClick={handleSubmit} label="Регистрирай животното" />
+      {/* <FloatingActionButton onClick={handleSubmit} label="Регистрирай животното" /> */}
 
       <SuccessModal
         isOpen={showSuccessModal}
