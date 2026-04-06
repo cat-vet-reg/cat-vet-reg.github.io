@@ -1,11 +1,14 @@
 import React from "react";
 import { cityOptions } from "../../../constants/city_options";
 import { breedOptions } from "../../../constants/breed_options";
-import {  genderOptions, 
+import {  speciesOptions,
+          genderOptions,
+          spicyOptions,
           bcsScores,
           getBcsDescription,
           ageUnitOptions, 
-          colorOptions, 
+          colorOptions,
+          colorStyles,
           habitat,
           origin,
           generalConditionOptions, 

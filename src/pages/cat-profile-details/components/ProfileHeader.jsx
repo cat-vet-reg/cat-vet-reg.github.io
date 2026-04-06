@@ -1,10 +1,13 @@
 import React from 'react';
 import Icon from '../../../components/AppIcon';
-import {  genderOptions, 
+import {  speciesOptions,
+          genderOptions,
+          spicyOptions,
           bcsScores,
           getBcsDescription,
           ageUnitOptions, 
-          colorOptions, 
+          colorOptions,
+          colorStyles,
           habitat,
           origin,
           generalConditionOptions, 

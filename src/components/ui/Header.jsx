@@ -9,6 +9,7 @@ const Header = () => {
 
   const navigationItems = [
     { label: 'Табло'        , path: '/dashboard-overview' , icon: 'LayoutDashboard' },
+    { label: 'Днес'         , path: '/today'              , icon: 'Calendar' },
     { label: 'Регистрирани' , path: '/cat-registry-list'  , icon: 'BookOpen' },
     { label: 'Карта'        , path: '/interactive-cat-map', icon: 'Map' },
     { label: 'Статистика'   , path: '/statistics'         , icon: 'ChartArea' },

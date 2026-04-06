@@ -4,11 +4,14 @@ import { convertDate }  from '../../../utils/date';
 import Header           from "../../../components/ui/Header";
 import Icon             from '../../../components/AppIcon';
 import * as XLSX        from 'xlsx';
-import {  genderOptions, 
+import {  speciesOptions,
+          genderOptions,
+          spicyOptions,
           bcsScores,
           getBcsDescription,
           ageUnitOptions, 
-          colorOptions, 
+          colorOptions,
+          colorStyles,
           habitat,
           origin,
           generalConditionOptions, 

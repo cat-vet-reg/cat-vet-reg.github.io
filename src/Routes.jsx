@@ -11,6 +11,7 @@ import CatRegistrationForm from './pages/cat-registration-form';
 import StatisticsTable     from './pages/statistics';
 import Schedule            from './pages/schedule';
 import TreatmentRegistry   from './pages/treatment-registry';
+import Today               from './pages/today';
 import { HashRouter }      from "react-router-dom";
 
 const Routes = () => {
@@ -29,6 +30,7 @@ const Routes = () => {
         <Route path="/statistics" element={<StatisticsTable />} />
         <Route path="/schedule" element={<Schedule />} />
         <Route path="/treatment-registry" element={<TreatmentRegistry />} />
+        <Route path="/today" element={<Today />} />
         <Route path="*" element={<NotFound />} />
       </RouterRoutes>
       </ErrorBoundary>

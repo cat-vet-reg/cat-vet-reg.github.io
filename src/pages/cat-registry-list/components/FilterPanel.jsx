@@ -3,11 +3,13 @@ import Select from '../../../components/ui/Select';
 import Input from '../../../components/ui/Input';
 import Button from '../../../components/ui/Button';
 import {  speciesOptions,
-          genderOptions, 
+          genderOptions,
+          spicyOptions,
           bcsScores,
           getBcsDescription,
           ageUnitOptions, 
-          colorOptions, 
+          colorOptions,
+          colorStyles,
           habitat,
           origin,
           generalConditionOptions, 
