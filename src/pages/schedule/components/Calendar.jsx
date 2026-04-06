@@ -29,7 +29,15 @@ const Calendar = () => {
     if (error) return;
 
     const events = data.map(element => {
-      const isPast = Date.now() > new Date(element.castrated_at);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      const eventDate = new Date(element.castrated_at);
+      eventDate.setHours(0, 0, 0, 0);
+
+      // Вече е "минало" само ако датата е преди днешната
+      const isPast = eventDate < today;
+      
       const rawGender = element.gender || element.data?.gender;
       const isMale = rawGender === 'male';
 
@@ -150,6 +158,42 @@ const Calendar = () => {
       }
   };
 
+  const handleReceive = async (e, id) => {
+    e.stopPropagation(); // Спираме отварянето на формата за редакция
+
+    try {
+        // 1. Първо взимаме текущите данни, за да не загубим JSON обекта
+        const { data: currentRecord, error: fetchError } = await supabase
+            .from('td_records')
+            .select('data')
+            .eq('id', id)
+            .single();
+
+        if (fetchError) throw fetchError;
+
+        const updatedData = {
+            ...(currentRecord.data || {}),
+            status: 'received'
+        };
+
+        // 2. Обновяваме и двете места
+        const { error: updateError } = await supabase
+            .from('td_records')
+            .update({ 
+                status: 'received', // Топ ниво
+                data: updatedData   // Вътре в JSON
+            }) 
+            .eq('id', id);
+
+        if (updateError) throw updateError;
+        
+        await loadCalendarData(); // Презареждаме календара
+    } catch (err) {
+        console.error("Грешка при приемане:", err);
+        alert("Грешка при обновяване на статус.");
+    }
+  };
+
   return (
     <div className="mt-10 bg-card p-6 rounded-xl shadow-lg border border-border calendar-container">
       <FullCalendar
@@ -177,6 +221,17 @@ const Calendar = () => {
 
             return (
               <div className="p-1 overflow-hidden text-[10px] sm:text-xs cursor-pointer hover:brightness-95 transition-all leading-tight relative">
+                <button 
+                    onClick={(e) => handleReceive(e, eventInfo.event.id)}
+                    className={`absolute top-0 right-14 p-1 font-bold transition-transform hover:scale-120 ${
+                        eventInfo.event.extendedProps.data.status === 'received' 
+                        ? 'text-green-600' 
+                        : 'text-gray-400 hover:text-green-500'
+                    }`}
+                    title="Маркирай като пристигнало (Received)"
+                >
+                    {eventInfo.event.extendedProps.data.status === 'received' ? '✅' : '📥'}
+                </button>
                 <button 
                   onClick={(e) => handleDelete(e, eventInfo.event.id)}
                   className="absolute top-0 right-0 p-1 text-red-500/50 hover:text-red-600 hover:bg-red-50 rounded-bl-lg transition-colors z-50 font-bold"
@@ -206,8 +261,11 @@ const Calendar = () => {
                       {species.toUpperCase()}
                     </span>
                   </div>
-                  
+               
                   {/* ID НОМЕР - откроен в малко сиво правоъгълниче */}
+                  {eventInfo.event.extendedProps.data.status === 'received' && (
+                    <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse" title="Прието в центъра" />
+                  )}
                   <span className="bg-black/5 px-1 rounded text-[9px] text-gray-600 font-mono">
                     #{displayId}
                   </span>
