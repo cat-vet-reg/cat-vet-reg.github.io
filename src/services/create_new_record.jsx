@@ -120,7 +120,7 @@ export async function $apiCreateNewRecord(formData, isEditing = false, catId = n
         species                 : formData.species || 'cat',
         gender                  : formData.gender,
         status                  : formData.status || 'recorded',
-        castrated_at            : formData.castratedAt,
+        castrated_at            : formData.castratedAt || null,
         staff_surgeon           : formData.staffSurgeon,
         location_city           : formData.recordCity,
         location_address        : formData.address,

@@ -20,7 +20,7 @@ import {  genderOptions,
 
 const BasicInfoCard = ({ cat }) => {
 
-  const neuterDate = convertDate(cat?.castrated_at);
+  const castratedAt = cat?.castrated_at ? convertDate(cat.castrated_at) : null;
   const rawHasComp = cat?.has_complications || cat?.hasComplications || cat?.data?.has_complications;
   const hasComp = rawHasComp?.toString().toUpperCase() === 'Y';
   const selectedKeys = cat?.selectedComplications || cat?.data?.selectedComplications || [];
@@ -93,13 +93,13 @@ const infoItems = [
     {
       icon: 'Sprout',
       label: 'Възраст (кастр.)',
-      value: `${cat?.age_value} ${ageUnitOptions.find(opt => opt.value === cat?.age_unit)?.label || ''}`,
+      value: `${cat?.data?.age_value} ${ageUnitOptions.find(opt => opt.value === cat?.data?.age_unit)?.label || ''}`,
       color: 'text-warning'
     },
     {
       icon: 'Calendar',
       label: 'Дата кастрация',
-      value: neuterDate,
+      value: castratedAt,
       color: 'text-warning'
     },
     {

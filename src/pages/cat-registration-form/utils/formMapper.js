@@ -179,7 +179,7 @@ export const mapDbToUi = (record) => {
     recordName      : record.name || `Животно №${record.id}`,
     ownerName       : record.owner_name || record.owner?.name || "Няма име",
     ownerPhone      : record.owner_phone || record.owner?.phone || "Няма телефон",
-    castratedAt     : record.castrated_at, 
+    castratedAt     : record.castrated_at ? record.castrated_at : null, 
     status          : record.status || "recorded",
     staffReceived   : record.staffReceived || "",
     staffSurgeon    : record.staff_surgeon || "",

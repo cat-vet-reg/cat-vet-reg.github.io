@@ -94,7 +94,7 @@ const ProfileHeader = ({ cat }) => {
             <span>•</span>
             <div className="flex items-center gap-1">
               <Icon name="Palette" size={12} />
-              <span className="truncate max-w-[70px]">{colorOptions.find(opt => opt.value === cat?.color)?.label || cat?.color || '—'}</span>
+              <span className="truncate max-w-[70px]">{colorOptions.find(opt => opt.value === cat?.data.color)?.label || cat?.color || '—'}</span>
             </div>
             <span>•</span>
             <div className="flex items-center gap-1" title={cityObj?.description}> 
