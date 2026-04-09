@@ -432,20 +432,6 @@ const navigate = useNavigate();
   return (
     <>
       <Header />
-      <div className="fixed left-6 top-1/2 -translate-y-1/2 z-50 hidden xl:flex flex-col gap-3">
-        {/* Десктоп версия - Вертикална лента вляво */}
-        <nav className="bg-white/80 backdrop-blur-md p-3 rounded-2xl shadow-2xl border border-pink-100 flex flex-col gap-2">
-          <div className="text-[10px] font-black text-pink-500 mb-2 px-2 border-b border-pink-50 pb-1">НАВИГАЦИЯ</div>
-          
-          <NavButton icon="User" label="Owner" onClick={() => scrollToSection(sectionRefs.owner)} />
-          <NavButton icon="Cat" label="Info" onClick={() => scrollToSection(sectionRefs.basic)} />
-          <NavButton icon="Zap" label="Spicy" onClick={() => scrollToSection(sectionRefs.spicy)} />
-          <NavButton icon="MapPin" label="Address" onClick={() => scrollToSection(sectionRefs.location)} />
-          <NavButton icon="Syringe" label="Anesthesia" onClick={() => scrollToSection(sectionRefs.anesthesia)} isCritical />
-          <NavButton icon="Camera" label="Photo" onClick={() => scrollToSection(sectionRefs.photo)} />
-        </nav>
-      </div>
-
       {/* Мобилна версия - Долен плаващ "Dock" */}
       <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 xl:hidden w-[90%] max-w-md">
         <div className="bg-slate-900/90 backdrop-blur-lg p-2 rounded-2xl shadow-2xl flex justify-around items-center border border-white/10">
