@@ -3,49 +3,38 @@ import Icon from '../../../components/AppIcon';
 import Input from '../../../components/ui/Input';
 import Select from '../../../components/ui/Select';
 import Button from '../../../components/ui/Button';
+import { 
+  statusOptions as detailedStatusOptions, // Преименуваме го локално, за да не се бърка с главния статус
+  generalConditionOptions, 
+  genderOptions as baseGenderOptions,
+  discoverySourceOptions as sourceOptions,
+  timeOptions
+} from '../../../constants/formOptions';
 
 const MapFilterPanel = ({ onFilterChange, isOpen, onClose }) => {
+  const genderOptions = [{ value: '', label: 'Всички полове' }, ...baseGenderOptions];
+
+  const mainStatusOptions = [
+    { value: 'all'          , label: 'Всички животни' },
+    { value: 'done'         , label: 'Кастрирани (Архив)' },
+    { value: 'appointments' , label: 'Със записан час (Оранжево)' },
+    { value: 'waiting'      , label: 'Чакащи за час (Червено)' }
+  ];
+
+  const detailedStatusForSelect = [
+    { value: '', label: 'Всички състояния' },
+    ...detailedStatusOptions.map(opt => ({ value: opt.id, label: opt.label }))
+  ];
+
   const [filters, setFilters] = useState({
     search: '',
-    status: 'all',
+    status: 'all',          // Главен статус
+    detailedStatus: '',     // От твоите statusOptions (recorded, surgery...)
     gender: '',
-    color: '',
-    weightMin: '',
-    weightMax: ''
+    condition: '',          // От generalConditionOptions
+    timeRange: 'all',
+    source: ''              // От discoverySourceOptions
   });
-
-  const statusOptions = [
-    { value: 'all', label: 'Всички животни' },
-    { value: 'done', label: 'Кастрирани (Архив)' },
-    { value: 'waiting', label: 'Чакащи (Кампания)' }
-  ];
-
-  const genderOptions = [
-    { value: '', label: 'Всички полове' },
-    { value: 'male', label: 'Мъжки' },
-    { value: 'female', label: 'Женски' }
-  ];
-
-  const colorOptions = [
-    // Patterns
-    { value: 'tabby'        , label: 'Таби (тигрова)' },
-
-    // Bi-color & multi-color
-    { value: 'tabby_white'  , label: 'Таби-бяла (бяла с тигрово)' },
-    { value: 'calico'       , label: 'Калико (трицветна)' },
-    { value: 'tortoiseshell', label: 'Костенуркова' },
-    { value: 'tuxedo'       , label: 'Черно-бяла' },
-    { value: 'orange_white' , label: 'Рижо-бяла' },
-
-    // Solid colors
-    { value: 'orange'       , label: 'Рижа' },
-    { value: 'black'        , label: 'Черна' },
-    { value: 'white'        , label: 'Бяла' },
-    { value: 'gray'         , label: 'Сива (Синя)' },
-    { value: 'brown'        , label: 'Кафява' },
-    { value: 'cinnamon'     , label: 'Светлокафява' },
-    { value: 'fawn'         , label: 'Бежова' },
-  ];
 
   const handleFilterChange = (field, value) => {
     const updatedFilters = { ...filters, [field]: value };
@@ -57,10 +46,11 @@ const MapFilterPanel = ({ onFilterChange, isOpen, onClose }) => {
     const resetFilters = {
       search: '',
       status: 'all',
+      detailedStatus: '',
       gender: '',
-      color: '',
-      weightMin: '',
-      weightMax: ''
+      condition: '',     
+      timeRange: 'all',  
+      source: ''
     };
     setFilters(resetFilters);
     onFilterChange(resetFilters);
@@ -74,15 +64,21 @@ const MapFilterPanel = ({ onFilterChange, isOpen, onClose }) => {
           onClick={onClose}
         />
       )}
+      {/* Самият панел */}
       <div className={`
-        fixed lg:absolute top-0 right-0 h-full w-80 bg-card shadow-warm-lg z-[1150]
+        /* Мобилни стилове: изскача отдясно */
+        fixed top-0 right-0 h-full z-[1150] shadow-warm-lg
         transform transition-transform duration-300 ease-in-out
-        ${isOpen ? 'translate-x-0' : 'translate-x-full lg:translate-x-0'}
-        lg:relative lg:w-80 lg:shadow-warm
-      `}>
+        ${isOpen ? 'translate-x-0' : 'translate-x-full'}
+
+        /* Десктоп стилове: стои статично до картата */
+        lg:relative lg:translate-x-0 lg:h-[600px] lg:z-0 lg:shadow-none lg:block
+        w-80 bg-card border border-border rounded-lg
+        `}>
         <div className="flex flex-col h-full">
           <div className="flex items-center justify-between p-4 border-b border-border">
             <h3 className="text-lg font-semibold text-foreground">Филтри</h3>
+            {/* Бутонът за затваряне е само за мобилни */}
             <button
               onClick={onClose}
               className="lg:hidden flex items-center justify-center w-8 h-8 rounded-md text-muted-foreground hover:bg-muted hover:text-foreground transition-smooth"
@@ -93,62 +89,63 @@ const MapFilterPanel = ({ onFilterChange, isOpen, onClose }) => {
           </div>
 
           <div className="flex-1 overflow-y-auto p-4 space-y-4">
-            {/* НОВИЯТ ФИЛТЪР ЗА СТАТУС */}
-            <div className="p-3 bg-muted/30 rounded-lg border border-border/50">
-               <Select
+            {/* ГЛАВЕН ТИП (Кастрирани/Чакащи) */}
+            <div className="p-3 bg-blue-50/50 rounded-xl border border-blue-100">
+              <Select
                 label="Покажи на картата"
-                options={statusOptions}
-                value={filters?.status}
-                onChange={(value) => handleFilterChange('status', value)}
+                options={mainStatusOptions}
+                value={filters.status}
+                onChange={(val) => handleFilterChange('status', val)}
               />
-              <p className="text-[10px] text-muted-foreground mt-2 italic">
-                * Изберете "Чакащи", за да видите горещите точки за нови кампании.
-              </p>
             </div>
 
+            {/* ВРЕМЕВИ ФИЛТЪР */}
+            <Select
+              label="Период на запис"
+              options={timeOptions}
+              value={filters.timeRange}
+              onChange={(val) => handleFilterChange('timeRange', val)}
+            />
+
+            {/* ДЕТАЙЛЕН СТАТУС (от твоите опции) */}
+            <Select
+              label="Текущ етап"
+              options={detailedStatusForSelect}
+              value={filters.detailedStatus}
+              onChange={(val) => handleFilterChange('detailedStatus', val)}
+            />
+
+            {/* ЗДРАВНО СЪСТОЯНИЕ */}
+            <Select
+              label="Здравен статус"
+              options={[{ value: '', label: 'Всички' }, ...generalConditionOptions]}
+              value={filters.condition}
+              onChange={(val) => handleFilterChange('condition', val)}
+            />
+
+            {/* ПОЛ */}
             <Select
               label="Пол"
               options={genderOptions}
-              value={filters?.gender}
-              onChange={(value) => handleFilterChange('gender', value)}
+              value={filters.gender}
+              onChange={(val) => handleFilterChange('gender', val)}
             />
 
+            {/* ИЗТОЧНИК
             <Select
-              label="Цвят"
-              options={colorOptions}
-              value={filters?.color}
-              onChange={(value) => handleFilterChange('color', value)}
-              searchable
-            />
-
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-foreground">Телесно тегло (кг)</label>
-              <div className="grid grid-cols-2 gap-3">
-                <Input
-                  type="number"
-                  placeholder="Мин"
-                  value={filters?.weightMin}
-                  onChange={(e) => handleFilterChange('weightMin', e?.target?.value)}
-                  min="0"
-                />
-                <Input
-                  type="number"
-                  placeholder="Макс"
-                  value={filters?.weightMax}
-                  onChange={(e) => handleFilterChange('weightMax', e?.target?.value)}
-                  min="0"
-                />
-              </div>
-            </div>
+              label="Източник / Откъде е котката"
+              options={[{ value: '', label: 'Всички източници' }, ...sourceOptions]}
+              value={filters.source}
+              onChange={(val) => handleFilterChange('source', val)}
+            /> */}
           </div>
 
-          <div className="p-4 border-t border-border">
+          <div className="p-4 border-t border-border mt-auto">
             <Button
               variant="outline"
               fullWidth
               onClick={handleReset}
               iconName="RotateCcw"
-              iconPosition="left"
             >
               Изчисти филтрите
             </Button>

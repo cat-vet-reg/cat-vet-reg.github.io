@@ -111,7 +111,7 @@ const ZoneStatisticsTable = ({ selectedMonth, selectedYear }) => {
       const dateKey = record.castrated_at.split('T')[0];
       const ownerName = record.owner?.name || record.owner_name || "Анонимен";
       const address = record.address || record.location_address || "-";
-      const reproductiveStatus = record.reproductiveStatus || record.data?.reproductiveStatus || "-";
+      const reproductiveStatus = record.medical_details?.reproductive_status || "-";
       const zone = record.data?.zonaNumber || record.zona_number || "0";
       const groupKey = `${dateKey}-${ownerName}-${zone}`;
 

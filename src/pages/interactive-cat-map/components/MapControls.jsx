@@ -8,8 +8,8 @@ const MapControls = ({ mapType, onMapTypeChange, clusteringEnabled, onClustering
   ];
 
   return (
-    <div className="absolute top-4 left-4 z-[1000] flex flex-col gap-2">
-      <div className="bg-card rounded-lg shadow-warm-md overflow-hidden">
+    <div className="absolute top-4 left-4 lg:left-auto lg:right-4 z-[1000] flex flex-col gap-2">
+      <div className="bg-card rounded-lg shadow-warm-md overflow-hidden border border-border">
         {mapTypes?.map((type) => (
           <button
             key={type?.value}

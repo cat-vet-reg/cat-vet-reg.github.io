@@ -174,3 +174,10 @@ export const reproductiveOptions = {
       { value: "monorchidism"       , label: "Монорхидизъм" }
     ]
   };
+
+export const timeOptions = [
+  { value: 'all', label: 'Всички' },
+  { value: '7', label: 'Последните 7 дни' },
+  { value: '30', label: 'Последния месец' },
+  { value: '90', label: 'Последните 3 месеца' },
+];
