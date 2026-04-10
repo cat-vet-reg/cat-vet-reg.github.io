@@ -138,28 +138,27 @@ const navigate = useNavigate();
 
   // Автоматично намиране на име на собственик по телефонен номер
   useEffect(() => {
-    // Проверяваме само ако телефонът е поне 6 цифри (за да не правим заявки за всяка цифра)
-    if (formData.ownerPhone && formData.ownerPhone.length >= 6 && !isEditing) {
+    // Вече позволяваме търсене дори при редакция, ако името е празно
+    if (formData.ownerPhone && formData.ownerPhone.length >= 6) {
       const timer = setTimeout(async () => {
         try {
-          const { data, error } = await supabase
-            .from('td_owners') // Провери дали таблицата ти се казва така (или 'owners')
+          const { data } = await supabase
+            .from('td_owners')
             .select('name')
             .eq('phone', formData.ownerPhone)
             .maybeSingle();
 
+          // Ако намерим човек в базата с този телефон, автоматично попълваме името му
           if (data && data.name && !formData.ownerName) {
-            // Ако намерим име и полето за име в момента е празно - попълваме го
             handleInputChange("ownerName", data.name);
           }
         } catch (err) {
-          console.error("Грешка при търсене на собственик:", err);
+          console.error(err);
         }
-      }, 800); // Изчакваме 0.8 сек след спиране на писането (Debounce)
-
+      }, 800);
       return () => clearTimeout(timer);
     }
-  }, [formData.ownerPhone]);
+  }, [formData.ownerPhone]); // Махаме isEditing от условията
 
 
   // Обекти за изчисленият на бутоните
@@ -463,6 +462,21 @@ const navigate = useNavigate();
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-8">
               <div className="space-y-6 md:space-y-8" ref={sectionRefs.owner}>
                 <FormSection title="Лице за контакти / Собственик" className="bg-[#e64072]/20 rounded-[20px] p-3">
+                  <div className="flex justify-between items-center mb-4">
+                    {isEditing && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          handleInputChange("ownerName", "");
+                          handleInputChange("ownerPhone", "");
+                          // Важно: не променяме isEditing тук, за да не загубим ID-то на записа в td_records
+                        }}
+                        className="text-xs bg-white/50 hover:bg-white px-2 py-1 rounded border border-pink-300 transition-all"
+                      >
+                        🔄 Смени човека
+                      </button>
+                    )}
+                  </div>
                   <Input
                     label="Име"
                     type="text"

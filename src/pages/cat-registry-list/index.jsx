@@ -101,7 +101,7 @@ const CatRegistryList = () => {
 
     // Филтри: пол, цвят, статус, локация
     if (filters.gender) result = result.filter(cat => cat.gender === filters.gender);
-    if (filters.color) result = result.filter(cat => cat.color === filters.color);
+    if (filters.color) result = result.filter(cat => cat.data?.color === filters.color);
     if (filters.species) result = result.filter(cat => cat.species === filters.species);
     if (filters.status)  result = result.filter(cat => cat.status === filters.status);
     if (filters.staffSurgeon) result = result.filter(cat => cat.staffSurgeon === filters.staffSurgeon);

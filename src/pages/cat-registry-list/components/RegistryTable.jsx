@@ -137,10 +137,10 @@ const RegistryTable = ({
                   <div className="flex items-center gap-2">
                     <div 
                       className="w-4 h-4 rounded-full border"
-                      style={{ background: colorStyles[cat.color] || '#ccc' }} 
+                      style={{ background: colorStyles[cat.data?.color] || '#ccc' }} 
                     />
                     <span className="text-sm text-muted-foreground">
-                      {colorOptions.find(opt => opt.value === cat.color)?.label || cat.color}
+                      {colorOptions.find(opt => opt.value === cat.data?.color)?.label || cat.data?.color}
                     </span>
                   </div>
                 </td>
