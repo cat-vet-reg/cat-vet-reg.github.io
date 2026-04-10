@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Icon from '../../../components/AppIcon';
 
 const MapLegend = ({ totalCats, filteredCats, catsData, activeFilters }) => {
@@ -20,7 +20,13 @@ const MapLegend = ({ totalCats, filteredCats, catsData, activeFilters }) => {
     return labels[range] || labels['all'];
   };
 
-return (
+  useEffect(() => {
+    if (window.innerWidth >= 1024) { // 1024px е стандартният lg: breakpoint
+      setIsExpanded(true);
+    }
+  }, []);
+
+  return (
     <div className="absolute bottom-4 left-4 z-[1000] transition-all duration-300">
       {!isExpanded ? (
         /* Свито състояние - малък бутон */
@@ -32,12 +38,11 @@ return (
           <Icon name="Info" size={24} />
         </button>
       ) : (
-        /* Отворено състояние */
-        <div className="bg-card rounded-xl shadow-warm-xl p-4 w-72 border border-border relative animate-in fade-in zoom-in duration-200">
-          {/* Бутон за затваряне */}
+        <div className="bg-card rounded-xl shadow-warm-xl p-4 w-64 lg:w-72 border border-border relative animate-in fade-in slide-in-from-bottom-2 duration-200">
+          {/* Бутонът за сгъване е видим само на мобилни, на десктоп легендата може да стои постоянно */}
           <button 
             onClick={() => setIsExpanded(false)}
-            className="absolute top-2 right-2 text-muted-foreground hover:text-foreground p-1"
+            className="lg:hidden absolute top-2 right-2 text-muted-foreground hover:text-foreground p-1"
           >
             <Icon name="ChevronDown" size={20} />
           </button>

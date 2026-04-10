@@ -352,13 +352,7 @@ const DashboardOverview = () => {
         const response = await $apiGetCats();
 
         if (response && response.data) {
-          // --- ПРОВЕРКА ЗА ЛИПСВАЩИТЕ ID-та ---
-        const missingIds = [15, 16, 17];
-        const foundMissing = response.data.filter(cat => missingIds.includes(Number(cat.id)));
         
-        console.log("Намерени ли са 15, 16, 17 в RAW данните от сървъра?", foundMissing);
-        console.log("Общ брой записи от сървъра:", response.data.length);
-        // ------------------------------------
         // 1. Копираме и сортираме веднага
         const dataToSort = [...response.data];
         

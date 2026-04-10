@@ -1,72 +1,98 @@
-import React, { useState, useEffect } from "react";
-
+import React, { useState, useEffect, useRef } from "react";
 import Header           from "../../components/ui/Header";
 import Breadcrumb       from "../../components/ui/Breadcrumb";
-import MakeAppointment  from "./components/MakeAppointment";
-import Calendar         from "./components/Calendar";
+
+import supabase         from "../../utils/supabase";
+import { $apiCreateNewRecord } from "../../services/create_new_record";
+
 import WaitingList      from "./components/WaitingList";
+import MakeAppointment  from "./components/MakeAppointment";
 import Blacklist        from "./components/Blacklist";
-import { $apiCreateNewRecord } from "services/create_new_record";
+import Calendar         from "./components/Calendar";
 
 const Schedule = () => {
-
   const [date, setDate] = useState(new Date());
   const [refreshKey, setRefreshKey] = useState(0);
   const [prefillData, setPrefillData] = useState(null);
 
+  // референция към формата
+  const appointmentFormRef = useRef(null);
+
   const handleSelectFromWaitingList = (item) => {
     console.log("Избрано животно от списъка:", item);
-    
-    // 2. ЗАПИШИ ДАННИТЕ ТУК (вместо setFormData)
+
+    // 2. ЗАПИШИ ДАННИТЕ ТУК (в td_waiting_list)
     setPrefillData({
-      ownerName: item.owner_name,
-      phone: item.phone,
-      address: item.address,
-      animalType: item.animal_type,
-      gender: item.gender,
-      zonaNumber: item.zona_number,
-      coords: { lat: item.lat, lng: item.lng }
+      id          : item.id,
+      ownerName   : item.owner_name,
+      phone       : item.phone,
+      address     : item.address,
+      animalType  : item.animal_type,
+      gender      : item.gender,
+      zonaNumber  : item.zona_number,
+      coords      : { lat: item.lat, lng: item.lng }
     });
+    // 3. Скролни до конкретния елемент вместо до 0
+    if (appointmentFormRef.current) {
+      appointmentFormRef.current.scrollIntoView({
+        behavior: 'smooth',
+        block: 'center' // подравнява елемента в горната част на екрана
 
-    // 2. Скролваме нагоре до формата, за да я видиш веднага
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-    
-    // 3. (Опционално) Ако ползваш модален прозорец, отвори го тук:
-    // setIsModalOpen(true); 
+      });
+     }
   };
-
   const breadcrumbItems = [
-      { label: 'Табло'    , path: '/dashboard-overview' },
-      { label: 'График'   , path: '/schedule' }
+    { label: 'Табло'    , path: '/dashboard-overview' },
+    { label: 'График'   , path: '/schedule' }
   ];
 
-  const registerAnimalIntoTheSystem = async (e) => {
+  const registerAnimalIntoTheSystem = async (appointmentData) => {
     try {
-      // Въртим цикъл през всяка добавена група (напр. "2 котки")
-      for (const group of e.animals) {
-        
-        // Въртим втори цикъл за всяка бройка в групата (count)
-        for (let i = 0; i < group.count; i++) {
-          await $apiCreateNewRecord({
-            gender: group.gender,
-            ownerName: e.ownerName,
-            ownerPhone: e.phone,
-            castratedAt: e.date,
-            status: 'recorded',
-            data: {
-              ...group,
-              ownerName: e.ownerName,
-              ownerPhone: e.phone,
-              status: 'recorded',
-              count: 1 // В базата влиза като отделна единица
-            }
-          });
+      // Въртим цикъл, ако потребителят е добавил повече от едно животно (напр. "2 котки")
+      for (const animalGroup of appointmentData.animals) {
+        for (let i = 0; i < animalGroup.count; i++) {
+          
+          // Подготвяме обекта във формат, който defaultFormData разбира
+          const formData = {
+            ownerName   : appointmentData.ownerName,
+            ownerPhone  : appointmentData.phone,
+            address     : appointmentData.address,
+            recordCity  : appointmentData.city || "",
+            zonaNumber  : appointmentData.zonaNumber,
+            coords      : appointmentData.coords,
+            
+            species     : animalGroup.species,
+            gender      : animalGroup.gender,
+            castratedAt : appointmentData.date,
+            status      : 'recorded', // Важно: началният статус е записан
+            
+            // Други дефолтни стойности, които API очаква
+            donation    : appointmentData.donation || "N",
+          };
+
+          // ИЗПОЛЗВАМЕ ТВОЯТА ГОТОВА ФУНКЦИЯ
+          await $apiCreateNewRecord(formData);
         }
       }
 
-      // ТОВА Е ВАЖНОТО: Обновяваме календара едва след като ВСИЧКИ записи са готови
-      setRefreshKey(prev => prev + 1);
-      alert("Успешно записани часове!");
+      // Ако записът е дошъл от списъка на чакащи, изтриваме го
+      if (appointmentData.id) {
+        console.log("Премахвам от Waiting List запис с ID:", appointmentData.id);
+        const { error: deleteError } = await supabase
+          .from('td_waiting_list')
+          .delete()
+          .eq('id', appointmentData.id);
+
+        if (deleteError) {
+          console.error("Грешка при триене от чакащи:", deleteError);
+          // Не спираме процеса тук, защото записите в регистъра вече са направени
+        }
+      }
+
+        // 3. Обновяваме UI
+        setRefreshKey(prev => prev + 1); // Това ще презареди Календара и WaitingList
+        setPrefillData(null); // Изчистваме "паметта" на формата
+        alert("Успешно записани часове и премахнати от списъка на чакащи!");
 
     } catch (error) {
       console.error("Грешка при запис:", error);
@@ -76,25 +102,26 @@ const Schedule = () => {
 
   const handleMarkAsMissed = async (recordId) => {
     try {
-        // Намираме записа и му сменяме статуса вътре в JSON обекта 'data'
-        const { error } = await supabase
-            .from('td_records')
-            .update({ 
-                'data': supabase.rpc('jsonb_set', {
-                    target: 'data',
-                    path: '{status}',
-                    value: '"missed"'
-                })
-            })
-            .eq('id', recordId);
+      // Обновяваме статуса на двете места
+      const { error } = await supabase
+        .from('td_records')
+        .update({
+          status: 'missed',
+          // Ползваме RPC, за да не презапишем целия JSON 'data', а само статуса в него
+          data: supabase.rpc('jsonb_set', {
+            target: 'data',
+            path: '{status}',
+            value: '"missed"'
+          })
+        })
+        .eq('id', recordId);
 
-        if (error) throw error;
-
-        // Обновяваме календара и черния списък
-        setRefreshKey(prev => prev + 1);
-        alert("Животното е отбелязано като 'Пропуснато'.");
+      if (error) throw error;
+      
+      setRefreshKey(prev => prev + 1);
+      alert("Животното е отбелязано като 'Пропуснато'.");
     } catch (err) {
-        console.error("Грешка при обновяване на статус:", err);
+      console.error("Грешка:", err);
     }
   };
 
@@ -104,7 +131,6 @@ const Schedule = () => {
       <div className="min-h-screen bg-background">
         <div className="max-w-7xl mx-auto px-4 md:px-6 lg:px-8 py-6 md:py-8">
           <Breadcrumb items={breadcrumbItems} />
-
           <div className="mb-6 md:mb-8">
             <h1 className="text-2xl md:text-3xl lg:text-4xl font-semibold text-foreground mb-2">
                 График
@@ -118,16 +144,21 @@ const Schedule = () => {
           <div className="mb-10">
               <Calendar selectedDate={date} key={refreshKey} />
           </div>
-
           <hr className="my-10 border-border" />
 
           {/* СЕКЦИЯ: Форма + Черен списък едно до друго */}
           <div className="mb-10">
-            <MakeAppointment 
+            <div ref={appointmentFormRef} className="mb-10">
+              <MakeAppointment
                 selectedDate={date}
-                prefillData={prefillData} 
-                onAnimalAdd={(e) => registerAnimalIntoTheSystem(e)} 
-            />
+                prefillData={prefillData}
+                onAnimalAdd={(e) => {
+                  // Взимаме данните от формата и добавяме ID-то от префила, ако съществува
+                  const dataWithId = { ...e, id: prefillData?.id };
+                  registerAnimalIntoTheSystem(dataWithId);
+                }}
+              />
+            </div>
           </div>
           
           <div className="mb-10 items-start">
@@ -136,15 +167,14 @@ const Schedule = () => {
           </div>
           
           <div className="mb-10 border-border">
-            <WaitingList onSelectToSchedule={handleSelectFromWaitingList} />
+            <WaitingList
+            key={`waiting-list-${refreshKey}`}
+            onSelectToSchedule={handleSelectFromWaitingList} />
           </div>
-
         </div>
       </div>
-
     </>
   );
-
 };
 
 export default Schedule;

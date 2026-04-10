@@ -25,7 +25,7 @@ const MapControls = ({ mapType, onMapTypeChange, clusteringEnabled, onClustering
             aria-pressed={mapType === type?.value}
           >
             <Icon name={type?.icon} size={18} />
-            <span className="text-sm font-medium">{type?.label}</span>
+            <span className="text-sm font-medium hidden lg:inline">{type?.label}</span>
           </button>
         ))}
       </div>
@@ -42,7 +42,7 @@ const MapControls = ({ mapType, onMapTypeChange, clusteringEnabled, onClustering
         aria-pressed={clusteringEnabled}
       >
         <Icon name="Layers" size={18} />
-        <span className="text-sm font-medium">Групиране</span>
+        <span className="text-sm font-medium hidden lg:inline">Групиране</span>
       </button>
     </div>
   );
