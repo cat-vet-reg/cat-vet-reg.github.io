@@ -218,20 +218,31 @@ const Calendar = () => {
           eventContent={(eventInfo) => {
             const { isMale, gender, species, phone, ownerName, displayId } = eventInfo.event.extendedProps;
             const isPast = eventInfo.event.backgroundColor === '#dedede';
+            const currentStatus = eventInfo.event.extendedProps.data.status;
+            // Списък със статуси, които означават, че животното Е в клиниката:
+            const isAtClinic = !['recorded', 'missed', undefined, null].includes(currentStatus);
 
             return (
               <div className="p-1 overflow-hidden text-[10px] sm:text-xs cursor-pointer hover:brightness-95 transition-all leading-tight relative">
                 <button 
-                    onClick={(e) => handleReceive(e, eventInfo.event.id)}
-                    className={`absolute top-0 right-14 p-1 font-bold transition-transform hover:scale-120 ${
-                        eventInfo.event.extendedProps.data.status === 'received' 
-                        ? 'text-green-600' 
-                        : 'text-gray-400 hover:text-green-500'
-                    }`}
-                    title="Маркирай като пристигнало (Received)"
+                  onClick={(e) => {
+                      if (isAtClinic) return; // Спираме действието, ако вече е прието
+                      handleReceive(e, eventInfo.event.id);
+                  }}
+                  className={`absolute top-0 right-14 p-1 font-bold transition-transform hover:scale-120 ${
+                      isAtClinic 
+                      ? 'text-green-600' 
+                      : 'text-gray-400 hover:text-green-500'
+                  }`}
+                  title="Маркирай като пристигнало (Received)"
                 >
-                    {eventInfo.event.extendedProps.data.status === 'received' ? '✅' : '📥'}
+                  {/* Ако е в клиниката (който и да е работен статус), показваме тикче */}
+                  {isAtClinic ? '✅' : '📥'}
                 </button>
+                {/* Промяна и на зелената точка (пулсацията) */}
+                {isAtClinic && (
+                    <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse" title="Животното е в клиниката" />
+                )}
                 <button 
                   onClick={(e) => handleDelete(e, eventInfo.event.id)}
                   className="absolute top-0 right-0 p-1 text-red-500/50 hover:text-red-600 hover:bg-red-50 rounded-bl-lg transition-colors z-50 font-bold"

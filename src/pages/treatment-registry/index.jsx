@@ -21,10 +21,10 @@ const TreatmentRegistry = () => {
   const [records, setRecords] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  const breadcrumbItems = [
-    { label: 'Табло', path: '/dashboard-overview' },
-    { label: 'Лечение', path: '/treatment' },
-  ];
+  // const breadcrumbItems = [
+  //   { label: 'Табло', path: '/dashboard-overview' },
+  //   { label: 'Лечение', path: '/treatment' },
+  // ];
 
   const [filters, setFilters] = useState({
     search: '',
@@ -140,7 +140,7 @@ const TreatmentRegistry = () => {
     <div className="min-h-screen bg-background text-foreground">
       <Header />
       <main className="container mx-auto px-4 md:px-6 lg:px-8 py-6 md:py-8">
-        <Breadcrumb items={breadcrumbItems} />
+        {/* <Breadcrumb items={breadcrumbItems} /> */}
 
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6 md:mb-8">
           <div>

@@ -1,4 +1,5 @@
 import React, { useState, useEffect }    from 'react';
+import { useRef }                           from 'react';
 import { useNavigate } from 'react-router-dom';
 import Header   from "../../components/ui/Header";
 import Icon     from "../../components/AppIcon";
@@ -33,7 +34,9 @@ const Today = () => {
   const [animals, setAnimals] = useState([]);
   const [loading, setLoading] = useState(true);
   const todayDate = new Date().toISOString().replace(/T.*/,'').split('-').reverse().join('.');
-  
+  const [scrollPos, setScrollPos] = useState(0);
+  const tableRef = useRef(null);
+
   // Състояние за това коя клетка се редактира в момента
   const [editing, setEditing] = useState({ id: null, field: null });
 
@@ -113,6 +116,17 @@ const Today = () => {
     };
   };
 
+
+  const scroll = (direction) => {
+    if (tableRef.current) {
+      const scrollAmount = 200; // Колко пиксела да премества всяко кликване
+      tableRef.current.scrollBy({
+        left: direction === 'left' ? -scrollAmount : scrollAmount,
+        behavior: 'smooth'
+      });
+    }
+  };
+
   if (loading) return <div className="p-10 text-center">Зареждане на пациенти...</div>;
 
   return (
@@ -121,11 +135,31 @@ const Today = () => {
       <main className="container mx-auto px-4 py-8">
         <h1 className="text-3xl font-bold mb-6 text-slate-800">Операционен блок - Днес <span className='text-xs'>({todayDate})</span></h1>
         
-        <div className="mt-8 bg-card rounded-lg shadow-warm border overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full border-collapse">
-              <thead>
-                <tr className="bg-gray-100">
+        {/* СТРЕЛКИ ЗА НАВИГАЦИЯ - виждат се само на мобилни (md:hidden) */}
+        <div className="flex md:hidden justify-between items-center mb-4 bg-white p-2 rounded-lg shadow-sm border">
+          <button 
+            onClick={() => scroll('left')}
+            className="p-2 bg-slate-100 rounded-full active:bg-slate-200"
+          >
+            <Icon name="ChevronLeft" size={24} />
+          </button>
+          <span className="text-xs font-bold text-slate-500 uppercase tracking-widest">
+            Плъзнете таблицата →
+          </span>
+          <button 
+            onClick={() => scroll('right')}
+            className="p-2 bg-slate-100 rounded-full active:bg-slate-200"
+          >
+            <Icon name="ChevronRight" size={24} />
+          </button>
+        </div>
+
+        {/*МОБИЛНА ВЕРСИЯ*/}
+        {/* <div className="block md:hidden">
+          <div className="mt-4 md:mt-8 bg-card rounded-lg shadow-sm border overflow-hidden">
+            <table className="w-full border-collapse block md:table">
+              <thead className="hidden md:table-header-group">
+                <tr className="bg-gray-100 text-slate-600 text-sm">
                   <th className="border p-2 text-left">Данни животно и собственик</th>
                   <th className="border p-2 text-left">Услуги</th>
                   <th className="border p-2 text-left">Преглед</th>
@@ -134,19 +168,172 @@ const Today = () => {
                   <th className="border p-2 text-left">Упойка (мл)</th>
                   <th className="border p-2 text-left">Операция - таймери</th>
                   <th className="border p-2 text-left">Статус</th>
-                  <th className="border p-2 text-left">Хирург</th>
+                  <th className="border p-2 text-left">Персонал</th>
+                </tr>
+              </thead>
+
+              <tbody className="block md:table-row-group">
+                {animals.map((animal) => {
+                  const currentStatus = statusOptions.find(opt => opt.id === animal.status);
+
+                  return (
+                    <tr 
+                      key={animal.id} 
+                      className="block md:table-row mb-4 md:mb-0 border-b md:border-b-0 hover:bg-slate-50 transition-colors bg-white md:bg-transparent"
+                    >
+                      <td className="block md:table-cell border-none md:border p-3 align-top bg-slate-50 md:bg-transparent">
+                        <div className="md:hidden text-[10px] uppercase text-gray-400 font-bold mb-1">Пациент</div>
+                        <AnimalDataCell 
+                          animal={animal} 
+                          editing={editing}
+                          setEditing={setEditing}
+                          handleUpdateField={handleUpdateField} 
+                        />
+                      </td>
+
+                      
+                      <td className="block md:table-cell border-none md:border p-3">
+                        <div className="md:hidden text-[10px] uppercase text-gray-400 font-bold mb-1">Услуги</div>
+                        <div className="flex flex-wrap gap-1">
+                          {animal.services?.map((s, i) => (
+                            <span key={i} className="text-xs bg-blue-50 text-blue-700 px-2 py-0.5 rounded border border-blue-100">{s}</span>
+                          )) || <span className="text-gray-400 text-xs">Стандарт</span>}
+                        </div>
+                      </td>
+
+                      <td className="block md:table-cell border-none md:border p-3 align-top">
+                        <div className="md:hidden text-[10px] uppercase text-gray-400 font-bold mb-1">Бележки от преглед</div>
+                        {editing.id === animal.id && editing.field === 'notes' ? (
+                          <textarea
+                            className="w-full border rounded p-2 text-sm focus:ring-2 focus:ring-blue-500 min-h-[80px]"
+                            defaultValue={animal.data?.notes || ""}
+                            autoFocus
+                            onBlur={(e) => handleUpdateField(animal.id, "notes", e.target.value, 'data')}
+                          />
+                        ) : (
+                          <div 
+                            onClick={() => setEditing({ id: animal.id, field: 'notes' })}
+                            className="cursor-pointer p-2 rounded bg-yellow-50/50 md:bg-transparent border border-dashed border-yellow-200 md:border-none"
+                          >
+                            <small className={`block text-sm ${!animal.data?.notes ? 'text-gray-400 italic' : 'text-slate-600'}`}>
+                              {animal.data?.notes || "Добави бележки..."}
+                            </small>
+                          </div>
+                        )}
+                      </td>
+
+                      <td className="block md:table-cell border-none md:border p-3">
+                        <div className="grid grid-cols-3 gap-2 md:block">
+                          
+                          <div>
+                            <div className="md:hidden text-[10px] uppercase text-gray-400 font-bold mb-1">Пол</div>
+                            <div 
+                              onClick={() => setEditing({ id: animal.id, field: 'gender' })}
+                              className={`text-sm font-medium ${animal.gender === 'female' ? 'text-pink-600' : 'text-blue-600'}`}
+                            >
+                              {animal.gender === 'female' ? '♀ Женски' : '♂ Мъжки'}
+                            </div>
+                          </div>
+
+                          
+                          <div>
+                            <div className="md:hidden text-[10px] uppercase text-gray-400 font-bold mb-1">Тегло</div>
+                            <div 
+                              onClick={() => setEditing({ id: animal.id, field: 'weight' })}
+                              className="text-sm font-mono font-bold"
+                            >
+                              {animal.data?.weight ? `${animal.data.weight} кг` : '---'}
+                            </div>
+                          </div>
+
+                          
+                          <div>
+                            <div className="md:hidden text-[10px] uppercase text-gray-400 font-bold mb-1">Статус</div>
+                            <span 
+                              onClick={() => setEditing({ id: animal.id, field: 'status' })}
+                              className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${currentStatus?.color || 'bg-slate-100'}`}
+                            >
+                              {currentStatus?.label || animal.status}
+                            </span>
+                          </div>
+                        </div>
+                      </td>
+
+                      <td className="block md:table-cell border-none md:border p-3 bg-blue-50/30 md:bg-transparent">
+                        <div className="md:hidden text-[10px] uppercase text-gray-400 font-bold mb-1">Упойка (Индукция)</div>
+                        <div className="flex items-center gap-4 md:flex-col md:gap-1">
+                          
+                          <span className="text-blue-700 font-bold">{animal.medical_details?.induction_dose || "0.00"} ml</span>
+                          <span className="text-[10px] text-gray-500 italic">({animal.data?.weight} кг)</span>
+                        </div>
+                      </td>
+
+                      
+                      <td className="block md:table-cell border-none md:border p-3">
+                        <div className="md:hidden text-[10px] uppercase text-gray-400 font-bold mb-2">Време на операция</div>
+                        <SurgeryTimers 
+                          animal={animal} 
+                          editing={editing} 
+                          setEditing={setEditing} 
+                          handleUpdateField={handleUpdateField}
+                        />
+                      </td>
+
+                      
+                      <td className="block md:table-cell border-none md:border p-3 bg-slate-50 md:bg-transparent">
+                        <div className="md:hidden text-[10px] uppercase text-gray-400 font-bold mb-2">Екип</div>
+                        <div className="grid grid-cols-2 md:flex md:flex-col gap-2 text-xs">
+                          <div className="flex items-center gap-1">
+                            <span className="text-gray-400">Хирург:</span>
+                            <span className="font-bold text-blue-700">
+                              {staffOptions.find(opt => opt.value === animal.staff_surgeon)?.label || "---"}
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <span className="text-gray-400">Приел:</span>
+                            <span>{staffOptions.find(opt => opt.value === animal.medical_details?.staff_received)?.label || "---"}</span>
+                          </div>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </div> */}
+
+        {/*ДЕСКТОП ВЕРСИЯ*/}
+        <div className="mt-8 bg-card rounded-lg shadow-warm border overflow-hidden">
+          <div 
+            ref={tableRef}
+            className="overflow-x-auto snap-x snap-mandatory"
+            style={{ WebkitOverflowScrolling: 'touch' }}
+          >
+            <table className="w-full border-collapse">
+              <thead>
+                <tr className="bg-gray-100">
+                  <th className="border p-2 text-left snap-start">Данни животно и собственик</th>
+                  <th className="border p-2 text-left snap-start">Услуги</th>
+                  <th className="border p-2 text-left snap-start">Преглед</th>
+                  <th className="border p-2 text-left snap-start">Пол</th>
+                  <th className="border p-2 text-left snap-start">кг</th>
+                  <th className="border p-2 text-left snap-start">Упойка (мл)</th>
+                  <th className="border p-2 text-left snap-start">Операция - таймери</th>
+                  <th className="border p-2 text-left snap-start">Статус</th>
+                  <th className="border p-2 text-left snap-start">Хирург</th>
                 </tr>
               </thead>
               <tbody>
                 {animals.map((animal) => {
-                // 1. ТУК ДЕФИНИРАМЕ ПРОМЕНЛИВАТА ЗА ВСЯКО ЖИВОТНО
-                const currentStatus = statusOptions.find(opt => opt.id === animal.status);
+                  // 1. ТУК ДЕФИНИРАМЕ ПРОМЕНЛИВАТА ЗА ВСЯКО ЖИВОТНО
+                  const currentStatus = statusOptions.find(opt => opt.id === animal.status);
 
-                // 2. ИЗПОЛЗВАМЕ RETURN, ЗА ДА ВЪРНЕМ ТАБЛИЦАТА
-                return (
+                  // 2. ИЗПОЛЗВАМЕ RETURN, ЗА ДА ВЪРНЕМ ТАБЛИЦАТА
+                  return (
                   <tr key={animal.id} className="hover:bg-slate-50 transition-colors">
                     {/*ДАННИ ЖВ, СОБСТВ.*/}
-                    <td className="border p-3 min-w-[320px] align-top">
+                    <td className="snap-start border p-3 min-w-[320px] align-top">
                       <AnimalDataCell key={animal.id} 
                                       animal={animal} 
                                       editing={editing}
@@ -154,8 +341,8 @@ const Today = () => {
                                       handleUpdateField={handleUpdateField} />
                     </td>
 
-                    <td className="border p-2">
-                      {/* УСЛУГИ */}
+                    {/* УСЛУГИ */}
+                    <td className="snap-start border p-2">
                       {animal.services?.map((s, i) => (
                         <span key={i} className="block text-xs bg-gray-100 mb-1 p-1 rounded">{s}</span>
                       )) || <span className="text-gray-400 text-xs">Стандарт</span>}
@@ -163,7 +350,7 @@ const Today = () => {
                     </td>
 
                     {/* ПРЕГЛЕД */}
-                    <td className="border p-2 max-w-[200px] min-w-[150px] align-top">
+                    <td className="snap-start border p-2 max-w-[200px] min-w-[150px] align-top">
                       {editing.id === animal.id && editing.field === 'notes' ? (
                         <textarea
                           className="w-full border rounded p-1 text-xs outline-none focus:ring-2 focus:ring-blue-500 min-h-[60px] resize-none font-sans"
@@ -206,7 +393,7 @@ const Today = () => {
                     </td>
 
                     {/* ПОЛ */}
-                    <td className="border p-2 text-center min-w-[100px]">
+                    <td className="snap-start border p-2 text-center min-w-[100px]">
                       {editing.id === animal.id && editing.field === 'gender' ? (
                         <select
                           className="bg-white border rounded text-xs p-1 outline-none focus:ring-2 focus:ring-blue-500 w-full"
@@ -236,7 +423,7 @@ const Today = () => {
                     </td>
 
                     {/* ТЕГЛО */}
-                    <td className="border p-2 font-mono">
+                    <td className="snap-start border p-2 font-mono">
                       {editing.id === animal.id && editing.field === 'weight' ? (
                         <input
                           type="number"
@@ -273,7 +460,7 @@ const Today = () => {
                     </td>
 
                     {/* УПОЙКА */}
-                    <td className="border p-2 min-w-[140px]">
+                    <td className="snap-start border p-2 min-w-[140px]">
                       {(() => {
                         const dose = calculateDose(animal);
                         const savedDose = animal.medical_details?.induction_dose;
@@ -384,7 +571,7 @@ const Today = () => {
                     />
                     
                     {/*СТАТУС*/}
-                    <td className="border p-2 text-center">
+                    <td className="snap-start border p-2 text-center">
                       {editing.id === animal.id && editing.field === 'status' ? (
                         <select
                           className="text-[10px] font-bold uppercase border rounded px-1 py-0.5 outline-none focus:ring-1 focus:ring-blue-500 bg-white"
@@ -413,7 +600,7 @@ const Today = () => {
                     </td>
 
                     {/*ПЕРСОНАЛ*/}
-                    <td className="border p-2 text-[11px] leading-tight">
+                    <td className="snap-start border p-2 text-[11px] leading-tight">
                       <div className="flex flex-col gap-1.5">
                         
                         {/* ПРИЕЛ */}

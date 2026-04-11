@@ -8,13 +8,13 @@ const Header = () => {
   const location = useLocation();
 
   const navigationItems = [
-    { label: 'Табло'        , path: '/dashboard-overview' , icon: 'LayoutDashboard' },
-    { label: 'Днес'         , path: '/today'              , icon: 'Calendar' },
-    { label: 'Регистрирани' , path: '/cat-registry-list'  , icon: 'BookOpen' },
-    { label: 'Карта'        , path: '/interactive-cat-map', icon: 'Map' },
-    { label: 'Статистика'   , path: '/statistics'         , icon: 'ChartArea' },
-    { label: 'График'       , path: '/schedule'           , icon: 'Calendar' },
-    { label: 'Лечение'      , path: '/treatment-registry' , icon: 'Stethoscope' }
+    { label: 'График'           , path: '/schedule'           , icon: 'Calendar' },
+    { label: 'Операционен блок' , path: '/today'              , icon: 'Activity' },
+    { label: 'Регистрирани'     , path: '/cat-registry-list'  , icon: 'BookOpen' },
+    { label: 'Лечение'          , path: '/treatment-registry' , icon: 'Stethoscope' },
+    { label: 'Карта'            , path: '/interactive-cat-map', icon: 'Map' },
+    { label: 'Отчети'           , path: '/statistics'         , icon: 'ChartArea' },
+    { label: 'Табло'            , path: '/dashboard-overview' , icon: 'LayoutDashboard' }
   ];
 
   const isActivePath = (path) => {

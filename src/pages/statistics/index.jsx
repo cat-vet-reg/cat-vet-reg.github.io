@@ -10,10 +10,10 @@ import { mapDbToUi } from '../cat-registration-form/utils/formMapper';
 
 
 const StatisticsTable = () => {
-  const breadcrumbItems = [
-    { label: 'Табло'                , path: '/dashboard-overview' },
-    { label: 'Статистика'           , path: '/statistics' }
-  ];
+  // const breadcrumbItems = [
+  //   { label: 'Табло'                , path: '/dashboard-overview' },
+  //   { label: 'Отчети'               , path: '/statistics' }
+  // ];
 
   const [stats, setStats] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -163,7 +163,7 @@ const StatisticsTable = () => {
         <main className="container mx-auto px-4 md:px-6 lg:px-8 py-6 md:py-8">
 
             <Header />
-            <Breadcrumb items={breadcrumbItems} />
+            {/* <Breadcrumb items={breadcrumbItems} /> */}
 
                 <div className="mb-6 md:mb-8">
                     <h1 className="text-3xl md:text-4xl lg:text-5xl font-semibold text-foreground mb-2">Месечна статистика</h1>

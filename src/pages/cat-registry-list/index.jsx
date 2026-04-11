@@ -166,10 +166,10 @@ const CatRegistryList = () => {
     navigate('/cat-registration-form', { state: { catData: cat, isEditing: true } });
   };
 
-  const breadcrumbItems = [
-    { label: 'Табло'                , path: '/dashboard-overview' },
-    { label: 'Регистър на животните', path: '/cat-registry-list' }
-  ];
+  // const breadcrumbItems = [
+  //   { label: 'Табло'                , path: '/dashboard-overview' },
+  //   { label: 'Регистър на животните', path: '/cat-registry-list' }
+  // ];
 
   // Изчисляваме кои котки да се покажат на текущата страница
   const paginatedCats = useMemo(() => {
@@ -189,7 +189,7 @@ const CatRegistryList = () => {
     <div className="min-h-screen bg-background">
       <Header />
       <main className="container mx-auto px-4 md:px-6 lg:px-8 py-6 md:py-8">
-        <Breadcrumb items={breadcrumbItems} />
+        {/* <Breadcrumb items={breadcrumbItems} /> */}
 
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6 md:mb-8">
           <div>

@@ -230,10 +230,10 @@ const navigate = useNavigate();
   const [showSuccessModal     , setShowSuccessModal     ] = useState(false);
   const [registeredCatData    , setRegisteredCatData    ] = useState(null);
 
-  const breadcrumbItems = [
-    { label: "Табло"              , path: "/dashboard-overview" },
-    { label: "Нова регистрация"   , path: "/cat-registration-form" },
-  ];
+  // const breadcrumbItems = [
+  //   { label: "Табло"              , path: "/dashboard-overview" },
+  //   { label: "Нова регистрация"   , path: "/cat-registration-form" },
+  // ];
 
   const handleImageChange = (e) => {
 
@@ -443,7 +443,7 @@ const navigate = useNavigate();
       </div>
       <div className="min-h-screen bg-background">
         <div className="max-w-7xl mx-auto px-4 md:px-6 lg:px-8 py-6 md:py-8">
-          <Breadcrumb items={breadcrumbItems} />
+          {/* <Breadcrumb items={breadcrumbItems} /> */}
 
           <div className="mb-6 md:mb-8">
             <h1 className="text-2xl md:text-3xl lg:text-4xl font-semibold text-foreground mb-2">
