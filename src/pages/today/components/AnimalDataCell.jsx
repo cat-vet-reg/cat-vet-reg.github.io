@@ -123,15 +123,12 @@ const AnimalDataCell = ({ animal, editing, setEditing, handleUpdateField }) => {
         )}
       </div>
 
-      {/* 3. ФИЗИЧЕСКИ ПОКАЗАТЕЛИ (Badges) */}
+      {/* 3. ФИЗИЧЕСКИ ПОКАЗАТЕЛИ */}
       <div className="flex flex-wrap gap-1 mt-1 text-xs">
         {/* ЦВЯТ */}
         <div className="flex items-center">
           {editing.id === animal.id && editing.field === 'color' ? (
-            <div 
-              className="flex items-center gap-1 animate-in fade-in duration-200 bg-amber-50 p-0.5 rounded border border-amber-200"
-              onMouseLeave={() => setEditing({ id: null, field: null })}
-            >
+            <div className="flex items-center gap-1 animate-in fade-in duration-200 bg-amber-50 p-0.5 rounded border border-amber-200">
               <div 
                 className="w-3 h-3 rounded-full border border-black/20"
                 style={{ background: colorStyles[animal.data?.color] || '#ccc' }}
@@ -152,15 +149,22 @@ const AnimalDataCell = ({ animal, editing, setEditing, handleUpdateField }) => {
             </div>
           ) : (
             <div 
-              onClick={() => setEditing({ id: animal.id, field: 'color' })}
-              className="flex items-center gap-1 cursor-pointer hover:bg-slate-100 px-1 rounded transition-colors group"
+              onClick={(e) => {
+                e.stopPropagation();
+                setEditing({ id: animal.id, field: 'color' });
+              }}
+              className="flex items-center gap-1 cursor-pointer hover:bg-slate-100 px-1 rounded transition-colors group max-w-[120px]" 
+              title={colorOptions.find(opt => opt.value === animal.data?.color)?.label || animal.data?.color} // Показва пълния текст при задържане с мишката
             >
               <div 
-                className="w-3.5 h-3.5 rounded-full border group-hover:scale-110 transition-transform"
+                className="w-3.5 h-3.5 shrink-0 rounded-full border group-hover:scale-110 transition-transform"
                 style={{ background: colorStyles[animal.data?.color] || '#ccc', border: '1px solid #000000'}} 
               />
-              <span className="text-[11px] text-slate-500 font-medium">
-                {colorOptions.find(opt => opt.value === animal.data?.color)?.label || animal.data?.color || 'без цвят'}
+              <span className="text-[11px] text-slate-500 font-medium truncate">
+                {(() => {
+                  const label = colorOptions.find(opt => opt.value === animal.data?.color)?.label || animal.data?.color || 'без цвят';
+                  return label.length > 10 ? label.substring(0, 10) + '...' : label;
+                })()}
               </span>
             </div>
           )}
@@ -168,63 +172,67 @@ const AnimalDataCell = ({ animal, editing, setEditing, handleUpdateField }) => {
 
         <span className="text-slate-400 text-xs">•</span>
         {/* ПОРОДА */}
-{/* ПОРОДА */}
-<div className="flex items-center">
-  {editing.id === animal.id && editing.field === 'breed' ? (
-    <div 
-      className="flex items-center gap-1 animate-in fade-in duration-200 bg-emerald-50 p-0.5 rounded border border-emerald-200"
-      // ПРЕМАХНАТО: onMouseLeave - той убиваше менюто
-    >
-      <select
-        className="bg-white border rounded text-[10px] h-5 max-w-[150px] outline-none cursor-pointer"
-        value={animal.data?.breed || ""} 
-        autoFocus
-        onClick={(e) => e.stopPropagation()} // Спира затварянето при клик върху самия селект
-        onChange={(e) => {
-          handleUpdateField(animal.id, "breed", e.target.value, 'data');
-        }}
-      >
-        <option value="">Избери порода...</option>
-        {breedOptions.map(opt => (
-          <option key={opt.value} value={opt.value}>{opt.label}</option>
-        ))}
-      </select>
+        <div className="flex items-center">
+          {editing.id === animal.id && editing.field === 'breed' ? (
+            <div 
+              className="flex items-center gap-1 animate-in fade-in duration-200 bg-emerald-50 p-0.5 rounded border border-emerald-200"
+            >
+              <select
+                className="bg-white border rounded text-[10px] h-5 max-w-[150px] outline-none cursor-pointer"
+                value={animal.data?.breed || ""} 
+                autoFocus
+                onClick={(e) => e.stopPropagation()} // Спира затварянето при клик върху самия селект
+                onChange={(e) => {
+                  handleUpdateField(animal.id, "breed", e.target.value, 'data');
+                }}
+              >
+                <option value="">Избери порода...</option>
+                {breedOptions.map(opt => (
+                  <option key={opt.value} value={opt.value}>{opt.label}</option>
+                ))}
+              </select>
 
-      <button 
-        onClick={(e) => {
-          e.stopPropagation();
-          setEditing({ id: null, field: null });
-        }} 
-        className="text-emerald-600 hover:bg-emerald-100 rounded p-0.5"
-      >
-        <Icon name="Check" size={14} />
-      </button>
-    </div>
-  ) : (
-    <div 
-      onClick={(e) => {
-        e.stopPropagation(); // ВАЖНО: спираме клика тук
-        setEditing({ id: animal.id, field: 'breed' });
-      }}
-      className="text-[11px] text-slate-500 font-medium cursor-pointer hover:bg-slate-100 px-1 rounded transition-colors border border-transparent hover:border-slate-200"
-    >
-      {breedOptions.find(opt => opt.value === animal.data?.breed)?.label || animal.data?.breed || 'Неизвестна'}
-    </div>
-  )}
-</div>
+              <button 
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setEditing({ id: null, field: null });
+                }} 
+                className="text-emerald-600 hover:bg-emerald-100 rounded p-0.5"
+              >
+                <Icon name="Check" size={14} />
+              </button>
+            </div>
+          ) : (
+            <div 
+              onClick={(e) => {
+                e.stopPropagation(); // ВАЖНО: спираме клика тук
+                setEditing({ id: animal.id, field: 'breed' });
+              }}
+              className="text-[11px] text-slate-500 font-medium cursor-pointer hover:bg-slate-100 px-1 rounded transition-colors border border-transparent hover:border-slate-200"
+            >
+              {breedOptions.find(opt => opt.value === animal.data?.breed)?.label || animal.data?.breed || 'Неизвестна'}
+            </div>
+          )}
+        </div>
         <span className="text-slate-400 text-xs">•</span>
 
         {/* ВЪЗРАСТ */}
         <div className="flex items-center">
           {editing.id === animal.id && editing.field === 'age' ? (
-            <div className="flex items-center gap-1 animate-in fade-in duration-200 bg-blue-50 p-0.5 rounded border border-blue-200">
+            <div 
+              className="flex items-center gap-1 animate-in fade-in duration-200 bg-blue-50 p-0.5 rounded border border-blue-200"
+              onClick={(e) => e.stopPropagation()} 
+              onMouseDown={(e) => e.stopPropagation()}
+            >
               <input
                 type="number"
-                className="w-10 border rounded px-1 text-[11px] font-bold h-5 outline-none"
+                className="w-10 border rounded px-1 text-[11px] font-bold h-5 outline-none focus:ring-1 ring-blue-400"
                 value={animal.data?.age_value || ""}
                 autoFocus
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') setEditing({ id: null, field: null });
+                }}
                 onChange={(e) => {
-                  // ПРЕДАВАМЕ false НАКРАЯ, ЗА ДА НЕ СЕ ЗАТВОРИ ВЕДНАГА
                   handleUpdateField(animal.id, "age_value", e.target.value, 'data', false);
                 }}
               />
@@ -232,8 +240,7 @@ const AnimalDataCell = ({ animal, editing, setEditing, handleUpdateField }) => {
                 className="bg-white border rounded text-[10px] h-5 outline-none cursor-pointer"
                 value={animal.data?.age_unit || "years"}
                 onChange={(e) => {
-                  // Тук може да е true, защото обикновено това е последната стъпка
-                  handleUpdateField(animal.id, "age_unit", e.target.value, 'data', true);
+                  handleUpdateField(animal.id, "age_unit", e.target.value, 'data', false);
                 }}
               >
                 {ageUnitOptions.map(opt => (
@@ -241,9 +248,11 @@ const AnimalDataCell = ({ animal, editing, setEditing, handleUpdateField }) => {
                 ))}
               </select>
               
-              {/* Този бутон вече е важен, защото той реално затваря ако само сме сменили цифрата */}
               <button 
-                onClick={() => setEditing({ id: null, field: null })} 
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setEditing({ id: null, field: null });
+                }} 
                 className="text-green-600 p-0.5 hover:bg-green-100 rounded"
               >
                 <Icon name="Check" size={14} />
@@ -251,7 +260,10 @@ const AnimalDataCell = ({ animal, editing, setEditing, handleUpdateField }) => {
             </div>
           ) : (
             <div 
-              onClick={() => setEditing({ id: animal.id, field: 'age' })}
+              onClick={(e) => {
+                e.stopPropagation();
+                setEditing({ id: animal.id, field: 'age' });
+              }}
               className="text-[11px] text-slate-500 font-medium cursor-pointer hover:bg-slate-100 px-1 rounded transition-colors"
             >
               {animal.data?.age_value || '??'} {ageUnitOptions.find(opt => opt.value === animal.data?.age_unit)?.label}
@@ -268,7 +280,6 @@ const AnimalDataCell = ({ animal, editing, setEditing, handleUpdateField }) => {
           {editing.id === animal.id && editing.field === 'temperament' ? (
             <div 
               className="flex items-center gap-1 animate-in fade-in duration-200 bg-orange-50 p-0.5 rounded border border-orange-200"
-              onMouseLeave={() => setEditing({ id: null, field: null })}
             >
               <select
                 className="bg-white border rounded text-[10px] h-5 outline-none cursor-pointer"
@@ -357,31 +368,31 @@ const AnimalDataCell = ({ animal, editing, setEditing, handleUpdateField }) => {
         <div className="flex items-center gap-1.5 text-slate-500">
           <Icon name="MapPin" size={11} />
           {/*Населено място*/}
-{/* ГРАД / СЕЛО */}
-  <div className="relative min-w-[100px]">
-    {editing.id === animal.id && editing.field === 'location_city' ? (
-      <div className="absolute z-50 top-0 left-0 w-64 shadow-xl"> 
-        <Select
-          placeholder="Търси град..."
-          searchable
-          options={cityOptions}
-          value={animal.location_city}
-          onChange={(value) => {
-            handleUpdateField(animal.id, "location_city", value, 'root');
-            setEditing({ id: null, field: null });
-          }}
-        />
-      </div>
-    ) : (
-      <span 
-        onClick={() => setEditing({ id: animal.id, field: 'location_city' })}
-        className="cursor-pointer hover:bg-slate-100 px-1 rounded transition-colors border-b border-dotted border-slate-300"
-      >
-        {cityOptions.find(opt => opt.value === animal.location_city)?.label || animal.location_city || 'Избери град'}
-      </span>
-    )}
-  </div>
+          <div className="relative min-w-[100px]">
+            {editing.id === animal.id && editing.field === 'location_city' ? (
+              <div className="absolute z-50 top-0 left-0 w-64 shadow-xl"> 
+                <Select
+                  placeholder="Търси град..."
+                  searchable
+                  options={cityOptions}
+                  value={animal.location_city}
+                  onChange={(value) => {
+                    handleUpdateField(animal.id, "location_city", value, 'root');
+                    setEditing({ id: null, field: null });
+                  }}
+                />
+              </div>
+            ) : (
+              <span 
+                onClick={() => setEditing({ id: animal.id, field: 'location_city' })}
+                className="cursor-pointer hover:bg-slate-100 px-1 rounded transition-colors border-b border-dotted border-slate-300"
+              >
+                {cityOptions.find(opt => opt.value === animal.location_city)?.label || animal.location_city || 'Избери град'}
+              </span>
+            )}
+          </div>
           <span className="text-slate-300">|</span>
+          
           {/*Къде живее*/}
           <div className="flex items-center">
             {editing.id === animal.id && editing.field === 'living_condition' ? (
