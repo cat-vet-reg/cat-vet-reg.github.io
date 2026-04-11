@@ -47,7 +47,7 @@ const WaitingList = ({ onSelectToSchedule }) => {
     if (error) {
       console.error("Грешка:", error.message);
     } else {
-      console.log("Данни от таблицата:", data);
+      // console.log("Данни от таблицата:", data);
       setWaitingList(data || []);
     }
     setLoading(false);

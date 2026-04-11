@@ -12,9 +12,10 @@ import StatisticsTable     from './pages/statistics';
 import Schedule            from './pages/schedule';
 import TreatmentRegistry   from './pages/treatment-registry';
 import Today               from './pages/today';
+import Profile               from './pages/profile';
 import { HashRouter }      from "react-router-dom";
 
-const Routes = () => {
+const Routes = ({ session, userRole }) => {
   return (
     <HashRouter>
       <ErrorBoundary>
@@ -31,6 +32,7 @@ const Routes = () => {
         <Route path="/schedule" element={<Schedule />} />
         <Route path="/treatment-registry" element={<TreatmentRegistry />} />
         <Route path="/today" element={<Today />} />
+        <Route path="/profile" element={<Profile userEmail={session?.user?.email} userRole={userRole} />} />
         <Route path="*" element={<NotFound />} />
       </RouterRoutes>
       </ErrorBoundary>

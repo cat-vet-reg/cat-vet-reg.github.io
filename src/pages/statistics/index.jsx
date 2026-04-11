@@ -68,7 +68,7 @@ const StatisticsTable = () => {
       // 2. Групираме
       processData(mappedData);
     } catch (error) {
-      console.error('Грешка при статистика:', error.message);
+      console.error('Грешка при отчетите:', error.message);
     } finally {
       setLoading(false);
     }
@@ -156,7 +156,7 @@ const StatisticsTable = () => {
     XLSX.writeFile(workbook, `Otchet_Dni_${selectedMonth}_${selectedYear}.xlsx`);
   };
 
-  if (loading) return <div className="p-10 text-center text-xl">Зареждане на статистиката...</div>;
+  if (loading) return <div className="p-10 text-center text-xl">Зареждане на отчетите...</div>;
 
   return (
     <div className="w-full bg-background">
@@ -166,8 +166,8 @@ const StatisticsTable = () => {
             {/* <Breadcrumb items={breadcrumbItems} /> */}
 
                 <div className="mb-6 md:mb-8">
-                    <h1 className="text-3xl md:text-4xl lg:text-5xl font-semibold text-foreground mb-2">Месечна статистика</h1>
-                    <p className="text-base md:text-lg text-muted-foreground">Статистика за кастрационната кампания.</p>
+                    <h1 className="text-3xl md:text-4xl lg:text-5xl font-semibold text-foreground mb-2">Месечни отчети</h1>
+                    <p className="text-base md:text-lg text-muted-foreground">Отчети за кастрационната кампания.</p>
                 </div>
 
                 {/* Контейнер за филтри */}

@@ -14,7 +14,8 @@ const Header = () => {
     { label: 'Лечение'          , path: '/treatment-registry' , icon: 'Stethoscope' },
     { label: 'Карта'            , path: '/interactive-cat-map', icon: 'Map' },
     { label: 'Отчети'           , path: '/statistics'         , icon: 'ChartArea' },
-    { label: 'Табло'            , path: '/dashboard-overview' , icon: 'LayoutDashboard' }
+    { label: 'Табло'            , path: '/dashboard-overview' , icon: 'LayoutDashboard' },
+    { label: 'Профил'           , path: '/profile'            , icon: 'CircleUserRound' }
   ];
 
   const isActivePath = (path) => {
