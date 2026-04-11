@@ -1,9 +1,8 @@
-import React from 'react';
-import Header     from "../../components/ui/Header";
-import Breadcrumb from "../../components/ui/Breadcrumb";
-import Icon from "../../components/AppIcon";
-import Button           from '../../components/ui/Button'; 
-
+import React, { useState, useEffect }    from 'react';
+import { useNavigate } from 'react-router-dom';
+import Header   from "../../components/ui/Header";
+import Icon     from "../../components/AppIcon";
+import Button   from '../../components/ui/Button'; 
 import {  speciesOptions,
           genderOptions,
           spicyOptions,
@@ -23,135 +22,105 @@ import {  speciesOptions,
           discoverySourceOptions,
           reproductiveOptions 
           } from "../../constants/formOptions";
-import { breedOptions         } from "../../constants/breed_options";
-import { cityOptions          } from "../../constants/city_options";
+
+import { breedOptions } from "../../constants/breed_options";
+import { cityOptions  } from "../../constants/city_options";
+import supabase         from "../../utils/supabase";
+import AnimalDataCell from './components/AnimalDataCell';
+import SurgeryTimers from './components/SurgeryTimers';
 
 const Today = () => {
+  const [animals, setAnimals] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const todayDate = new Date().toISOString().replace(/T.*/,'').split('-').reverse().join('.');
+  
+  // Състояние за това коя клетка се редактира в момента
+  const [editing, setEditing] = useState({ id: null, field: null });
 
-    const breadcrumbItems = [
-      { label: 'Табло', path: '/dashboard-overview' },
-      { label: 'Лечение', path: '/treatment' },
-    ];
-  // Примерни фалшиви данни за таблицата
-  const animals = [
-    {
-      id: 445,
-      created_at: "2026-04-06T10:13:42.82482+00:00",
-      name: "Проба 12",
-      notes: null,
-      gender: "female",
-      weight: null,
-      age_value: null,
-      age_unit: null,
-      color: null,
-      location_address: "g.k. Hristo Botev-NorthYuzhen, ul. \"Byalo more\" 5, 4013 Plovdiv, Bulgaria",
-      location_city: "Plovdiv_PDV",
-      owner_id: 34,
-      living_condition: [
-          "street"
-      ],
-      map_coordinates: {
-          lat: 42.129679,
-          lng: 24.7424175,
-          zona_number: 58
-      },
-      data: {
-          donation: "N",
-          age_value: 5,
-          age_unit: "months",
-          weight: 3.4,
-          color: "gray_white",
-          custom_color: "",
-          has_ear_tag: "N",
-          ear_tag_number: "",
-          bcs_score: "5",
-          temperament: "mild",
-          notes: "",
-          breed: "european",
-          outdoor_access: "Y",
-          origin: "street",
-          general_condition: "good",
-          discovery_source: "friends",
-          image_preview: "https://gexgpozvrhurkhrlvaah.supabase.co/storage/v1/object/public/protocol_images/records/445/avatar.png",
-          signature: ""
-      },
-      has_complications: "N",
-      record_complications: "",
-      castrated_at: "2026-04-06",
-      medical_details: {
-          is_already_castrated: "N",
-          induction_dose: 0.1,
-          time_to_sleep: "5",
-          has_induction_add: false,
-          induction_add_amount: null,
-          propofol_used: true,
-          propofol_total_ml: 0.6,
-          propofol_first_min: 25,
-          surgery_duration: "40",
-          recovery_time: "50",
-          staff_received: "dr_dimitrova",
-          staff_released: "yana",
-          ear_status: "marked",
-          parasites: "none",
-          reproductive_status: "post_pregnancy"
-      },
-      breed: null,
-      origin: null,
-      status: "released",
-      species: "cat",
-      bcs_score: null,
-      donation: null,
-      ear_status: null,
-      has_ear_tag: null,
-      parasites: null,
-      signature: null,
-      owner_name: "Нанси Танева",
-      owner_phone: "0896160033",
-      zona_number: null,
-      custom_color: null,
-      temperament: null,
-      time_to_sleep: null,
-      ear_tag_number: null,
-      image_preview: null,
-      propofol_used: null,
-      staff_surgeon: "dr_taneva",
-      induction_dose: null,
-      outdoor_access: null,
-      staff_received: null,
-      staff_released: null,
-      discovery_source: null,
-      has_induction_add: null,
-      propofol_total_ml: null,
-      surgery_duration: null,
-      general_condition: null,
-      propofol_first_min: null,
-      induction_add_amount: null,
-      is_already_castrated: null,
-      reproductive_status: null,
-      selected_complications: [],
-      owner: {
-          name: "Нанси Танева",
-          phone: "0896160033"
-      },
-      address: "g.k. Hristo Botev-NorthYuzhen, ul. \"Byalo more\" 5, 4013 Plovdiv, Bulgaria"
-    },
-  ];
+  // loadData - Вади от td_records животните за деня
+  const loadData = async () => {
+    setLoading(true);
 
+    // 1. Създаваме дата в местно време (YYYY-MM-DD)
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, '0');
+    const day = String(today.getDate()).padStart(2, '0');
+    
+    const localToday = `${year}-${month}-${day}`; // Пример: "2026-04-11"
+
+    // 2. Филтрираме директно чрез сравнение на стрингове
+    // Понеже PostgreSQL (Supabase) съхранява датите като текст/timestamp,
+    // можем да кажем: "всичко от 00:00 днес" до "23:59 днес"
+    
+    const { data, error } = await supabase
+      .from('td_records')
+      .select(`*, owner:owner_id (name, phone)`)
+      .gte('castrated_at', `${localToday}T00:00:00`)
+      .lte('castrated_at', `${localToday}T23:59:59`)
+      .order('castrated_at', { ascending: true });
+
+    if (error) {
+      console.error("Грешка при зареждане:", error);
+    } else {
+      setAnimals(data);
+    }
+    setLoading(false);
+  };
+
+  useEffect(() => { loadData(); }, []);
+
+  // handleUpdateField - Обновява обектите в таблицата при редакция
+
+  const handleUpdateField = async (id, field, value, path = null) => { 
+    const animal = animals.find(a => a.id === id);
+    let updatePayload = {};
+
+    if (path === 'data') {
+      updatePayload = { data: { ...animal.data, [field]: value } };
+    } else if (path === 'medical_details') {
+      updatePayload = { medical_details: { ...animal.medical_details, [field]: value } };
+    } else {
+      // Ако path е null или 'status', записваме директно в колоната
+      updatePayload = { [field]: value };
+    }
+    const { error } = await supabase
+      .from('td_records')
+      .update(updatePayload)
+      .eq('id', id);
+
+    if (!error) {
+      setAnimals(prev => prev.map(a => a.id === id ? { ...a, ...updatePayload } : a));
+      setEditing({ id: null, field: null });
+    } else {
+      console.error("Грешка при запис:", error);
+    }
+  };
+
+  // calculateDose Смята дозировката на упойката
+  const calculateDose = (animal) => {
+    const weight = animal.data?.weight || 0;
+    const species = animal.species?.toLowerCase();
+    
+    // Определяне на името на упойката
+    const drugName = species === 'cat' || species === 'котка' ? 'Kitty magic' : 'TZXB';
+    
+    return {
+      name: drugName,
+      min: (weight * 0.01).toFixed(2),
+      standard: (weight * 0.03).toFixed(2),
+      max: (weight * 0.035).toFixed(2)
+    };
+  };
+
+  if (loading) return <div className="p-10 text-center">Зареждане на пациенти...</div>;
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
+    <div className="min-h-screen bg-background">
       <Header />
-      <main className="container mx-auto px-4 md:px-6 lg:px-8 py-6 md:py-8">
-        <Breadcrumb items={breadcrumbItems} />
-
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6 md:mb-8">
-          <div>
-            <h1 className="text-3xl md:text-4xl lg:text-5xl mb-2 font-bold flex items-center gap-3">
-              Днес
-            </h1>
-          </div>
-        </div>
-
+      <main className="container mx-auto px-4 py-8">
+        <h1 className="text-3xl font-bold mb-6 text-slate-800">Операционен блок - Днес <span className='text-xs'>({todayDate})</span></h1>
+        
         <div className="mt-8 bg-card rounded-lg shadow-warm border overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full border-collapse">
@@ -159,194 +128,375 @@ const Today = () => {
                 <tr className="bg-gray-100">
                   <th className="border p-2 text-left">Данни животно и собственик</th>
                   <th className="border p-2 text-left">Услуги</th>
-                  <th className="border p-2 text-left">кг</th>
-                  <th className="border p-2 text-left">пол</th>
-                  <th className="border p-2 text-left">Упойка (мл)</th>
                   <th className="border p-2 text-left">Преглед</th>
+                  <th className="border p-2 text-left">Пол</th>
+                  <th className="border p-2 text-left">кг</th>
+                  <th className="border p-2 text-left">Упойка (мл)</th>
                   <th className="border p-2 text-left">Операция - таймери</th>
-                  <th className="border p-2 text-left">статус</th>
+                  <th className="border p-2 text-left">Статус</th>
                   <th className="border p-2 text-left">Хирург</th>
                 </tr>
               </thead>
               <tbody>
-                {animals.map((animal) => (
+                {animals.map((animal) => {
+                // 1. ТУК ДЕФИНИРАМЕ ПРОМЕНЛИВАТА ЗА ВСЯКО ЖИВОТНО
+                const currentStatus = statusOptions.find(opt => opt.id === animal.status);
+
+                // 2. ИЗПОЛЗВАМЕ RETURN, ЗА ДА ВЪРНЕМ ТАБЛИЦАТА
+                return (
                   <tr key={animal.id} className="hover:bg-slate-50 transition-colors">
+                    {/*ДАННИ ЖВ, СОБСТВ.*/}
                     <td className="border p-3 min-w-[320px] align-top">
-                  <div className="flex flex-col gap-2">
-                    
-                    {/* 1. ЗАГЛАВИЕ: № и Име */}
-                    <div className="flex items-center gap-2">
-                      <span className="font-bold text-sm">№{animal.id}</span>
-                      <h3 className="font-bold text-sm">
-                        - {animal.name}
-                      </h3>
-                      <button className="hover:opacity-70 transition-opacity">
-                        <Icon name="ExternalLink" size={14} color="#e64072" />
-                      </button>
-                      
-                      {/* Дарение - малък дискретен маркер до името */}
-                      {animal.data?.donation === 'Y' && (
-                        <span className="bg-green-100 text-green-700 text-[9px] font-black px-1 rounded border border-green-200 uppercase">
-                          Дарение
-                        </span>
-                      )}
-                    </div>
-
-                    {/* 2. ОСНОВНИ ДАННИ (Вид, Пол, Репродуктивен статус) */}
-                    <div className="flex flex-wrap gap-1 items-center text-xs">
-                      <span className="font-medium text-slate-500">
-                        {speciesOptions.find(opt => opt.value === animal.species)?.label || animal.species}
-                      </span>
-                      <span className="text-slate-400">•</span>
-                      <span className="font-medium text-slate-500">
-                        {genderOptions.find(opt => opt.value === (animal.data?.gender || animal.gender))?.label}
-                      </span>
-                      
-                      {/* РЕПРОДУКТИВЕН СТАТУС - Вече е тук, до пола */}
-                      {animal.medical_details?.reproductive_status && animal.medical_details.reproductive_status !== 'none_visible' && (
-                        <>
-                          <span className="text-slate-400">•</span>
-                          <span className="text-pink-600 font-bold bg-pink-50 px-1 rounded animate-pulse">
-                            {reproductiveOptions.female.find(opt => opt.value === animal.medical_details.reproductive_status)?.label || 
-                            reproductiveOptions.male.find(opt => opt.value === animal.medical_details.reproductive_status)?.label || 
-                            animal.medical_details.reproductive_status}
-                          </span>
-                        </>
-                      )}
-                    </div>
-
-                    {/* 3. ФИЗИЧЕСКИ ПОКАЗАТЕЛИ (Badges) */}
-                    <div className="flex flex-wrap gap-1 mt-1 text-xs">
-                      <div 
-                          className="w-3.5 h-3.5 rounded-full border"
-                          style={{ background: colorStyles[animal.data?.color] || '#ccc', border: '1px solid #000000'}} 
-                      />
-                      <span className="text-[11px] text-slate-500 self-center font-medium">
-                        {colorOptions.find(opt => opt.value === animal.data?.color)?.label || animal.data?.color}
-                      </span>
-                      <span className="text-slate-400 text-xs">•</span>
-                      <span className="text-[11px] text-slate-500 self-center font-medium">
-                        {breedOptions.find(opt => opt.value === animal.data?.breed)?.label || animal.data?.breed}
-                      </span>
-                      <span className="text-slate-400 text-xs">•</span>
-                      <div className="text-[11px] text-slate-500 self-center font-medium">
-                        {animal.data?.age_value} {ageUnitOptions.find(opt => opt.value === animal.data?.age_unit)?.label}
-                      </div>
-                    </div>
-
-                    {/* 4. ОПИСАНИЕ (Цвят, Темперамент, Порода) */}
-                    <div className="flex flex-wrap gap-1 items-center text-[11px] text-slate-500 font-medium">
-                      <span className="flex items-center gap-1">
-                        {spicyOptions.find(opt => opt.id === animal.data?.temperament)?.icon} 
-                        {spicyOptions.find(opt => opt.id === animal.data?.temperament)?.desc}
-                      </span>
-                      <span className="text-slate-400 text-xs">•</span>
-                      <div className="flex items-center bg-amber-50 text-amber-700 px-1.5 py-0.5 rounded text-[11px] font-bold border border-amber-100">
-                        BCS: {animal.data?.bcs_score}
-                      </div>
-                      <span className="text-slate-400 text-xs">•</span>
-                      <div className="text-[11px] text-slate-500 self-center font-medium">
-                        {animal.data?.weight || '??'} кг
-                      </div>
-                    </div>
-
-                    {/* 5. СОБСТВЕНИК И ЛОКАЦИЯ */}
-                    <div className="mt-2 pt-2 border-t border-slate-100 space-y-1 text-[11px]">
-                      <div className="flex items-center gap-1.5 font-bold text-slate-700">
-                        <Icon name="User" size={12} className="text-slate-400" />
-                        {animal.owner?.name || animal.owner_name} 
-                        <span className="font-normal text-slate-500">({animal.owner?.phone})</span>
-                      </div>
-                      <div className="flex items-center gap-1.5 text-slate-500">
-                        <Icon name="MapPin" size={11} />
-                        <span>
-                          {cityOptions.find(opt => opt.value === animal.location_city)?.label || animal.location_city}
-                        </span>
-                        <span className="text-slate-300">|</span>
-                        <span>
-                          {habitat.find(opt => opt.value === animal.living_condition?.[0])?.label || animal.living_condition}
-                        </span>
-                      </div>
-                    </div>
-
-                  </div>
-                </td>
+                      <AnimalDataCell key={animal.id} 
+                                      animal={animal} 
+                                      editing={editing}
+                                      setEditing={setEditing}
+                                      handleUpdateField={handleUpdateField} />
+                    </td>
 
                     <td className="border p-2">
-                      {/* Безопасно рендиране на услуги */}
+                      {/* УСЛУГИ */}
                       {animal.services?.map((s, i) => (
                         <span key={i} className="block text-xs bg-gray-100 mb-1 p-1 rounded">{s}</span>
                       )) || <span className="text-gray-400 text-xs">Стандарт</span>}
                         <Icon name="ExternalLink" size={14} color="#e64072" />
                     </td>
 
-                    <td className="border p-2 font-mono">{animal.data?.weight}</td>
-                    
-                    <td className="border p-2 text-center">
-                        {animal.gender === 'female' ? 'Женски' : 'Мъжки'}
+                    {/* ПРЕГЛЕД */}
+                    <td className="border p-2 max-w-[200px] min-w-[150px] align-top">
+                      {editing.id === animal.id && editing.field === 'notes' ? (
+                        <textarea
+                          className="w-full border rounded p-1 text-xs outline-none focus:ring-2 focus:ring-blue-500 min-h-[60px] resize-none font-sans"
+                          defaultValue={animal.data?.notes || ""}
+                          autoFocus
+                          placeholder="Въведи бележки..."
+                          onBlur={(e) => {
+                            const val = e.target.value;
+                            if (val !== animal.data?.notes) {
+                              handleUpdateField(animal.id, "notes", val, 'data');
+                            } else {
+                              setEditing({ id: null, field: null });
+                            }
+                          }}
+                          onKeyDown={(e) => {
+                            // При textarea Enter прави нов ред, затова ползваме Ctrl+Enter за запис
+                            // или просто разчитаме на onBlur (клик извън полето)
+                            if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+                              handleUpdateField(animal.id, "notes", e.target.value, 'data');
+                            }
+                            if (e.key === 'Escape') setEditing({ id: null, field: null });
+                          }}
+                        />
+                      ) : (
+                        <div 
+                          onClick={() => setEditing({ id: animal.id, field: 'notes' })}
+                          className="cursor-pointer hover:bg-slate-50 p-1 rounded transition-colors group relative"
+                          title="Кликни за редактиране на бележките"
+                        >
+                          <small className={`block leading-tight ${!animal.data?.notes ? 'text-gray-400 italic' : 'text-slate-600'}`}>
+                            {animal.data?.notes || "Няма бележки"}
+                          </small>
+                          
+                          {/* Малка иконка молив, която се появява при посочване (hover) */}
+                          <div className="absolute top-0 right-0 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <Icon name="Pencil" size={10} className="text-slate-300" />
+                          </div>
+                        </div>
+                      )}
                     </td>
 
-                    <td className="border p-2">
-                      {/* Вземаме дозата от правилното място */}
-                      <span className='text-gray-400 text-xs'>Kitty magic - </span>
-                      <span className="text-blue-600 font-bold">{animal.medical_details?.induction_dose || animal.induction_dose || '---'}
-                      </span>
-                      <span className='text-gray-400 text-xs'> ml</span>
+                    {/* ПОЛ */}
+                    <td className="border p-2 text-center min-w-[100px]">
+                      {editing.id === animal.id && editing.field === 'gender' ? (
+                        <select
+                          className="bg-white border rounded text-xs p-1 outline-none focus:ring-2 focus:ring-blue-500 w-full"
+                          value={animal.gender || ""}
+                          autoFocus
+                          onBlur={() => setEditing({ id: null, field: null })}
+                          onChange={(e) => {
+                            handleUpdateField(animal.id, "gender", e.target.value, 'root');
+                          }}
+                        >
+                          <option value="female">Женски</option>
+                          <option value="male">Мъжки</option>
+                        </select>
+                      ) : (
+                        <div 
+                          onClick={() => setEditing({ id: animal.id, field: 'gender' })}
+                          className={`cursor-pointer px-2 py-1 rounded transition-colors font-medium ${
+                            animal.gender === 'female' 
+                              ? 'text-pink-600 hover:bg-pink-50' 
+                              : 'text-blue-600 hover:bg-blue-50'
+                          }`}
+                          title="Кликни за промяна на пола"
+                        >
+                          {animal.gender === 'female' ? 'Женски' : 'Мъжки'}
+                        </div>
+                      )}
                     </td>
 
-                    <td className="border p-2 max-w-[150px]">
-                      <small className="truncate block">{animal.data?.notes || "Няма бележки"}</small>
+                    {/* ТЕГЛО */}
+                    <td className="border p-2 font-mono">
+                      {editing.id === animal.id && editing.field === 'weight' ? (
+                        <input
+                          type="number"
+                          step="0.1"
+                          className="w-20 border rounded px-1 py-0.5 outline-none focus:ring-2 focus:ring-blue-500"
+                          defaultValue={animal.data?.weight || ""}
+                          autoFocus
+                          // Добавяме записване при излизане от полето (напр. клик в друга клетка)
+                          onBlur={(e) => {
+                            const val = e.target.value ? Number(e.target.value) : null;
+                            // Записваме само ако стойността е променена спрямо старата
+                            if (val !== animal.data?.weight) {
+                              handleUpdateField(animal.id, "weight", val, 'data');
+                            } else {
+                              setEditing({ id: null, field: null });
+                            }
+                          }}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              const val = e.target.value ? Number(e.target.value) : null;
+                              handleUpdateField(animal.id, "weight", val, 'data');
+                            }
+                            if (e.key === 'Escape') setEditing({ id: null, field: null });
+                          }}
+                        />
+                      ) : (
+                        <div 
+                          onClick={() => setEditing({ id: animal.id, field: 'weight' })}
+                          className="cursor-pointer hover:bg-slate-100 p-1 rounded transition-colors min-h-[30px] flex items-center justify-center"
+                        >
+                          {animal.data?.weight ? `${animal.data.weight} кг` : '---'}
+                        </div>
+                      )}
                     </td>
 
+                    {/* УПОЙКА */}
                     <td className="border p-2 min-w-[140px]">
-                  <div className="flex flex-col gap-1 text-xs">
-                    {/* Ред за Индукция */}
-                    <div className="flex justify-between items-center bg-slate-100 p-1 rounded">
-                      <span>💉 {animal.medical_details?.induction_dose} мл</span>
-                      <span className="font-bold text-slate-500">{animal.medical_details?.time_to_sleep}' заспиване</span>
-                    </div>
+                      {(() => {
+                        const dose = calculateDose(animal);
+                        const savedDose = animal.medical_details?.induction_dose;
+                        const hasAdd = animal.medical_details?.has_induction_add;
+                        const addAmount = animal.medical_details?.induction_add_amount;
 
-                    {/* Ред за Пропофол - показва се само ако е ползван */}
-                    {animal.medical_details?.propofol_used && (
-                      <div className="flex justify-between items-center bg-purple-50 text-purple-700 p-1 rounded border border-purple-100">
-                        <span className="flex items-center gap-1">✨ Проп: {animal.medical_details?.propofol_total_ml} мл</span>
-                        <span className="text-[10px]">на {animal.medical_details?.propofol_first_min}' мин</span>
-                      </div>
-                    )}
+                        return (
+                          <div className="flex flex-col gap-1">
+                            <span className='text-gray-400 text-[10px] uppercase font-bold'>{dose.name}</span>
+                            
+                            <div className="flex items-center gap-1">
+                              {editing.id === animal.id && editing.field === 'induction_dose' ? (
+                                <input
+                                  type="number"
+                                  step="0.01"
+                                  className="w-20 border rounded px-1 py-0.5 text-blue-600 font-bold outline-none focus:ring-2 focus:ring-blue-500"
+                                  defaultValue={savedDose || dose.standard}
+                                  autoFocus
+                                  onBlur={(e) => {
+                                    const val = e.target.value ? Number(e.target.value) : null;
+                                    handleUpdateField(animal.id, "induction_dose", val, 'medical_details');
+                                  }}
+                                  onKeyDown={(e) => {
+                                    if (e.key === 'Enter') {
+                                      const val = e.target.value ? Number(e.target.value) : null;
+                                      handleUpdateField(animal.id, "induction_dose", val, 'medical_details');
+                                    }
+                                    if (e.key === 'Escape') setEditing({ id: null, field: null });
+                                  }}
+                                />
+                              ) : (
+                                <span 
+                                  onClick={() => setEditing({ id: animal.id, field: 'induction_dose' })}
+                                  className="text-blue-600 font-extrabold text-sm cursor-pointer hover:bg-blue-50 px-1 rounded border-b border-dotted border-blue-200"
+                                >
+                                  {savedDose || dose.standard} <span className="text-[10px] font-normal">ml</span>
+                                </span>
+                              )}
+                            </div>
 
-                    {/* Ред за Времетраене */}
-                    <div className="flex items-center gap-2 mt-1">
-                      <Icon name="Clock" size={12} className="text-blue-500" />
-                      <span className="font-bold text-blue-700">{animal.medical_details?.surgery_duration} мин</span>
-                      <span className="text-gray-400">|</span>
-                      <span className={`${animal.medical_details?.recovery_time > 60 ? 'text-orange-500 font-bold' : 'text-gray-500'}`}>
-                        🌅 {animal.medical_details?.recovery_time}'
-                      </span>
-                    </div>
-                  </div>
-                </td>
+                            {/* --- Секция за Добавена упойка --- */}
+                            <div className="mt-2 pt-2 border-t border-dashed border-slate-200">
+                              <label className="flex items-center gap-2 cursor-pointer group">
+                                <input 
+                                  type="checkbox"
+                                  checked={hasAdd || false}
+                                  className="w-3 h-3 rounded border-gray-300 text-[#e64072] focus:ring-[#e64072]"
+                                  onChange={(e) => {
+                                    handleUpdateField(animal.id, "has_induction_add", e.target.checked, 'medical_details');
+                                  }}
+                                />
+                                <span className="text-[10px] text-slate-500 group-hover:text-slate-700">Добавка?</span>
+                              </label>
 
-                    <td className="border p-2">
-                      <span className={`px-2 py-1 rounded-full text-[10px] font-bold uppercase ${
-                        animal.status === 'released' ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-blue-700'
-                      }`}>
-                        {animal.status}
-                      </span>
+                              {hasAdd && (
+                                <div className="flex items-center gap-1 mt-1 animate-in fade-in slide-in-from-left-1">
+                                  <span className="text-[10px] text-red-400">+</span>
+                                  {editing.id === animal.id && editing.field === 'induction_add_amount' ? (
+                                    <input
+                                      type="number" step="0.01"
+                                      className="w-16 border rounded px-1 py-0.5 text-red-600 font-bold text-[10px] outline-none border-red-200"
+                                      defaultValue={addAmount || ""}
+                                      autoFocus
+                                      onBlur={(e) => handleUpdateField(animal.id, "induction_add_amount", Number(e.target.value), 'medical_details')}
+                                    />
+                                  ) : (
+                                    <span 
+                                      onClick={() => setEditing({ id: animal.id, field: 'induction_add_amount' })}
+                                      className="text-red-500 font-bold text-xs cursor-pointer hover:bg-red-50 px-1 rounded"
+                                    >
+                                      {addAmount || "0.00"} <span className="text-[9px] font-normal text-slate-400">ml</span>
+                                    </span>
+                                  )}
+                                </div>
+                              )}
+                            </div>
+
+                            {/* Подсказки според ТЕГЛОТО */}
+                            {animal.data?.weight > 0 ? (
+                              <div className="flex flex-col text-[9px] text-slate-400 leading-tight border-t pt-1 mt-1">
+                                <div className="flex justify-between">
+                                  <span>мин (0.01):</span>
+                                  <span className="font-mono">{dose.min}</span>
+                                </div>
+                                <div className="flex justify-between font-semibold text-slate-500 bg-slate-50 px-0.5">
+                                  <span>станд (0.03):</span>
+                                  <span className="font-mono">{dose.standard}</span>
+                                </div>
+                                <div className="flex justify-between">
+                                  <span>макс (0.035):</span>
+                                  <span className="font-mono">{dose.max}</span>
+                                </div>
+                              </div>
+                            ) : (
+                              <span className="text-[9px] text-orange-400 italic">Въведи кг за дозировка</span>
+                            )}
+                          </div>
+                        );
+                      })()}
                     </td>
 
-                    <td className="border p-2 text-xs">
-                      <p>Приел -
-                        {staffOptions.find(opt => opt.value === animal.medical_details?.staff_received)?.label || animal.medical_details?.staff_received}
-                      </p>
-                      <p className='font-bold'>🩺
-                        {staffOptions.find(opt => opt.value === animal?.staff_surgeon)?.label || animal?.staff_surgeon}
-                      </p>
-                      <p>Върнал - 
-                        {staffOptions.find(opt => opt.value === animal.medical_details?.staff_released)?.label || animal.medical_details?.staff_released}
-                      </p>
+                    {/* ОПЕРАЦИЯ - ТАЙМЕРИ */}
+                    <SurgeryTimers 
+                      animal={animal} 
+                      editing={editing} 
+                      setEditing={setEditing} 
+                      handleUpdateField={handleUpdateField}
+                    />
+                    
+                    {/*СТАТУС*/}
+                    <td className="border p-2 text-center">
+                      {editing.id === animal.id && editing.field === 'status' ? (
+                        <select
+                          className="text-[10px] font-bold uppercase border rounded px-1 py-0.5 outline-none focus:ring-1 focus:ring-blue-500 bg-white"
+                          value={animal.status} // Използвай value вместо defaultValue за по-добра синхронизация
+                          autoFocus
+                          onBlur={() => setEditing({ id: null, field: null })}
+                          onChange={(e) => {
+                            const newValue = e.target.value;
+                            // Подаваме 'root' или 'direct', за да прескочи проверката за path === 'data'
+                            handleUpdateField(animal.id, "status", newValue, "root"); 
+                            setEditing({ id: null, field: null });
+                          }}
+                        >
+                          {statusOptions.map(opt => (
+                            <option key={opt.id} value={opt.id}>{opt.label}</option>
+                          ))}
+                        </select>
+                      ) : (
+                        <span 
+                          onClick={() => setEditing({ id: animal.id, field: 'status' })}
+                          className={`px-2 py-1 rounded-full text-[10px] font-bold uppercase cursor-pointer transition-all ${currentStatus?.color || 'bg-slate-100 text-slate-700'}`}
+                        >
+                          {currentStatus?.label || animal.status}
+                        </span>
+                      )}
+                    </td>
+
+                    {/*ПЕРСОНАЛ*/}
+                    <td className="border p-2 text-[11px] leading-tight">
+                      <div className="flex flex-col gap-1.5">
+                        
+                        {/* ПРИЕЛ */}
+                        <div className="flex items-center gap-1">
+                          <span className="text-gray-400">Приел:</span>
+                          {editing.id === animal.id && editing.field === 'staff_received' ? (
+                            <select
+                              className="border rounded text-[10px]"
+                              defaultValue={animal.medical_details?.staff_received || ""}
+                              autoFocus
+                              onBlur={() => setEditing({ id: null, field: null })}
+                              onChange={(e) => handleUpdateField(animal.id, "staff_received", e.target.value, 'medical_details')}
+                            >
+                              <option value="">---</option>
+                              {staffOptions.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
+                            </select>
+                          ) : (
+                            <span 
+                              onClick={() => setEditing({ id: animal.id, field: 'staff_received' })}
+                              className="cursor-pointer hover:underline decoration-dotted"
+                            >
+                              {staffOptions.find(opt => opt.value === animal.medical_details?.staff_received)?.label || "---"}
+                            </span>
+                          )}
+                        </div>
+
+                        {/* ХИРУРГ (🩺) */}
+                        <div className="flex items-center gap-1 font-bold">
+                          <span>🩺</span>
+                          {editing.id === animal.id && editing.field === 'staff_surgeon' ? (
+                            <select
+                              className="border rounded text-[10px] text-blue-600"
+                              defaultValue={animal.staff_surgeon || ""}
+                              autoFocus
+                              onBlur={() => setEditing({ id: null, field: null })}
+                              onChange={(e) => {
+                                const newValue = e.target.value;
+                                // Подаваме 'root' или 'direct', за да прескочи проверката за path === 'data'
+                                handleUpdateField(animal.id, "staff_surgeon", newValue, "root"); 
+                                setEditing({ id: null, field: null });
+                              }}
+                            >
+                              <option value="">---</option>
+                              {staffOptions.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
+                            </select>
+                          ) : (
+                            <span 
+                              onClick={() => setEditing({ id: animal.id, field: 'staff_surgeon' })}
+                              className="cursor-pointer text-blue-700 hover:bg-blue-50 px-1 rounded"
+                            >
+                              {staffOptions.find(opt => opt.value === animal.staff_surgeon)?.label || "Избери хирург"}
+                            </span>
+                          )}
+                        </div>
+
+                        {/* ВЪРНАЛ */}
+                        <div className="flex items-center gap-1">
+                          <span className="text-gray-400">Върнал:</span>
+                          {editing.id === animal.id && editing.field === 'staff_released' ? (
+                            <select
+                              className="border rounded text-[10px]"
+                              defaultValue={animal.medical_details?.staff_released || ""}
+                              autoFocus
+                              onBlur={() => setEditing({ id: null, field: null })}
+                              onChange={(e) => handleUpdateField(animal.id, "staff_released", e.target.value, 'medical_details')}
+                            >
+                              <option value="">---</option>
+                              {staffOptions.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
+                            </select>
+                          ) : (
+                            <span 
+                              onClick={() => setEditing({ id: animal.id, field: 'staff_released' })}
+                              className="cursor-pointer hover:underline decoration-dotted"
+                            >
+                              {staffOptions.find(opt => opt.value === animal.medical_details?.staff_released)?.label || "---"}
+                            </span>
+                          )}
+                        </div>
+
+                      </div>
                     </td>
                   </tr>
-                ))}
+                );})}
               </tbody>
             </table>
           </div>
