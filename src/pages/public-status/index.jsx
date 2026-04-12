@@ -60,7 +60,7 @@ export default function PublicStatusCheck() {
     <div className="min-h-screen bg-slate-50 py-10 px-4">
       {/* СЕКЦИЯ ТЪРСЕНЕ - остава отгоре */}
       <div className="max-w-md mx-auto mb-8 p-6 bg-white shadow-lg rounded-xl border border-slate-100">
-        <h2 className="text-xl font-bold mb-4 text-slate-800 text-center">Проверка на статус</h2>
+        <h2 className="text-xl font-bold mb-4 text-slate-800 text-center">Въведете номера от Вашия талон за прием</h2>
         <div className="flex gap-2">
           <input 
             type="number" 

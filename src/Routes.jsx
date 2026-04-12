@@ -1,5 +1,5 @@
 import React from "react";
-import { BrowserRouter, Routes as RouterRoutes, Route } from "react-router-dom";
+import { HashRouter, Routes as RouterRoutes, Route, Navigate, useLocation } from "react-router-dom";
 import ScrollToTop         from "components/ScrollToTop";
 import ErrorBoundary       from "components/ErrorBoundary";
 import NotFound            from "pages/NotFound";
@@ -14,29 +14,48 @@ import TreatmentRegistry   from './pages/treatment-registry';
 import Today               from './pages/today';
 import Profile             from './pages/profile';
 import PublicStatusPage    from './pages/public-status';
-import { HashRouter }      from "react-router-dom";
+
+// ПОМОЩЕН КОМПОНЕНТ ЗА ЗАЩИТА
+const ProtectedRoute = ({ session, children }) => {
+  const location = useLocation();
+  
+  // Ако потребителят е на публичната страница, го пускаме веднага
+  if (location.pathname === '/public-status') {
+    return children;
+  }
+
+  // Ако не е логнат и се опитва да влезе другаде, му показваме Login
+  if (!session) {
+    return <Login />;
+  }
+
+  return children;
+};
 
 const Routes = ({ session, userRole }) => {
   return (
     <HashRouter>
       <ErrorBoundary>
-      <ScrollToTop />
-      <RouterRoutes>
-        {/* Define your route here */}
-        <Route path="/" element={<DashboardOverview />} />
-        <Route path="/cat-profile-details/:id" element={<CatProfileDetails />} />
-        <Route path="/dashboard-overview" element={<DashboardOverview />} />
-        <Route path="/cat-registry-list" element={<CatRegistryList />} />
-        <Route path="/interactive-cat-map" element={<InteractiveCatMap />} />
-        <Route path="/cat-registration-form" element={<CatRegistrationForm />} />
-        <Route path="/statistics" element={<StatisticsTable />} />
-        <Route path="/schedule" element={<Schedule />} />
-        <Route path="/treatment-registry" element={<TreatmentRegistry />} />
-        <Route path="/today" element={<Today />} />
-        <Route path="/profile" element={<Profile userEmail={session?.user?.email} userRole={userRole} />} />
-        <Route path="/public-status" element={<PublicStatusPage />} />
-        <Route path="*" element={<NotFound />} />
-      </RouterRoutes>
+        <ScrollToTop />
+        <ProtectedRoute session={session}>
+          <RouterRoutes>
+            <Route path="/public-status" element={<PublicStatusPage />} />
+            
+            {/* Всички тези ще изискват Login заради ProtectedRoute */}
+            <Route path="/" element={<DashboardOverview />} />
+            <Route path="/dashboard-overview" element={<DashboardOverview />} />
+            <Route path="/schedule" element={<Schedule />} />
+            <Route path="/today" element={<Today />} />
+            <Route path="/cat-registry-list" element={<CatRegistryList />} />
+            <Route path="/treatment-registry" element={<TreatmentRegistry />} />
+            <Route path="/interactive-cat-map" element={<InteractiveCatMap />} />
+            <Route path="/statistics" element={<StatisticsTable />} />
+            <Route path="/cat-registration-form" element={<CatRegistrationForm />} />
+            <Route path="/profile" element={<Profile userEmail={session?.user?.email} userRole={userRole} />} />
+            
+            <Route path="*" element={<NotFound />} />
+          </RouterRoutes>
+        </ProtectedRoute>
       </ErrorBoundary>
     </HashRouter>
   );
