@@ -15,7 +15,8 @@ const Header = () => {
     { label: 'Карта'            , path: '/interactive-cat-map', icon: 'Map' },
     { label: 'Отчети'           , path: '/statistics'         , icon: 'ChartArea' },
     { label: 'Табло'            , path: '/dashboard-overview' , icon: 'LayoutDashboard' },
-    { label: 'Профил'           , path: '/profile'            , icon: 'CircleUserRound' }
+    { label: ''                 , path: '/profile'            , icon: 'CircleUserRound' },
+    { label: ''                 , path: '/public-status'      , icon: 'LayoutDashboard' }
   ];
 
   const isActivePath = (path) => {

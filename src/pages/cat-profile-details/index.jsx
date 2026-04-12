@@ -9,7 +9,9 @@ import OwnerContactCard     from './components/OwnerContactCard';
 import ActionButtons        from './components/ActionButtons';
 import supabase             from '../../utils/supabase';
 import ProtocolsCard        from './components/ProtocolsCard';
+import MedicalTreatmentCard from './components/MedicalTreatmentCard';
 import AddProtocol          from './components/AddProtocol';
+import AddMedicalTreatment  from './components/AddMedicalTreatment';
 import Icon                 from '../../components/AppIcon';
 import { $apiDeleteRecord } from '../../services/create_new_record'
 
@@ -22,11 +24,14 @@ const CatProfileDetails = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [protocols, setProtocols] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  // 1. Добави състояние за протокола, който редактираш
   const [editingProtocol, setEditingProtocol] = useState(null);
   const [isProtocolModalOpen, setIsProtocolModalOpen] = useState(false);
+  const [treatments, setTreatments] = useState([]);
+  const [isMedicalModalOpen, setIsMedicalModalOpen] = useState(false);
+  const [medicalType, setMedicalType] = useState('vaccine');
+  const [medicalCategory, setMedicalCategory] = useState(null);
 
-  // 2. Функция за отваряне на модала за редактиране
+  // Функция за отваряне на модала за редактиране
   const handleEditProtocol = (protocol) => {
     setEditingProtocol(protocol); // Запазваме данните на избрания протокол
     setIsProtocolModalOpen(true); // Отваряме модала
@@ -96,12 +101,31 @@ const CatProfileDetails = () => {
     if (id) {
       fetchCatDetails();
       fetchProtocols();
+      fetchTreatments();
     }
   }, [id, fetchProtocols]);
+
+  // За ваксина, обезпаразитяване
+  const fetchTreatments = useCallback(async () => {
+    const { data, error } = await supabase
+      .from('td_medical_treatments')
+      .select('*')
+      .eq('animal_id', id)
+      .order('administered_at', { ascending: false });
+
+    if (!error && data) setTreatments(data);
+  }, [id]);
 
   const handleProtocolSaved = (newProtocol) => {
     setProtocols(prev => [newProtocol, ...prev]);
     setIsModalOpen(false);
+  };
+
+  // За ваксина, обезпаразитяване
+  const handleAddMedical = (type, category) => {
+    setMedicalType(type);
+    setMedicalCategory(category);
+    setIsMedicalModalOpen(true);
   };
 
   const handleDelete = async () => {
@@ -188,7 +212,24 @@ const CatProfileDetails = () => {
                   lastProtocolNumber={protocols.length > 0 ? Math.max(...protocols.map(p => p.protocol_number || 0)) : 0}
                 />
               </div>
-          </div>
+              {/*Ваксинации и обезпаразитявания*/}
+              <div className="p-0">
+                <MedicalTreatmentCard 
+                  treatments={treatments} 
+                  onAdd={handleAddMedical}
+                />
+                <AddMedicalTreatment 
+                  isOpen={isMedicalModalOpen}
+                  onClose={() => setIsMedicalModalOpen(false)}
+                  petId={id}
+                  type={medicalType}
+                  category={medicalCategory}
+                  onSave={(newRecord) => {
+                    setTreatments(prev => [newRecord, ...prev]);
+                  }}
+                />
+              </div>
+            </div>
         </div>
       </main>
     </div>

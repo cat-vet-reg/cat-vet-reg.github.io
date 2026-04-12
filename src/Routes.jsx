@@ -12,7 +12,8 @@ import StatisticsTable     from './pages/statistics';
 import Schedule            from './pages/schedule';
 import TreatmentRegistry   from './pages/treatment-registry';
 import Today               from './pages/today';
-import Profile               from './pages/profile';
+import Profile             from './pages/profile';
+import PublicStatusPage    from './pages/public-status';
 import { HashRouter }      from "react-router-dom";
 
 const Routes = ({ session, userRole }) => {
@@ -33,6 +34,7 @@ const Routes = ({ session, userRole }) => {
         <Route path="/treatment-registry" element={<TreatmentRegistry />} />
         <Route path="/today" element={<Today />} />
         <Route path="/profile" element={<Profile userEmail={session?.user?.email} userRole={userRole} />} />
+        <Route path="/public-status" element={<PublicStatusPage />} />
         <Route path="*" element={<NotFound />} />
       </RouterRoutes>
       </ErrorBoundary>
