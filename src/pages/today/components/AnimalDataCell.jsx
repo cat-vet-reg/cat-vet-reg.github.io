@@ -214,7 +214,10 @@ const AnimalDataCell = ({ animal, editing, setEditing, handleUpdateField }) => {
             </div>
           )}
         </div>
-        <span className="text-slate-400 text-xs">•</span>
+      </div>
+
+      {/*Втори ред*/}
+      <div className="flex flex-wrap gap-1 items-center text-[11px] text-slate-500 font-medium">
 
         {/* ВЪЗРАСТ */}
         <div className="flex items-center">
@@ -271,10 +274,6 @@ const AnimalDataCell = ({ animal, editing, setEditing, handleUpdateField }) => {
           )}
         </div>
         <span className="text-slate-400 text-xs">•</span>
-      </div>
-
-      {/* 4. ОПИСАНИЕ (Цвят, Темперамент, Порода) */}
-      <div className="flex flex-wrap gap-1 items-center text-[11px] text-slate-500 font-medium">
         {/* Темперамент */}
         <div className="flex items-center">
           {editing.id === animal.id && editing.field === 'temperament' ? (
@@ -314,8 +313,10 @@ const AnimalDataCell = ({ animal, editing, setEditing, handleUpdateField }) => {
             </div>
           )}
         </div>
-        <span className="text-slate-400 text-xs">•</span>
+      </div>
 
+      {/* 4. ОПИСАНИЕ (Цвят, Темперамент, Порода) */}
+      <div className="flex flex-wrap gap-1 items-center text-[11px] text-slate-500 font-medium">
         {/* BCS Score */}
         <div className="flex items-center min-w-[60px]">
           {editing.id === animal.id && editing.field === 'bcs_score' ? (

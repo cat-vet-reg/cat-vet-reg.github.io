@@ -116,6 +116,24 @@ const Today = () => {
     };
   };
 
+  const toggleService = async (id, serviceName) => {
+    const animal = animals.find(a => a.id === id);
+    let currentServices = animal.services || [];
+    
+    // Ако услугата вече я има - махаме я, ако я няма - добавяме я
+    const newServices = currentServices.includes(serviceName)
+      ? currentServices.filter(s => s !== serviceName)
+      : [...currentServices, serviceName];
+
+    const { error } = await supabase
+      .from('td_records')
+      .update({ services: newServices })
+      .eq('id', id);
+
+    if (!error) {
+      setAnimals(prev => prev.map(a => a.id === id ? { ...a, services: newServices } : a));
+    }
+  };
 
   const scroll = (direction) => {
     if (tableRef.current) {
@@ -164,9 +182,9 @@ const Today = () => {
             <table className="w-full border-collapse">
               <thead>
                 <tr className="bg-gray-100">
-                  <th className="border p-2 text-left snap-start">Данни животно и собственик</th>
+                  <th className="border p-2 text-left w-[120px]">Данни животно и собственик</th>
                   <th className="border p-2 text-left snap-start">Услуги</th>
-                  <th className="border p-2 text-left snap-start">Преглед</th>
+                  <th className="border p-2 text-left w-[120px]">Преглед</th>
                   <th className="border p-2 text-left snap-start">Пол</th>
                   <th className="border p-2 text-left snap-start">кг</th>
                   <th className="border p-2 text-left snap-start">Упойка (мл)</th>
@@ -184,7 +202,7 @@ const Today = () => {
                   return (
                   <tr key={animal.id} className="hover:bg-slate-50 transition-colors">
                     {/*ДАННИ ЖВ, СОБСТВ.*/}
-                    <td className="snap-start border p-3 min-w-[320px] align-top">
+                    <td className="snap-start border p-3 min-w-[270px] align-top">
                       <AnimalDataCell key={animal.id} 
                                       animal={animal} 
                                       editing={editing}
@@ -193,15 +211,56 @@ const Today = () => {
                     </td>
 
                     {/* УСЛУГИ */}
-                    <td className="snap-start border p-2">
-                      {animal.services?.map((s, i) => (
-                        <span key={i} className="block text-xs bg-gray-100 mb-1 p-1 rounded">{s}</span>
-                      )) || <span className="text-gray-400 text-xs">Стандарт</span>}
-                        <Icon name="ExternalLink" size={14} color="#e64072" />
+                    {/* УСЛУГИ */}
+                    <td className="snap-start border p-2 min-w-[160px]">
+                      <div className="flex flex-wrap gap-1 mb-2 min-h-[24px]">
+                        {animal.services?.map((s, i) => {
+                          const colors = {
+                            'Ваксина': 'bg-blue-100 text-blue-700 border-blue-200',
+                            'Кастрация': 'bg-purple-100 text-purple-700 border-purple-200',
+                            'Вътрешно': 'bg-green-100 text-green-700 border-green-200',
+                            'Външно': 'bg-emerald-100 text-emerald-700 border-emerald-200',
+                            'Тест': 'bg-amber-100 text-amber-700 border-amber-200'
+                          };
+                          return (
+                            <span key={i} className={`text-[9px] px-1.5 py-0.5 rounded-md border font-bold uppercase ${colors[s] || 'bg-gray-100'}`}>
+                              {s}
+                            </span>
+                          );
+                        })}
+                      </div>
+
+                      {/* ГРУПА БЪРЗИ БУТОНИ */}
+                      <div className="flex flex-wrap gap-2 border-t pt-2 border-dashed">
+                        <button onClick={() => toggleService(animal.id, 'Ваксина')} 
+                                className={`p-1 rounded ${animal.services?.includes('Ваксина') ? 'text-blue-600 bg-blue-50' : 'text-gray-300'}`} title="Ваксина">
+                          <Icon name="Syringe" size={16} />
+                        </button>
+                        
+                        <button onClick={() => toggleService(animal.id, 'Вътрешно')} 
+                                className={`p-1 rounded ${animal.services?.includes('Вътрешно') ? 'text-green-600 bg-green-50' : 'text-gray-300'}`} title="Вътрешно обезп.">
+                          <Icon name="Pill" size={16} />
+                        </button>
+
+                        <button onClick={() => toggleService(animal.id, 'Външно')} 
+                                className={`p-1 rounded ${animal.services?.includes('Външно') ? 'text-emerald-600 bg-emerald-50' : 'text-gray-300'}`} title="Външно обезп.">
+                          <Icon name="Sparkles" size={16} />
+                        </button>
+
+                        <button onClick={() => toggleService(animal.id, 'Тест')} 
+                                className={`p-1 rounded ${animal.services?.includes('Тест') ? 'text-amber-600 bg-amber-50' : 'text-gray-300'}`} title="Бърз тест">
+                          <Icon name="Activity" size={16} />
+                        </button>
+
+                        <button onClick={() => toggleService(animal.id, 'Кастрация')} 
+                                className={`p-1 rounded ${animal.services?.includes('Кастрация') ? 'text-purple-600 bg-purple-50' : 'text-gray-300'}`} title="Кастрация">
+                          <Icon name="Scissors" size={16} />
+                        </button>
+                      </div>
                     </td>
 
                     {/* ПРЕГЛЕД */}
-                    <td className="snap-start border p-2 max-w-[200px] min-w-[150px] align-top">
+                    <td className="border p-2 text-xs text-slate-500 max-w-[120px] truncate">
                       {editing.id === animal.id && editing.field === 'notes' ? (
                         <textarea
                           className="w-full border rounded p-1 text-xs outline-none focus:ring-2 focus:ring-blue-500 min-h-[60px] resize-none font-sans"
@@ -244,7 +303,7 @@ const Today = () => {
                     </td>
 
                     {/* ПОЛ */}
-                    <td className="snap-start border p-2 text-center min-w-[100px]">
+                    <td className="border p-2 text-center w-[50px] whitespace-nowrap">
                       {editing.id === animal.id && editing.field === 'gender' ? (
                         <select
                           className="bg-white border rounded text-xs p-1 outline-none focus:ring-2 focus:ring-blue-500 w-full"
@@ -274,7 +333,7 @@ const Today = () => {
                     </td>
 
                     {/* ТЕГЛО */}
-                    <td className="snap-start border p-2 font-mono">
+                    <td className="border p-2 text-center w-[60px] whitespace-nowrap font-bold text-slate-700">
                       {editing.id === animal.id && editing.field === 'weight' ? (
                         <input
                           type="number"
