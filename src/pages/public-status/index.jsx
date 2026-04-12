@@ -1,10 +1,28 @@
 import { useState } from 'react';
 import supabase from '../../utils/supabase';
-import { statusOptions } from "../../constants/formOptions";
 // Ако използваш дати, можеш да ги форматираш по-красиво
 import { format } from 'date-fns'; 
 import { bg } from 'date-fns/locale';
 import { TREATMENT_INFO } from './treatmentTexts';
+import {  speciesOptions,
+          genderOptions,
+          spicyOptions,
+          bcsScores,
+          getBcsDescription,
+          ageUnitOptions, 
+          colorOptions,
+          colorStyles,
+          habitat,
+          origin,
+          generalConditionOptions, 
+          statusOptions, 
+          complicationOptions,
+          staffOptions,
+          earStatusOptions,
+          parasiteOptions,
+          discoverySourceOptions,
+          reproductiveOptions 
+          } from "../../constants/formOptions";
 
 export default function PublicStatusCheck() {
   const [searchId, setSearchId] = useState('');
@@ -100,7 +118,9 @@ export default function PublicStatusCheck() {
               {animalData.staff_surgeon && (
                 <div className="p-3 bg-blue-50 rounded-xl border border-blue-100">
                   <span className="text-blue-700 text-[10px] uppercase font-bold block mb-1">Лекуващ лекар:</span>
-                  <span className="text-blue-900 font-bold text-sm">{animalData.staff_surgeon}</span>
+                  <span className="text-blue-900 font-bold text-sm">
+                    {staffOptions.find(opt => opt.value === animalData.staff_surgeon)?.label || "---"}
+                  </span>
                 </div>
               )}
 
