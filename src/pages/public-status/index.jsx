@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import supabase from '../../utils/supabase';
-// Ако използваш дати, можеш да ги форматираш по-красиво
 import { format } from 'date-fns'; 
 import { bg } from 'date-fns/locale';
 import { TREATMENT_INFO } from './treatmentTexts';
+import { POST_OP_GUIDE } from './postOpInstructions'; 
 import {  speciesOptions,
           genderOptions,
           spicyOptions,
@@ -15,7 +15,8 @@ import {  speciesOptions,
           habitat,
           origin,
           generalConditionOptions, 
-          statusOptions, 
+          statusOptions,
+          statusDescriptions,
           complicationOptions,
           staffOptions,
           earStatusOptions,
@@ -85,11 +86,11 @@ export default function PublicStatusCheck() {
         )}
       </div>
 
-      {/* РЕЗУЛТАТИ - Новият дизайн с две колони */}
+      {/* РЕЗУЛТАТИ - с две колони */}
       {animalData && (
         <div className="max-w-5xl mx-auto flex flex-col md:flex-row gap-8 animate-in fade-in duration-500">
           
-          {/* ЛЯВА КОЛОНА: КАРТА СЪС СТАТУС */}
+          {/* ЛЯВА КОЛОНА: КАРТА ЖВ инфо и СТАТУС */}
           <div className="md:w-1/3 bg-white p-6 rounded-2xl shadow-xl border border-slate-100 self-start">
             <div className="text-center mb-6 border-b pb-4">
               <span className="text-slate-400 text-[10px] uppercase tracking-[0.2em]">Пациент</span>
@@ -144,7 +145,88 @@ export default function PublicStatusCheck() {
 
           {/* ДЯСНА КОЛОНА: ИНФОРМАЦИЯ И ГРИЖИ */}
           <div className="md:w-2/3 space-y-6">
-            <h2 className="text-xl font-bold text-slate-800 border-l-4 border-blue-600 pl-4 mb-6">
+
+            {/*СТАТУС*/}
+            <div className="space-y-10">
+              <div className="space-y-6">
+                <div className="border-l-4 border-blue-600 pl-4">
+                  <h2 className="text-2xl font-black text-slate-800 uppercase tracking-tight">Текущ статус:</h2>
+                  
+                </div>
+                <div className="text-slate-500 text-sm leading-relaxed antialiased">
+                  <span className="text-slate-500 text-sm leading-relaxed antialiased">Какво означава това:</span>
+                  Текущият статус на Вашето животно е <strong className="text-slate-800">{currentStatus?.label.toLowerCase()}</strong>, 
+                  което означава, че {statusDescriptions[animalData.status] || "информацията се обновява."}
+                </div>
+              </div>
+              
+              <div className="space-y-6">
+                <div className="border-l-4 border-blue-600 pl-4">
+                  <h2 className="text-2xl font-black text-slate-800 uppercase tracking-tight">Постоперативни препоръки</h2>
+                  <p className="text-slate-500 text-sm">Прочетете внимателно за успешното заздравяване</p>
+                </div>
+
+                <div className="flex flex-col gap-8">
+                  {POST_OP_GUIDE
+                    .filter(item => !item.onlyFor || item.onlyFor === animalData.gender)
+                    .map((item, index) => {
+                      // Проверяваме дали индексът е четен (0, 2, 4...) или нечетен (1, 3, 5...)
+                      const isEven = index % 2 === 0;
+
+                      return (
+                        <div 
+                          key={index} 
+                          className={`flex flex-col ${isEven ? 'md:flex-row' : 'md:flex-row-reverse'} 
+                            items-center gap-6 bg-white p-2 rounded-[2rem] shadow-sm border border-slate-100 
+                            hover:shadow-xl transition-all duration-300 overflow-hidden group`}
+                        >
+                          {/* СЕКЦИЯ КАРТИНКА */}
+                          <div className="w-full md:w-2/5 h-64 overflow-hidden rounded-[1.5rem] relative">
+                            <img 
+                              src={item.image}
+                              alt={item.title}
+                              className="w-full h-full object-contain transition-transform duration-500 group-hover:scale-110"
+                            />
+                          </div>
+
+                          {/* СЕКЦИЯ ТЕКСТ */}
+                          <div className={`w-full md:w-3/5 p-6 ${isEven ? 'md:pr-10' : 'md:pl-10'} text-center md:text-left`}>
+                            <h3 className="text-xl font-black text-slate-800 mb-3 tracking-tight">
+                              {item.title}
+                            </h3>
+                            <p className="text-slate-500 text-sm leading-relaxed antialiased">
+                              {item.description}
+                            </p>
+                            
+                            {/* Опционално: Малък детайл за завършеност */}
+                            <div className={`mt-4 h-1 w-12 bg-blue-100 rounded-full mx-auto md:mx-0 ${!isEven && 'md:ml-auto'}`}></div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                </div>
+              </div>
+
+              {/* СПЕШНИ КОНТАКТИ */}
+              <div className="bg-red-50 rounded-[2.5rem] p-8 border border-red-100">
+                <h3 className="text-red-800 font-black text-xl mb-4 uppercase">🆘 При спешност</h3>
+                <p className="text-red-700 text-sm mb-6 leading-relaxed">
+                  Свържете се с нас веднага, ако забележите бледи венци, трудно дишане или обилно кървене.
+                </p>
+                <div className="bg-white rounded-3xl p-6 shadow-xl border border-red-200 flex flex-col items-center">
+                  <a href="tel:0896160033" className="text-4xl font-black text-slate-900 hover:text-red-600 transition-colors tracking-tight">
+                    032-207-379
+                  </a>
+                  <a href="tel:0896160033" className="text-4xl font-black text-slate-900 hover:text-red-600 transition-colors tracking-tight">
+                    089-616-00-33
+                  </a>
+                  <p className="text-slate-400 text-xs mt-3 font-medium text-center">Немски кастрационен център – Пловдив</p>
+                </div>
+              </div>
+            </div>
+
+            {/*ИЗВЪРШЕНИ УСЛУГИ*/}
+            <h2 className="text-2xl font-black text-slate-800 uppercase tracking-tight">
               Детайли за днешните процедури:
             </h2>
 
@@ -171,36 +253,6 @@ export default function PublicStatusCheck() {
               );
             })}
 
-            {/* ОБЩИ ИНСТРУКЦИИ - Винаги тук */}
-            <div className="bg-slate-800 text-white p-8 rounded-3xl shadow-xl relative overflow-hidden">
-               <div className="relative z-10">
-                <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
-                  🏠 Грижа у дома след изписване
-                </h3>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm opacity-90">
-                  <div className="flex gap-2">
-                    <span className="text-blue-400">✔</span>
-                    <p>Осигурете топло и тихо място за почивка без стълби.</p>
-                  </div>
-                  <div className="flex gap-2">
-                    <span className="text-blue-400">✔</span>
-                    <p>Предложете вода и малко храна чак вечерта.</p>
-                  </div>
-                  <div className="flex gap-2">
-                    <span className="text-blue-400">✔</span>
-                    <p>Следете оперативната рана да бъде чиста и суха.</p>
-                  </div>
-                  <div className="flex gap-2">
-                    <span className="text-blue-400">✔</span>
-                    <p>При въпроси, не се колебайте да ни потърсите.</p>
-                  </div>
-                </div>
-               </div>
-               {/* Декоративен елемент */}
-               <div className="absolute -right-10 -bottom-10 opacity-10 scale-150 rotate-12">
-                 <svg width="100" height="100" viewBox="0 0 24 24" fill="currentColor"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
-               </div>
-            </div>
           </div>
         </div>
       )}
