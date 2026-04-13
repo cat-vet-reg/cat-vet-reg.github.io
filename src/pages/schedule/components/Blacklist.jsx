@@ -14,6 +14,45 @@ const Blacklist = () => {
         fetchBlacklist();
     }, []);
 
+    // --- НОВО: Автоматично търсене на име при въвеждане на телефон ---
+    useEffect(() => {
+        const phone = newEntry.phone.trim();
+        if (phone.length < 6) return; // Не търсим при твърде къс номер
+
+        const timer = setTimeout(async () => {
+            try {
+                // Търсим първо в td_owners
+                const { data: owner } = await supabase
+                    .from('td_owners')
+                    .select('name')
+                    .eq('phone', phone)
+                    .maybeSingle();
+
+                if (owner?.name) {
+                    setNewEntry(prev => ({ ...prev, name: owner.name }));
+                } else {
+                    // Ако го няма в td_owners, проверяваме в td_records за последно ползвано име
+                    const { data: record } = await supabase
+                        .from('td_records')
+                        .select('data')
+                        .or(`data->>ownerPhone.eq.${phone},data->>phone.eq.${phone}`)
+                        .limit(1)
+                        .maybeSingle();
+
+                    const foundName = record?.data?.ownerName || record?.data?.name;
+                    if (foundName) {
+                        setNewEntry(prev => ({ ...prev, name: foundName }));
+                    }
+                }
+            } catch (err) {
+                console.error("Грешка при автоматично попълване:", err);
+            }
+        }, 600);
+
+        return () => clearTimeout(timer);
+    }, [newEntry.phone]);
+    // -----------------------------------------------------------------
+
     const fetchBlacklist = async () => {
         try {
             setLoading(true);
@@ -24,8 +63,8 @@ const Blacklist = () => {
 
             const { data: missedRecords } = await supabase
                 .from('td_records')
-                .select('data')
-                .filter('data->>status', 'eq', 'missed');
+                .select('owner_name, owner_phone, status')
+                .eq('status', 'missed');
 
             const combined = {};
 
@@ -40,12 +79,12 @@ const Blacklist = () => {
             });
 
             missedRecords?.forEach(record => {
-                const phone = record.data?.ownerPhone || record.data?.phone;
+                const phone = record.owner_phone;
                 if (!phone) return;
 
                 if (!combined[phone]) {
                     combined[phone] = {
-                        name: record.data?.ownerName || "Анонимен",
+                        name: record.owner_name || "Клиент",
                         phone: phone,
                         reason: "Пропуснати часове",
                         missedCount: 1,
@@ -53,9 +92,6 @@ const Blacklist = () => {
                     };
                 } else {
                     combined[phone].missedCount += 1;
-                    if (combined[phone].type === 'manual') {
-                        combined[phone].reason = `${combined[phone].reason} (+ ${combined[phone].missedCount} пропуска)`;
-                    }
                 }
             });
 
@@ -67,15 +103,12 @@ const Blacklist = () => {
         }
     };
 
-    // Функция за ръчно добавяне
     const handleAddManual = async (e) => {
         e.preventDefault();
         if (!newEntry.phone || !newEntry.reason) return alert("Телефон и причина са задължителни!");
 
         setIsSubmitting(true);
         try {
-            // Използваме upsert за td_owners
-            // onConflict: 'phone' казва на Supabase: "Ако телефонът съществува, обнови записа. Ако не - създай нов."
             const { error } = await supabase
                 .from('td_owners')
                 .upsert({ 
@@ -87,7 +120,7 @@ const Blacklist = () => {
             if (error) throw error;
 
             setNewEntry({ phone: '', name: '', reason: '' });
-            fetchBlacklist(); // Презареждаме списъка
+            fetchBlacklist();
         } catch (err) {
             alert("Грешка при запис: " + err.message);
         } finally {
@@ -99,7 +132,6 @@ const Blacklist = () => {
 
     return (
         <div className="space-y-4">
-            {/* ФОРМА ЗА БЪРЗО ДОБАВЯНЕ */}
             <form onSubmit={handleAddManual} className="bg-card p-4 rounded-xl border border-border shadow-sm grid grid-cols-1 md:grid-cols-4 gap-3 items-end">
                 <div className="flex flex-col gap-1">
                     <label className="text-[10px] uppercase font-bold opacity-50">Телефон</label>
@@ -111,9 +143,9 @@ const Blacklist = () => {
                     />
                 </div>
                 <div className="flex flex-col gap-1">
-                    <label className="text-[10px] uppercase font-bold opacity-50">Име (опционално)</label>
+                    <label className="text-[10px] uppercase font-bold opacity-50">Име (автоматично)</label>
                     <input 
-                        className="p-2 text-sm rounded border bg-background border-border"
+                        className="p-2 text-sm rounded border bg-background border-border focus:border-primary transition-colors"
                         placeholder="Име на клиента"
                         value={newEntry.name}
                         onChange={e => setNewEntry({...newEntry, name: e.target.value})}
@@ -136,7 +168,6 @@ const Blacklist = () => {
                 </button>
             </form>
 
-            {/* ТАБЛИЦА (Твоят код с малки корекции) */}
             <div className="bg-card rounded-xl border border-destructive/30 overflow-hidden shadow-sm">
                 <div className="bg-destructive/10 p-4 border-b border-destructive/20 flex items-center justify-between">
                     <h3 className="text-destructive font-bold flex items-center gap-2">
@@ -147,13 +178,12 @@ const Blacklist = () => {
                     </span>
                 </div>
                 
-                <div className="max-h-[400px] overflow-y-auto">
-                    {/* ... (тук остава твоята таблица) ... */}
+                <div className="max-h-[600px] overflow-y-auto">
                     <table className="w-full text-sm text-left">
                         <thead className="bg-muted sticky top-0">
                             <tr>
-                                <th className="p-6">Клиент</th>
-                                <th className="p-6">Причина</th>
+                                <th className="p-4">Клиент</th>
+                                <th className="p-4">Причина</th>
                                 <th className="p-6 text-center">Пропуски</th>
                             </tr>
                         </thead>

@@ -95,9 +95,9 @@ const MakeAppointment = ({ selectedDate, onAnimalAdd, prefillData }) => {
                       reason: owner?.blacklist_reason || (hasMissed ? "Пропуснати часове в миналото" : null)
                   });
 
-                  if (!appointment.ownerName && owner?.name) {
-                      setAppointment(prev => ({ ...prev, ownerName: owner.name }));
-                  }
+        if (owner?.name && !appointment.ownerName) {
+                setAppointment(prev => ({ ...prev, ownerName: owner.name }));
+            }
               }
           } catch (err) {
               console.error("Грешка:", err);
@@ -252,14 +252,23 @@ const MakeAppointment = ({ selectedDate, onAnimalAdd, prefillData }) => {
                 ))}
             </div>
 
-            <button 
-                className={`w-full py-3 rounded-xl font-bold text-lg shadow-md transition-colors ${
-                    isBlacklisted ? 'bg-orange-600 hover:bg-orange-700 text-white' : 'bg-green-600 hover:bg-green-700 text-white'
-                }`}
-                onClick={handleFinalSubmit}
-            >
-                {isBlacklisted ? 'Запиши въпреки всичко' : 'Запиши час'}
-            </button>
+        {/* Добави това точно над финалния бутон */}
+        {isBlacklisted && ownerStats.reason && (
+            <div className="mb-4 p-3 bg-destructive/10 border border-destructive/20 rounded-lg">
+                <p className="text-destructive text-xs text-center font-semibold">
+                    Причина за черен списък: {ownerStats.reason}
+                </p>
+            </div>
+        )}
+
+        <button 
+            className={`w-full py-3 rounded-xl font-bold text-lg shadow-md transition-colors ${
+                isBlacklisted ? 'bg-orange-600 hover:bg-orange-700 text-white' : 'bg-green-600 hover:bg-green-700 text-white'
+            }`}
+            onClick={handleFinalSubmit}
+        >
+            {isBlacklisted ? 'Запиши въпреки всичко' : 'Запиши час'}
+        </button>
         </div>
     );
 };
