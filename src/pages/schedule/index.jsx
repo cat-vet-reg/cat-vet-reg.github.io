@@ -14,9 +14,16 @@ const Schedule = () => {
   const [date, setDate] = useState(new Date());
   const [refreshKey, setRefreshKey] = useState(0);
   const [prefillData, setPrefillData] = useState(null);
-
-  // референция към формата
+  const calendarRef = useRef(null);
+  const blacklistRef = useRef(null);
+  const waitingListRef = useRef(null);
   const appointmentFormRef = useRef(null);
+
+  const scrollToSection = (ref) => {
+    if (ref.current) {
+      ref.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  };
 
   const handleSelectFromWaitingList = (item) => {
     console.log("Избрано животно от списъка:", item);
@@ -41,10 +48,6 @@ const Schedule = () => {
       });
      }
   };
-  // const breadcrumbItems = [
-  //   { label: 'Табло'    , path: '/dashboard-overview' },
-  //   { label: 'График'   , path: '/schedule' }
-  // ];
 
   const registerAnimalIntoTheSystem = async (appointmentData) => {
     try {
@@ -140,15 +143,62 @@ const Schedule = () => {
             </p>
           </div>
 
+          {/* ФИКСИРАНА НАВИГАЦИЯ */}
+          <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 w-[90%] max-w-md md:bottom-20 md:bottom-auto">
+            <div className="bg-white/80 backdrop-blur-lg border border-slate-200 shadow-2xl rounded-2xl p-2 flex justify-around items-center gap-1">
+              
+              <button 
+                onClick={() => scrollToSection(calendarRef)}
+                className="flex flex-col items-center justify-center flex-1 py-2 rounded-xl hover:bg-blue-50 text-slate-600 hover:text-blue-600 transition-all"
+              >
+                <span className="text-lg">📅</span>
+                <span className="text-[10px] font-bold uppercase tracking-tighter">График</span>
+              </button>
+
+              <div className="w-px h-8 bg-slate-200" /> {/* Разделител */}
+
+              <button 
+                onClick={() => scrollToSection(appointmentFormRef)}
+                className="flex flex-col items-center justify-center flex-1 py-2 rounded-xl hover:bg-blue-50 text-slate-600 hover:text-blue-600 transition-all"
+              >
+                <span className="text-lg">📝</span>
+                <span className="text-[10px] font-bold uppercase tracking-tighter">Час</span>
+              </button>
+
+              <div className="w-px h-8 bg-slate-200" />
+
+              <button 
+                onClick={() => scrollToSection(blacklistRef)}
+                className="flex flex-col items-center justify-center flex-1 py-2 rounded-xl hover:bg-blue-50 text-slate-600 hover:text-blue-600 transition-all"
+              >
+                <span className="text-lg">🚫</span>
+                <span className="text-[10px] font-bold uppercase tracking-tighter">Черен</span>
+              </button>
+
+              <div className="w-px h-8 bg-slate-200" />
+
+              <button 
+                onClick={() => scrollToSection(waitingListRef)}
+                className="flex flex-col items-center justify-center flex-1 py-2 rounded-xl hover:bg-blue-50 text-slate-600 hover:text-blue-600 transition-all"
+              >
+                <span className="text-lg">⏳</span>
+                <span className="text-[10px] font-bold uppercase tracking-tighter">Чакащи</span>
+              </button>
+            </div>
+          </div>
+
           {/* Секция: Календар */}
-          <div className="mb-10">
+          <div ref={calendarRef} className="mb-10">
               <Calendar selectedDate={date} key={refreshKey} />
           </div>
           <hr className="my-10 border-border" />
 
-          {/* СЕКЦИЯ: Форма + Черен списък едно до друго */}
+          {/* СЕКЦИЯ: Форма + Черен списък */}
           <div className="mb-10">
             <div ref={appointmentFormRef} className="mb-10">
+              <div className="border-l-4 border-blue-600 p-4">
+                <h2 className="text-2xl font-black text-slate-800 uppercase tracking-tight">Запиши час</h2>
+              </div>
               <MakeAppointment
                 selectedDate={date}
                 prefillData={prefillData}
@@ -161,12 +211,18 @@ const Schedule = () => {
             </div>
           </div>
           
-          <div className="mb-10 items-start">
-                  {/* Подаваме refreshKey, за да се обновява списъка автоматично */}
-                  <Blacklist key={`blacklist-${refreshKey}`} />
+          <div ref={blacklistRef} className="mb-10 items-start">
+            {/* Подаваме refreshKey, за да се обновява списъка автоматично */}
+            <div className="border-l-4 border-blue-600 p-4">
+              <h2 className="text-2xl font-black text-slate-800 uppercase tracking-tight">Черен списък</h2>
+            </div>
+            <Blacklist key={`blacklist-${refreshKey}`} />
           </div>
           
-          <div className="mb-10 border-border">
+          <div ref={waitingListRef} className="mb-10 border-border">
+            <div className="border-l-4 border-blue-600 p-4">
+              <h2 className="text-2xl font-black text-slate-800 uppercase tracking-tight">Списък на чакащи</h2>
+            </div>
             <WaitingList
             key={`waiting-list-${refreshKey}`}
             onSelectToSchedule={handleSelectFromWaitingList} />
