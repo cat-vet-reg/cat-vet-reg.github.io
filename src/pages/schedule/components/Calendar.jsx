@@ -13,13 +13,17 @@ const Calendar = () => {
   const [myEvents, setMyEvents] = useState([]);
   const navigate = useNavigate();
 
-  const handleEdit = (cat) => {
-    // console.log("@=====================")
-    // console.log(cat.event.extendedProps.data);
-    // console.log("@=====================")
-    navigate('/cat-registration-form', { state: { catData: cat.event.extendedProps.data, isEditing: true } });
-  };  
+  const handleEdit = (info) => {
+    // Проверка: ако кликнатият елемент е бутон или вътре в бутон, не прави нищо
+    if (info.jsEvent.target.closest('button')) {
+      return;
+    }
 
+    navigate('/cat-registration-form', { 
+      state: { catData: info.event.extendedProps.data, isEditing: true } 
+    });
+  };
+  
   // ФУНКЦИЯ ЗА ЗАРЕЖДАНЕ
   const loadCalendarData = async () => {
     const { data, error } = await supabase.from('td_records')
@@ -225,6 +229,7 @@ const Calendar = () => {
             return (
               <div className="p-1 overflow-hidden text-[10px] sm:text-xs cursor-pointer hover:brightness-95 transition-all leading-tight relative">
                 <button 
+                  onTouchStart={(e) => e.stopPropagation()}
                   onClick={(e) => {
                       if (isAtClinic) return; // Спираме действието, ако вече е прието
                       handleReceive(e, eventInfo.event.id);
@@ -244,6 +249,7 @@ const Calendar = () => {
                     <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse" title="Животното е в клиниката" />
                 )}
                 <button 
+                  onTouchStart={(e) => e.stopPropagation()}
                   onClick={(e) => handleDelete(e, eventInfo.event.id)}
                   className="absolute top-0 right-0 p-1 text-red-500/50 hover:text-red-600 hover:bg-red-50 rounded-bl-lg transition-colors z-50 font-bold"
                   title="Изтрий часа"
@@ -252,6 +258,7 @@ const Calendar = () => {
                 </button>
 
                 <button 
+                    onTouchStart={(e) => e.stopPropagation()}
                     onClick={(e) => handleMissed(e, eventInfo.event.id)}
                     className="absolute top-0 right-7 p-1 text-orange-500 hover:text-orange-700 font-bold"
                     title="Маркирай като пропуснат"

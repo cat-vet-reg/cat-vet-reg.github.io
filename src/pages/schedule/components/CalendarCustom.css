@@ -56,3 +56,11 @@
     border-color: #ef4444 !important;
     border-width: 2px !important;
 }
+
+@media (max-width: 768px) {
+  .fc-event-main button {
+    padding: 8px !important; /* Правим зоната за кликане по-голяма */
+    min-width: 30px;
+    min-height: 30px;
+  }
+}
