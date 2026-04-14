@@ -14,6 +14,7 @@ import TreatmentRegistry   from './pages/treatment-registry';
 import Today               from './pages/today';
 import Profile             from './pages/profile';
 import PublicStatusPage    from './pages/public-status';
+import Login               from "./Login";
 
 // ПОМОЩЕН КОМПОНЕНТ ЗА ЗАЩИТА
 const ProtectedRoute = ({ session, children }) => {
@@ -40,18 +41,23 @@ const Routes = ({ session, userRole }) => {
         <ProtectedRoute session={session}>
           <RouterRoutes>
             <Route path="/public-status" element={<PublicStatusPage />} />
+
+            <Route 
+              path="/login" 
+              element={!session ? <Login /> : <Navigate to="/" />} 
+            />
             
-            {/* Всички тези ще изискват Login заради ProtectedRoute */}
-            <Route path="/" element={<DashboardOverview />} />
-            <Route path="/dashboard-overview" element={<DashboardOverview />} />
-            <Route path="/schedule" element={<Schedule />} />
-            <Route path="/today" element={<Today />} />
-            <Route path="/cat-registry-list" element={<CatRegistryList />} />
-            <Route path="/treatment-registry" element={<TreatmentRegistry />} />
-            <Route path="/interactive-cat-map" element={<InteractiveCatMap />} />
-            <Route path="/statistics" element={<StatisticsTable />} />
-            <Route path="/cat-registration-form" element={<CatRegistrationForm />} />
-            <Route path="/profile" element={<Profile userEmail={session?.user?.email} userRole={userRole} />} />
+            {/* ЗАЩИТЕНИ СТРАНИЦИ */}
+            <Route path="/" element={session ? <DashboardOverview /> : <Navigate to="/login" />} />
+            <Route path="/dashboard-overview" element={session ? <DashboardOverview /> : <Navigate to="/login" />} />
+            <Route path="/schedule" element={session ? <Schedule /> : <Navigate to="/login" />} />
+            <Route path="/today" element={session ? <Today /> : <Navigate to="/login" />} />
+            <Route path="/cat-registry-list" element={session ? <CatRegistryList /> : <Navigate to="/login" />} />
+            <Route path="/treatment-registry" element={session ? <TreatmentRegistry /> : <Navigate to="/login" />} />
+            <Route path="/interactive-cat-map" element={session ? <InteractiveCatMap /> : <Navigate to="/login" />} />
+            <Route path="/statistics" element={session ? <StatisticsTable /> : <Navigate to="/login" />} />
+            <Route path="/cat-registration-form" element={session ? <CatRegistrationForm /> : <Navigate to="/login" />} />
+            <Route path="/profile" element={session ? <Profile userEmail={session?.user?.email} userRole={userRole} /> : <Navigate to="/login" />} />
             
             <Route path="*" element={<NotFound />} />
           </RouterRoutes>
