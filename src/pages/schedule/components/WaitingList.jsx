@@ -3,6 +3,7 @@ import Autocomplete from "react-google-autocomplete";
 import { findDistrict } from '../../../constants/zona_find';
 import supabase from '../../../utils/supabase';
 import { Trash2, CalendarCheck, Dog, Cat } from "lucide-react";
+import WaitingStats from './WaitingStats';
 
 const WaitingList = ({ onSelectToSchedule }) => {
   const [waitingList, setWaitingList] = useState([]);
@@ -229,6 +230,7 @@ const WaitingList = ({ onSelectToSchedule }) => {
         </button>
       </div>
 
+      <WaitingStats data={waitingList} />
 
       <div className="overflow-x-auto">
         <table className="w-full text-left border-collapse">

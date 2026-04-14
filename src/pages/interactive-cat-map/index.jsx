@@ -23,6 +23,7 @@ import zonesData from '../../constants/map.json';
 import { mapDbToUi } from '../cat-registration-form/utils/formMapper';
 import MissingCoordsList from './components/MissingCoordsList';
 import supabase from '../../utils/supabase';
+import WaitingStats from '../schedule/components/WaitingStats';
 
 // --- Помощни компоненти и икони ---
 const ZoomTracker = ({ onZoomChange }) => {
@@ -293,6 +294,7 @@ const InteractiveCatMap = () => {
           </div>
         </div>
 
+        <WaitingStats data={filteredCats} />
         <MissingCoordsList catsWithoutCoords={catsWithoutCoords} />
       </main>
 
