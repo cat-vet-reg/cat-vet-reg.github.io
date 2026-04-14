@@ -92,7 +92,7 @@ const Schedule = () => {
         // 3. Обновяваме UI
         setRefreshKey(prev => prev + 1); // Това ще презареди Календара и WaitingList
         setPrefillData(null); // Изчистваме "паметта" на формата
-        alert("Успешно записани часове и премахнати от списъка на чакащи!");
+        alert("Успешно записани часове!");
 
     } catch (error) {
       console.error("Грешка при запис:", error);
