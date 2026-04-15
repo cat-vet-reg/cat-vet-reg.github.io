@@ -30,7 +30,7 @@ function App() {
         .from('profiles')
         .select('role')
         .eq('id', userId)
-        .maybeSingle(); // Използвай maybeSingle вместо single
+        .maybeSingle();
 
       if (error) {
         console.error("Грешка при взимане на роля:", error.message);
