@@ -48,7 +48,7 @@ const Routes = ({ session, userRole }) => {
             />
             
             {/* ЗАЩИТЕНИ СТРАНИЦИ */}
-            <Route path="/" element={session ? <DashboardOverview /> : <Navigate to="/login" />} />
+            <Route path="/" element={session ? <Schedule /> : <Navigate to="/login" />} />
             <Route path="/dashboard-overview" element={session ? <DashboardOverview /> : <Navigate to="/login" />} />
             <Route path="/cat-profile-details/:id" element={session ? <CatProfileDetails /> : <Navigate to="/login" />} />
             <Route path="/schedule" element={session ? <Schedule /> : <Navigate to="/login" />} />

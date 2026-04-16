@@ -363,7 +363,7 @@ const DashboardOverview = () => {
         });
 
         // 2. ЛОГВАМЕ ТУК - провери дали първият елемент [0] е с най-голямо ID
-        // console.log("СОРТИРАНИ ДАННИ:", dataToSort);
+        console.log("СОРТИРАНИ ДАННИ:", dataToSort);
         
         // 3. Мапваме сортираните данни
         const mapped = dataToSort.map(record => {

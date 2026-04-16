@@ -100,66 +100,42 @@ const InteractiveCatMap = () => {
   }, []);
 
   // 2. Логика на филтриране (Чиста и подредена)
+// 2. Логика на филтриране (Чиста и подредена)
   const allFilteredData = useMemo(() => {
     let result = [...realCats];
+    
+    // Вземаме "днес" в началото на деня
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
 
     if (filters.status === 'done') {
-      result = result.filter(c => c.sourceTable === 'records' && c.status !== 'recorded');
+      // Вече кастрирани: всичко, което НЕ е със статус 'recorded' в таблица 'records'
+      // ИЛИ всичко от основния архив (ако имаш такъв)
+      result = result.filter(c => 
+        (c.sourceTable === 'records' && c.status !== 'recorded') || 
+        c.sourceTable === 'cats' 
+      );
     } 
     else if (filters.status === 'appointments') {
-      result = result.filter(c => c.sourceTable === 'records' && c.status === 'recorded');
+      // САМО предстоящи часове: 
+      result = result.filter(c => {
+        if (c.sourceTable !== 'records' || c.status !== 'recorded') return false;
+        
+        // Ако няма дата, я броим за "нов запис без дата", който трябва да се види
+        if (!c.castratedAt) return true;
+
+        const appDate = new Date(c.castratedAt);
+        appDate.setHours(0, 0, 0, 0);
+
+        // Датата е днес или в бъдещето
+        return appDate >= today;
+      });
     }
     else if (filters.status === 'waiting') {
+      // Само чакащи от списъка (червените точки)
       result = result.filter(c => c.sourceTable === 'waiting');
     }
 
-    // 2. Текущ етап (detailedStatus) - работи само за записи от td_records
-    if (filters.detailedStatus) {
-      result = result.filter(c => c.status === filters.detailedStatus);
-    }
-
-    // 3. Здравен статус (condition)
-    if (filters.condition) {
-      // В зависимост от това как се казва полето в базата ти (вероятно health_status или condition)
-      result = result.filter(c => c.health_status === filters.condition || c.condition === filters.condition);
-    }
-
-    // 4. Пол
-    if (filters.gender) {
-      result = result.filter(c => c.gender === filters.gender);
-    }
-
-    // 5. Източник (source)
-    if (filters.source) {
-      result = result.filter(c => c.discovery_source === filters.source || c.source === filters.source);
-    }
-
-
-    // 6. Период на запис (timeRange)
-    if (filters.timeRange && filters.timeRange !== 'all') {
-      const now = new Date();
-      // Задаваме началото на днешния ден (00:00), за да е точно филтрирането
-      const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-      const daysLimit = parseInt(filters.timeRange);
-
-      result = result.filter(c => {
-        // Взимаме датата от created_at или date полето
-        const dateValue = c.created_at || c.date;
-        if (!dateValue) return false;
-
-        const recordDate = new Date(dateValue);
-        
-        // Проверка за валидна дата
-        if (isNaN(recordDate.getTime())) return false;
-
-        // Изчисляваме разликата в милисекунди и превръщаме в дни
-        const diffTime = now.getTime() - recordDate.getTime();
-        const diffDays = diffTime / (1000 * 60 * 60 * 24);
-
-        return diffDays <= daysLimit;
-      });
-    }    
-    
     return result;
   }, [realCats, filters]);
 

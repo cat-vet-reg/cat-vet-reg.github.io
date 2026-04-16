@@ -3,10 +3,21 @@ import Icon from '../../../components/AppIcon';
 
 const MapLegend = ({ totalCats, filteredCats, catsData, activeFilters }) => {
   const [isExpanded, setIsExpanded] = useState(false);
+  const now = new Date();
 
+  const countAppointments = catsData?.filter(c => {
+    // 1. Проверяваме дали е в таблицата със записани и има статус 'recorded'
+    const isRecorded = c.sourceTable === 'records' && c.status === 'recorded';
+    
+    // 2. Проверяваме дали има дата и дали тя е в бъдещето
+    const appointmentDate = c.castratedAt ? new Date(c.castratedAt) : null;
+    const isFuture = appointmentDate && appointmentDate > now;
+
+    return isRecorded && isFuture;
+  }).length || 0;
+  
   // Изчисляваме бройките динамично на базата на източника/статуса
   const countDone = catsData?.filter(c => c.sourceTable === 'records' && c.status !== 'recorded').length || 0;
-  const countAppointments = catsData?.filter(c => c.sourceTable === 'records' && c.status === 'recorded').length || 0;
   const countWaiting = catsData?.filter(c => c.sourceTable === 'waiting').length || 0;
 
   // Текст за активния филтър за време

@@ -144,9 +144,9 @@ const Schedule = () => {
           </div>
 
           {/* ФИКСИРАНА НАВИГАЦИЯ */}
-          <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 w-[90%] max-w-md md:bottom-20 md:bottom-auto">
+          <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 w-[90%] max-w-md">
             <div className="bg-white/80 backdrop-blur-lg border border-slate-200 shadow-2xl rounded-2xl p-2 flex justify-around items-center gap-1">
-              
+            
               <button 
                 onClick={() => scrollToSection(calendarRef)}
                 className="flex flex-col items-center justify-center flex-1 py-2 rounded-xl hover:bg-blue-50 text-slate-600 hover:text-blue-600 transition-all"

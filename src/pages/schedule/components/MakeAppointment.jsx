@@ -68,34 +68,38 @@ const MakeAppointment = ({ selectedDate, onAnimalAdd, prefillData }) => {
           try {
               // 1. Взимаме данните за собственика и причината за Blacklist
               const { data: owner } = await supabase
-                  .from('td_owners')
-                  .select('name, blacklist_reason')
-                  .eq('phone', appointment.phone)
-                  .maybeSingle();
+                .from('td_owners')
+                .select('name, blacklist_reason')
+                .eq('phone', appointment.phone)
+                .maybeSingle();
 
               // 2. Взимаме статистиката от записите
               const { data: records } = await supabase
-                  .from('td_records')
-                  .select('data')
-                  .or(`data->>ownerPhone.eq.${appointment.phone},data->>phone.eq.${appointment.phone}`);
+                .from('td_records')
+                .select('status, data')
+                .eq('owner_phone', appointment.phone);
 
               if (owner || (records && records.length > 0)) {
-                  setIsExistingOwner(true);
-                  
-                  const total = records?.length || 0;
-                  const donations = records?.filter(r => r.data?.hasDonation || r.data?.donationAmount > 0).length || 0;
-                  const hasMissed = records?.some(r => r.data?.status === 'missed');
+                setIsExistingOwner(true);
 
-                  // Blacklisted е ако има пропуснати часове ИЛИ ако има записана причина в td_owners
-                  setIsBlacklisted(hasMissed || !!owner?.blacklist_reason);
+                const total = records?.filter(r => r.status !== 'missed').length || 0;
+                // Проверяваме в полето data.donation дали е "Y" (според твоя JSON)
+                const donations = records?.filter(r =>
+                      r.data?.donation === 'Y' || 
+                      (r.data?.donationAmount && Number(r.data.donationAmount) > 0)
+                  ).length || 0;
+                const hasMissed = records?.some(r => r.data?.status === 'missed');
 
-                  setOwnerStats({ 
-                      total, 
-                      donations, 
-                      reason: owner?.blacklist_reason || (hasMissed ? "Пропуснати часове в миналото" : null)
-                  });
+                // Blacklisted е ако има пропуснати часове ИЛИ ако има записана причина в td_owners
+                setIsBlacklisted(hasMissed || !!owner?.blacklist_reason);
 
-        if (owner?.name && !appointment.ownerName) {
+                setOwnerStats({ 
+                    total, 
+                    donations, 
+                    reason: owner?.blacklist_reason || (hasMissed ? "Пропуснати часове в миналото" : null)
+                });
+
+          if (owner?.name && !appointment.ownerName) {
                 setAppointment(prev => ({ ...prev, ownerName: owner.name }));
             }
               }
