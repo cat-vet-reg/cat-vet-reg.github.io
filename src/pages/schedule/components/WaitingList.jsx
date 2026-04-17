@@ -58,6 +58,32 @@ const WaitingList = ({ onSelectToSchedule }) => {
     fetchWaitingList();
   }, []);
 
+  // Автоматично търсене на име по телефон
+  useEffect(() => {
+    const findOwnerName = async () => {
+      // Търсим само ако телефонът е поне 6 цифри (за да не правим излишни заявки)
+      const phone = newEntry.phone.trim();
+      if (phone.length >= 6) {
+        const { data, error } = await supabase
+          .from('td_owners')
+          .select('name')
+          .eq('phone', phone)
+          .maybeSingle(); // maybeSingle не хвърля грешка, ако няма резултат
+
+        if (data && data.name && !newEntry.owner_name) {
+          setNewEntry(prev => ({ ...prev, owner_name: data.name }));
+        }
+      }
+    };
+
+    // Използваме леко забавяне (debounce), за да не стреляме заявка при всяка цифра
+    const timer = setTimeout(() => {
+      findOwnerName();
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [newEntry.phone]);
+
   const addAnimalToLocalList = () => {
     setAnimalsToAdd(prev => [...prev, { ...currentAnimal, id: Date.now() }]);
     // Рестартираме избора за следващото животно
@@ -124,12 +150,14 @@ const WaitingList = ({ onSelectToSchedule }) => {
       <div className="flex flex-col gap-5">
         {/* ПЪРВИ РЕД: Лични данни и Адрес */}
         <div className="grid grid-cols-1 md:grid-cols-5 gap-3">
-          <input
-            className="h-10 rounded-md border border-input px-3 py-2 text-sm"
-            placeholder="Име и Фамилия"
-            value={newEntry.owner_name}
-            onChange={(e) => setNewEntry({ ...newEntry, owner_name: e.target.value })}
-          />
+        <input
+          className={`h-10 rounded-md border px-3 py-2 text-sm transition-colors ${
+            newEntry.owner_name ? 'border-red-300 text-red-900 shadow-[0_0_10px_rgba(230,64,114,0.2)]' : 'border-input'
+          }`}
+          placeholder="Име и Фамилия"
+          value={newEntry.owner_name}
+          onChange={(e) => setNewEntry({ ...newEntry, owner_name: e.target.value })}
+        />
           <input
             className="h-10 rounded-md border border-input px-3 py-2 text-sm"
             placeholder="Телефон"

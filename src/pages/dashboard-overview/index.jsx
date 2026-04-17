@@ -341,7 +341,7 @@ const DashboardOverview = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [anesthesiaGender, setAnesthesiaGender] = useState('female');
   const [timeRange, setTimeRange] = useState('3months'); // '1week', '1month', '3months', 'all'
-  const [selectedDoctor, setSelectedDoctor] = useState('all');
+  const [selectedDoctor, setSelectedDoctor] = useState('dr_taneva');
   const [selectedSpecies, setSelectedSpecies] = useState('all'); // 'all', 'cat', 'dog'
 
   // 1. Зареждане и Мапване на данните
