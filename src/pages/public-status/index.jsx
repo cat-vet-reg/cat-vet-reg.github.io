@@ -1,9 +1,11 @@
-import { useState } from 'react';
-import supabase from '../../utils/supabase';
-import { format } from 'date-fns'; 
-import { bg } from 'date-fns/locale';
+import { useState }       from 'react';
+import supabase           from '../../utils/supabase';
+import { format }         from 'date-fns'; 
+import { bg }             from 'date-fns/locale';
 import { TREATMENT_INFO } from './treatmentTexts';
-import { POST_OP_GUIDE } from './postOpInstructions'; 
+import { POST_OP_GUIDE }  from './postOpInstructions';
+import CheckMyAnimal      from './CheckMyAnimal';
+import CheckMyAppointment from './CheckMyAppointment';
 import {  speciesOptions,
           genderOptions,
           spicyOptions,
@@ -26,22 +28,30 @@ import {  speciesOptions,
           } from "../../constants/formOptions";
 
 export default function PublicStatusCheck() {
+  const [mode, setMode] = useState('initial'); // 'initial', 'animal', 'appointment'
+  // Състояния за търсене на животно (ID)
   const [searchId, setSearchId] = useState('');
   const [animalData, setAnimalData] = useState(null);
+  // Състояния за търсене на час (Телефон)
+  const [phone, setPhone] = useState('');
+  const [appointments, setAppointments] = useState(null);
+
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
 
-  const handleSearch = async () => {
+  const [waitingList, setWaitingList] = useState(null);
+
+  // ЛОГИКА 1: Търсене на животно по ID
+  const handleAnimalSearch = async () => {
     if (!searchId) return;
-    
     setLoading(true);
     setError(null);
     setAnimalData(null);
 
     const { data, error } = await supabase
       .from('td_records')
-      .select('name, status, medical_details, data, castrated_at, services, staff_surgeon')
-      .eq('id', searchId) // Търсим само по ID
+      .select('name, status, medical_details, data, castrated_at, services, staff_surgeon, gender')
+      .eq('id', searchId)
       .single();
 
     if (error || !data) {
@@ -52,249 +62,147 @@ export default function PublicStatusCheck() {
     setLoading(false);
   };
 
-  // Намираме етикета и цвета на статуса само ако имаме данни
-  const currentStatus = animalData 
-    ? statusOptions.find(opt => opt.id === animalData.status) 
-    : null;
+  // ЛОГИКА 2: Търсене на часове по телефон
+  const handleAppointmentSearch = async () => {
+    if (!phone) return;
+    setLoading(true);
+    setError(null);
+    setAppointments(null);
+    setWaitingList(null); // Нулираме предишно търсене
+
+    const phoneClean = phone.trim();
+
+    // ПАРАЛЕЛНА ЗАЯВКА 1: Записани часове (td_records)
+    const appointmentPromise = supabase
+      .from('td_records')
+      .select(`
+        id, castrated_at, status, species, gender, name,
+        td_owners!inner(phone, name)
+      `)
+      .eq('td_owners.phone', phoneClean)
+      .gte('castrated_at', new Date().toISOString().split('T')[0])
+      .order('castrated_at', { ascending: true });
+
+    // ПАРАЛЕЛНА ЗАЯВКА 2: Списък на чакащи (td_waiting_list)
+    const waitingPromise = supabase
+      .from('td_waiting_list')
+      .select('*')
+      .eq('phone', phoneClean)
+      .eq('status', 'waiting'); // Само тези, които още чакат
+
+    const [resAppoint, resWaiting] = await Promise.all([appointmentPromise, waitingPromise]);
+
+    // Обработка на грешки
+    if (resAppoint.error && resWaiting.error) {
+      setError('Грешка при проверка на данните.');
+    } else if (
+      (!resAppoint.data || resAppoint.data.length === 0) && 
+      (!resWaiting.data || resWaiting.data.length === 0)
+    ) {
+      setError('Няма намерени записи за този телефонен номер.');
+    } else {
+      setAppointments(resAppoint.data || []);
+      setWaitingList(resWaiting.data || []);
+    }
+
+    setLoading(false);
+  };
+
+  const resetSearch = (newMode) => {
+    setMode(newMode);
+    setError(null);
+    setAnimalData(null);
+    setAppointments(null);
+  };
 
   return (
     <div className="min-h-screen bg-slate-50 py-10 px-4">
-      {/* СЕКЦИЯ ТЪРСЕНЕ - остава отгоре */}
-      <div className="max-w-md mx-auto mb-8 p-6 bg-white shadow-lg rounded-xl border border-slate-100">
-        <h2 className="text-xl font-bold mb-4 text-slate-800 text-center">Въведете номера от Вашия талон за прием</h2>
-        <div className="flex gap-2">
-          <input 
-            type="number" 
-            placeholder="Въведете № на пациент..." 
-            className="border p-2 flex-1 rounded-lg outline-none focus:ring-2 ring-blue-400 transition-all"
-            value={searchId}
-            onChange={(e) => setSearchId(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-          />
-          <button 
-            onClick={handleSearch} 
-            disabled={loading}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg transition-colors disabled:opacity-50 font-bold"
-          >
-            {loading ? '...' : 'Търси'}
-          </button>
-        </div>
-        {error && (
-          <div className="mt-4 p-3 bg-red-50 text-red-600 rounded-lg text-sm text-center font-medium">
-            {error}
-          </div>
-        )}
+      {/* ЗАГЛАВИЕ */}
+      <div className="max-w-md mx-auto mb-10 text-center">
+        <h1 className="text-3xl font-black text-slate-900 mb-2 tracking-tight uppercase">Портал за клиенти</h1>
+        <div className="h-1 w-20 bg-blue-600 mx-auto rounded-full"></div>
       </div>
 
-      {/* РЕЗУЛТАТИ - с две колони */}
-      {animalData && (
-        <div className="max-w-5xl mx-auto flex flex-col md:flex-row gap-8 animate-in fade-in duration-500">
-          
-          {/* ЛЯВА КОЛОНА: КАРТА ЖВ инфо и СТАТУС */}
-          <div className="md:w-1/3 bg-white p-6 rounded-2xl shadow-xl border border-slate-100 self-start">
-            <div className="text-center mb-6 border-b pb-4">
-              <span className="text-slate-400 text-[10px] uppercase tracking-[0.2em]">Пациент</span>
-              <h1 className="text-2xl font-black text-slate-800 mt-1">{animalData.name}</h1>
+      {/* ИЗБОР НА РЕЖИМ */}
+      <div className="max-w-2xl mx-auto mb-12">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <button
+            onClick={() => resetSearch('appointment')}
+            className={`p-6 rounded-2xl border-2 transition-all text-left ${
+              mode === 'appointment' ? 'border-blue-600 bg-blue-50' : 'border-white bg-white shadow-sm'
+            }`}
+          >
+            <div className={`w-10 h-10 rounded-lg mb-3 flex items-center justify-center ${mode === 'appointment' ? 'bg-blue-600 text-white' : 'bg-slate-100'}`}>
+              📅
             </div>
+            <p className="text-lg font-bold text-slate-900">Моят записан час</p>
+            <p className="text-slate-500 text-xs">Провери дата и инструкции за прием</p>
+          </button>
 
-            <div className="space-y-4">
-              <div className="flex justify-between items-center p-3 bg-slate-50 rounded-xl">
-                <span className="text-slate-500 text-xs">Текущ статус:</span>
-                <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase shadow-sm ${currentStatus?.color || 'bg-slate-100'}`}>
-                  {currentStatus?.label || animalData.status}
-                </span>
-              </div>
-
-              {animalData.castrated_at && (
-                <div className="p-3 bg-emerald-50 rounded-xl border border-emerald-100">
-                  <span className="text-emerald-700 text-[10px] uppercase font-bold block mb-1">Дата на процедура:</span>
-                  <span className="text-emerald-900 font-bold text-sm">
-                    {new Date(animalData.castrated_at).toLocaleDateString('bg-BG', {
-                      day: 'numeric', month: 'long', year: 'numeric'
-                    })}
-                  </span>
-                </div>
-              )}
-
-              {animalData.staff_surgeon && (
-                <div className="p-3 bg-blue-50 rounded-xl border border-blue-100">
-                  <span className="text-blue-700 text-[10px] uppercase font-bold block mb-1">Лекуващ лекар:</span>
-                  <span className="text-blue-900 font-bold text-sm">
-                    {staffOptions.find(opt => opt.value === animalData.staff_surgeon)?.label || "---"}
-                  </span>
-                </div>
-              )}
-
-              {/* СПИСЪК ПРОЦЕДУРИ */}
-              <div className="pt-2">
-                <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Извършени днес:</h3>
-                <div className="flex flex-wrap gap-2">
-                  {animalData.services?.map(s => (
-                    <span key={s} className="bg-slate-100 text-slate-700 text-[10px] px-2 py-1 rounded-md font-bold">
-                      {s}
-                    </span>
-                  )) || <span className="text-slate-400 italic text-xs">Стандартен преглед</span>}
-                </div>
-              </div>
+          <button
+            onClick={() => resetSearch('animal')}
+            className={`p-6 rounded-2xl border-2 transition-all text-left ${
+              mode === 'animal' ? 'border-blue-600 bg-blue-50' : 'border-white bg-white shadow-sm'
+            }`}
+          >
+            <div className={`w-10 h-10 rounded-lg mb-3 flex items-center justify-center ${mode === 'animal' ? 'bg-blue-600 text-white' : 'bg-slate-100'}`}>
+              🐾
             </div>
-            
-            <p className="text-[10px] text-center text-slate-400 mt-8 italic">
-               * Информацията се обновява в реално време.
-            </p>
-          </div>
-
-          {/* ДЯСНА КОЛОНА: ИНФОРМАЦИЯ И ГРИЖИ */}
-          <div className="md:w-2/3 space-y-6">
-
-            {/*СТАТУС*/}
-            <div className="space-y-10">
-              <div className="space-y-6">
-                <div className="border-l-4 border-blue-600 pl-4">
-                  <h2 className="text-2xl font-black text-slate-800 uppercase tracking-tight">Текущ статус:</h2>
-                  
-                </div>
-                <div className="text-slate-500 text-sm leading-relaxed antialiased">
-                  <span className="text-slate-500 text-sm leading-relaxed antialiased">Какво означава това:</span>
-                  Текущият статус на Вашето животно е <strong className="text-slate-800">{currentStatus?.label.toLowerCase()}</strong>, 
-                  което означава, че {statusDescriptions[animalData.status] || "информацията се обновява."}
-                </div>
-              </div>
-
-              {/* СЕКЦИЯ ДАРЕНИЕ */}
-              <div className={`p-6 rounded-2xl border transition-all ${
-                animalData.data?.hasDonation || animalData.data?.donationAmount > 0 
-                ? 'bg-emerald-50 border-emerald-100' 
-                : 'bg-amber-50 border-amber-100 shadow-inner'
-              }`}>
-                <div className="flex items-start gap-4">
-                  <div className={`p-3 rounded-full ${
-                    animalData.data?.hasDonation || animalData.data?.donationAmount > 0 ? 'bg-emerald-500' : 'bg-amber-500'
-                  } text-white`}>
-                    {/* Икона Сърце */}
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <h3 className={`text-lg font-black uppercase tracking-tight ${
-                      animalData.data?.hasDonation || animalData.data?.donationAmount > 0 ? 'text-emerald-800' : 'text-amber-800'
-                    }`}>
-                      {animalData.data?.hasDonation || animalData.data?.donationAmount > 0 ? 'Благодарим за подкрепата!' : 'Вашето дарение е важно'}
-                    </h3>
-                    
-                    {animalData.data?.hasDonation || animalData.data?.donationAmount > 0 ? (
-                      <p className="text-emerald-700 text-sm leading-relaxed">
-                        Вашето дарение помага на центъра да продължи да предлага тези услуги безплатно за бездомни животни. Благодарим Ви, че сте част от промяната!
-                      </p>
-                    ) : (
-                      <div className="space-y-3">
-                        <p className="text-amber-900 text-sm leading-relaxed font-medium">
-                          Всички кастрации и прегледи в нашия център се финансират изцяло от дарения. Вашата подкрепа днес ще ни позволи да помогнем на следващото животно в беда.
-                        </p>
-                        <p className="text-amber-800 text-xs italic">
-                          * Можете да оставите дарение на място при получаване на животното. Самото дарение може да е парично или под формата на консумативи - пакети нестерилни марли, пелени 60х90 см, нестерилни S и M ръкавици, белина и др.
-                        </p>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
-              
-              <div className="space-y-6">
-                <div className="border-l-4 border-blue-600 pl-4">
-                  <h2 className="text-2xl font-black text-slate-800 uppercase tracking-tight">Постоперативни препоръки</h2>
-                  <p className="text-slate-500 text-sm">Прочетете внимателно за успешното заздравяване</p>
-                </div>
-
-                <div className="flex flex-col gap-8">
-                  {POST_OP_GUIDE
-                    .filter(item => !item.onlyFor || item.onlyFor === animalData.gender)
-                    .map((item, index) => {
-                      // Проверяваме дали индексът е четен (0, 2, 4...) или нечетен (1, 3, 5...)
-                      const isEven = index % 2 === 0;
-
-                      return (
-                        <div 
-                          key={index} 
-                          className={`flex flex-col ${isEven ? 'md:flex-row' : 'md:flex-row-reverse'} 
-                            items-center gap-6 bg-white p-2 rounded-[2rem] shadow-sm border border-slate-100 
-                            hover:shadow-xl transition-all duration-300 overflow-hidden group`}
-                        >
-                          {/* СЕКЦИЯ КАРТИНКА */}
-                          <div className="w-full md:w-2/5 h-64 overflow-hidden rounded-[1.5rem] relative">
-                            <img 
-                              src={item.image}
-                              alt={item.title}
-                              className="w-full h-full object-contain transition-transform duration-500 group-hover:scale-110"
-                            />
-                          </div>
-
-                          {/* СЕКЦИЯ ТЕКСТ */}
-                          <div className={`w-full md:w-3/5 p-6 ${isEven ? 'md:pr-10' : 'md:pl-10'} text-center md:text-left`}>
-                            <h3 className="text-xl font-black text-slate-800 mb-3 tracking-tight">
-                              {item.title}
-                            </h3>
-                            <p className="text-slate-500 text-sm leading-relaxed antialiased">
-                              {item.description}
-                            </p>
-                            
-                            {/* Опционално: Малък детайл за завършеност */}
-                            <div className={`mt-4 h-1 w-12 bg-blue-100 rounded-full mx-auto md:mx-0 ${!isEven && 'md:ml-auto'}`}></div>
-                          </div>
-                        </div>
-                      );
-                    })}
-                </div>
-              </div>
-
-              {/* СПЕШНИ КОНТАКТИ */}
-              <div className="bg-red-50 rounded-[2.5rem] p-8 border border-red-100">
-                <h3 className="text-red-800 font-black text-xl mb-4 uppercase">🆘 При спешност</h3>
-                <p className="text-red-700 text-sm mb-6 leading-relaxed">
-                  Свържете се с нас веднага, ако забележите бледи венци, трудно дишане или обилно кървене.
-                </p>
-                <div className="bg-white rounded-3xl p-6 shadow-xl border border-red-200 flex flex-col items-center">
-                  <a href="tel:0896160033" className="text-4xl font-black text-slate-900 hover:text-red-600 transition-colors tracking-tight">
-                    032-207-379
-                  </a>
-                  <a href="tel:0896160033" className="text-4xl font-black text-slate-900 hover:text-red-600 transition-colors tracking-tight">
-                    089-616-00-33
-                  </a>
-                  <p className="text-slate-400 text-xs mt-3 font-medium text-center">Немски кастрационен център – Пловдив</p>
-                </div>
-              </div>
-            </div>
-
-            {/*ИЗВЪРШЕНИ УСЛУГИ*/}
-            <h2 className="text-2xl font-black text-slate-800 uppercase tracking-tight">
-              Детайли за днешните процедури:
-            </h2>
-
-            {animalData.services?.map(serviceKey => {
-              const info = TREATMENT_INFO[serviceKey];
-              if (!info) return null;
-
-              return (
-                <div key={serviceKey} className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm transition-all hover:shadow-md">
-                  <h3 className="text-lg font-bold text-slate-800 mb-2">{info.title}</h3>
-                  <p className="text-slate-600 leading-relaxed text-sm mb-4">
-                    {info.description}
-                  </p>
-                  {info.care && (
-                    <div className="bg-amber-50 p-4 rounded-xl border border-amber-100 flex gap-3">
-                      <span className="text-xl">💡</span>
-                      <div className="text-xs text-amber-900 leading-normal italic">
-                        <strong className="block not-italic mb-1 text-amber-800">Важно за възстановяването:</strong>
-                        {info.care}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-
-          </div>
+            <p className="text-lg font-bold text-slate-900">Моето животно</p>
+            <p className="text-slate-500 text-xs">Статус и грижи след операция</p>
+          </button>
         </div>
-      )}
+      </div>
+
+      {/* ФОРМИ ЗА ТЪРСЕНЕ */}
+      <div className="max-w-md mx-auto mb-12">
+        {mode === 'animal' && (
+          <div className="bg-white p-6 rounded-2xl shadow-xl border border-slate-100 animate-in fade-in zoom-in duration-300">
+            <h2 className="text-sm font-bold mb-4 text-slate-400 uppercase tracking-widest text-center">Номер на животното от талона</h2>
+            <div className="flex gap-2">
+              <input 
+                type="number" 
+                placeholder="Напр. 4502..." 
+                className="border p-3 flex-1 rounded-xl outline-none focus:ring-2 ring-blue-400"
+                value={searchId}
+                onChange={(e) => setSearchId(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleAnimalSearch()}
+              />
+              <button onClick={handleAnimalSearch} disabled={loading} className="bg-blue-600 text-white px-6 rounded-xl font-bold">
+                {loading ? '...' : 'Търси'}
+              </button>
+            </div>
+          </div>
+        )}
+
+        {mode === 'appointment' && (
+          <div className="bg-white p-6 rounded-2xl shadow-xl border border-slate-100 animate-in fade-in zoom-in duration-300">
+            <h2 className="text-sm font-bold mb-4 text-slate-400 uppercase tracking-widest text-center">Телефонен номер</h2>
+            <div className="flex gap-2">
+              <input 
+                type="tel" 
+                placeholder="08XXXXXXXX" 
+                className="border p-3 flex-1 rounded-xl outline-none focus:ring-2 ring-blue-400"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleAppointmentSearch()}
+              />
+              <button onClick={handleAppointmentSearch} disabled={loading} className="bg-blue-600 text-white px-6 rounded-xl font-bold">
+                {loading ? '...' : 'Виж часовете'}
+              </button>
+            </div>
+          </div>
+        )}
+
+        {error && <div className="mt-4 p-3 bg-red-50 text-red-600 rounded-xl text-sm text-center font-medium">{error}</div>}
+      </div>
+
+      {/* ВИЗУАЛИЗАЦИЯ НА РЕЗУЛТАТИТЕ */}
+      {animalData && <CheckMyAnimal animalData={animalData} />}
+      <CheckMyAppointment 
+        appointments={appointments} 
+        waitingList={waitingList} 
+      />
     </div>
   );
 }

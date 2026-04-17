@@ -133,6 +133,8 @@ export const complicationOptions = {
     general: [
       { id: "lung_edema"          , label: "Белодробен оток" },
       { id: "apnea"               , label: "Апнея" },
+      { id: "dyspnea"             , label: "Диспнея" },
+      { id: "hypothermia"         , label: "Хипотермия" },
       { id: "anesthesia_reac"     , label: "Алергична реакция към упойка" },
       { id: "dead_anesthesia"     , label: "Умряло, от упойка" },
       { id: "dead_surgery"        , label: "Умряло по време на операция" },
