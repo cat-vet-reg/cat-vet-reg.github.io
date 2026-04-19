@@ -5,7 +5,7 @@ import { bg }             from 'date-fns/locale';
 import { TREATMENT_INFO } from './treatmentTexts';
 import { POST_OP_GUIDE }  from './postOpInstructions';
 import CheckMyAnimals      from './CheckMyAnimals'; 
-import CheckMyAppointment from './CheckMyAppointment';
+import CheckMyAppointments from './CheckMyAppointmentss';
 import {  speciesOptions,
           genderOptions,
           spicyOptions,
@@ -199,7 +199,7 @@ export default function PublicStatusCheck() {
 
       {/* ВИЗУАЛИЗАЦИЯ НА РЕЗУЛТАТИТЕ */}
       {animalData && <CheckMyAnimals animalData={animalData} />}
-      <CheckMyAppointment 
+      <CheckMyAppointments 
         appointments={appointments} 
         waitingList={waitingList} 
       />

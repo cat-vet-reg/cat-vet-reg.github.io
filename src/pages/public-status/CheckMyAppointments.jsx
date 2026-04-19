@@ -1,4 +1,4 @@
-export default function CheckMyAppointment({ appointments, waitingList }) {
+export default function CheckMyAppointments({ appointments, waitingList }) {
   // Проверяваме дали и двата списъка са празни
   const hasAppointments = appointments && appointments.length > 0;
   const hasWaiting = waitingList && waitingList.length > 0;
