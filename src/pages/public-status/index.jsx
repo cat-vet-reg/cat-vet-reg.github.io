@@ -5,7 +5,7 @@ import { bg }             from 'date-fns/locale';
 import { TREATMENT_INFO } from './treatmentTexts';
 import { POST_OP_GUIDE }  from './postOpInstructions';
 import CheckMyAnimals      from './CheckMyAnimals'; 
-import CheckMyAppointments from './CheckMyAppointmentss';
+import CheckMyAppointments from './CheckMyAppointments';
 import {  speciesOptions,
           genderOptions,
           spicyOptions,
