@@ -2,7 +2,7 @@ import { TREATMENT_INFO } from './treatmentTexts';
 import { POST_OP_GUIDE } from './postOpInstructions';
 import { statusOptions, statusDescriptions, staffOptions } from "../../constants/formOptions";
 
-export default function CheckMyAnimal({ animalData }) {
+export default function CheckMyAnimals({ animalData }) { 
   if (!animalData) return null;
 
   const currentStatus = statusOptions.find(opt => opt.id === animalData.status);
