@@ -4,7 +4,7 @@ import { format }         from 'date-fns';
 import { bg }             from 'date-fns/locale';
 import { TREATMENT_INFO } from './treatmentTexts';
 import { POST_OP_GUIDE }  from './postOpInstructions';
-import CheckMyAnimal      from './CheckMyAnimal';
+import CheckMyAnimal      from './CheckMyAnimal'; 
 import CheckMyAppointment from './CheckMyAppointment';
 import {  speciesOptions,
           genderOptions,
