@@ -190,6 +190,8 @@ export const mapDbToUi = (record) => {
     selectedComplications: record.selected_complications || [],
     
     // 4. Подсигуряваме координатите
-    coords: record.map_coordinates || null
+    coords: record.map_coordinates || null,
+
+    td_protocols: record.td_protocols || []
   };
 };

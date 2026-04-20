@@ -179,7 +179,8 @@ export async function $apiGetCats() {
         .from('td_records')
         .select(`
             *,
-            owner:td_owners(name, phone)
+            owner:td_owners(name, phone),
+            td_protocols (*)
         `)
         .order('created_at', { ascending: false }); // Винаги най-новите отгоре
 
@@ -193,7 +194,8 @@ export async function $apiGetCats() {
         ...cat,
         owner_name  : cat.owner?.name || cat.owner_name,
         owner_phone : cat.owner?.phone || cat.owner_phone,
-        address     : cat.location_address // Map-ваме го обратно за компоненти, които ползват .address
+        address     : cat.location_address, // Map-ваме го обратно за компоненти, които ползват .address
+        td_protocols: cat.td_protocols || []
     }));
 
     return { data: formattedData };

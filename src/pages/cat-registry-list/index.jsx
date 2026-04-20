@@ -28,6 +28,7 @@ import {  bcsScores,
           reproductiveOptions
           } from "../../constants/formOptions";
 import { mapDbToUi } from '../cat-registration-form/utils/formMapper';
+import * as XLSX from 'xlsx';
 
 const CatRegistryList = () => {
   const [currentPage, setCurrentPage] = useState(1);
@@ -36,6 +37,7 @@ const CatRegistryList = () => {
 
   const [catCollection, setCatCollection] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isClinicalView, setIsClinicalView] = useState(false);
 
   const [filters, setFilters] = useState({
     search: '',
@@ -166,22 +168,94 @@ const CatRegistryList = () => {
     navigate('/cat-registration-form', { state: { catData: cat, isEditing: true } });
   };
 
-  // const breadcrumbItems = [
-  //   { label: 'Табло'                , path: '/dashboard-overview' },
-  //   { label: 'Регистър на животните', path: '/cat-registry-list' }
-  // ];
+  // обединява td_records и td_protocols
+const displayData = useMemo(() => {
+  // 1. Стандартен изглед - тук всичко е наред
+  if (!isClinicalView) {
+    return filteredAndSortedCats.map(cat => ({
+      ...cat,
+      uId: `base-${cat.id}`,
+      displayDate: cat.castratedAt || cat.created_at
+    }));
+  }
+
+  // 2. Амбулаторен дневник (Клиничен изглед)
+  let diaryRows = [];
+  
+  filteredAndSortedCats.forEach(cat => {
+    // СЪБИТИЕ 1: Добавяме самата кастрация (основния запис)
+    diaryRows.push({
+      ...cat,
+      uId: `main-${cat.id}`, 
+      displayDate: cat.castratedAt || cat.created_at,
+      diagnosis: "Кастрация",
+      treatment: "Ovariohysterectomy",
+      clinicalData: cat.medical_details?.parasites || "Б.О.",
+      isProtocolRow: false // Маркираме го като основен запис
+    });
+
+    // СЪБИТИЕ 2+: Добавяме всички последващи протоколи
+    const protocols = cat.td_protocols || [];
+    protocols.forEach(p => {
+      diaryRows.push({
+        ...cat,
+        uId: `proto-${p.id}`, 
+        displayDate: p.created_at,
+        diagnosis: p.data?.diagnosis || "Преглед",
+        treatment: p.data?.treatment || "Лечение",
+        clinicalData: p.data?.clinical_signs || "Б.О.",
+        isProtocolRow: true // Маркираме го като допълнителен протокол
+      });
+    });
+  });
+
+  // Сортираме хронологично всички събития
+  return diaryRows.sort((a, b) => new Date(b.displayDate) - new Date(a.displayDate));
+}, [filteredAndSortedCats, isClinicalView]);
 
   // Изчисляваме кои котки да се покажат на текущата страница
-  const paginatedCats = useMemo(() => {
-    const startIndex = (currentPage - 1) * pageSize;
-    return filteredAndSortedCats.slice(startIndex, startIndex + pageSize);
-  }, [filteredAndSortedCats, currentPage, pageSize]);
+const paginatedCats = useMemo(() => {
+  const startIndex = (currentPage - 1) * pageSize;
+  return displayData.slice(startIndex, startIndex + pageSize);
+}, [displayData, currentPage, pageSize]);
+
+// Важно: Нулирай страницата при смяна на режима
+useEffect(() => {
+  setCurrentPage(1);
+}, [isClinicalView, filters]);
 
   // Важно: Ако филтрираме и броят на резултатите намалее, 
   // трябва да се върнем на първа страница, за да не гледаме празен екран
   useEffect(() => {
     setCurrentPage(1);
   }, [filters]);
+
+  // ... вътре в компонента
+  const handleExport = () => {
+    // Използваме displayData, защото те съдържат точно това, което е филтрирано и подредено на екрана
+    const dataToExport = displayData.map(item => ({
+      "Дата": new Date(item.displayDate).toLocaleDateString('bg-BG'),
+      "Име на животното": item.recordName,
+      "Пол": item.gender === 'female' ? 'Женски' : 'Мъжки',
+      "Собственик": item.ownerName,
+      "Телефон": item.ownerPhone,
+      "Адрес": item.address,
+      "Диагноза/Дейност": item.diagnosis,
+      "Лечение/Манипулация": item.treatment,
+      "Клинични данни/Бележки": item.clinicalData,
+      "Хирург": item.staffSurgeon,
+      "Тип запис": item.isProtocolRow ? "Последващ протокол" : "Кастрация"
+    }));
+
+    const worksheet = XLSX.utils.json_to_sheet(dataToExport);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Registry");
+
+    // Генериране на име на файла с днешна дата
+    const fileName = `Registry_Export_${new Date().toISOString().slice(0,10)}.xlsx`;
+    
+    XLSX.writeFile(workbook, fileName);
+  };
 
   if (isLoading) return <div className="p-10 text-center text-xl">Зареждане на регистъра...</div>;
 
@@ -203,6 +277,22 @@ const CatRegistryList = () => {
                 ).length
               } животни
             </p>
+
+            <Button
+              variant={isClinicalView ? "default" : "outline"} // Промяна на цвета при активен режим
+              iconName="FileText"
+              onClick={() => setIsClinicalView(!isClinicalView)}
+            >
+              {isClinicalView ? "Към стандартен регистър" : "Амбулаторен дневник"}
+            </Button>
+
+            <Button 
+              variant="outline" 
+              iconName="Download" 
+              onClick={handleExport}
+            >
+              Експорт към Excel
+            </Button>
           </div>
 
           <Button
@@ -228,6 +318,7 @@ const CatRegistryList = () => {
         <div className="mt-8">
           <RegistryTable
             cats={paginatedCats}
+            isClinicalView={isClinicalView}
             selectedCats={selectedCats}
             onSelectCat={handleSelectCat}
             onSort={handleSort}

@@ -44,24 +44,6 @@ const StatisticsTable = () => {
 
       if (error) throw error;
       
-      // --- ФИЛТРИРАН ЛОГ САМО ЗА СПОРНИТЕ ДАТИ ---
-      const suspiciousDates = ['2026-03-02', '2026-03-26'];
-      
-      const filteredDebug = rawData.filter(item => {
-        const date = item.castrated_at || item.data?.castratedAt;
-        return date && suspiciousDates.some(sDate => date.includes(sDate));
-      });
-
-      console.log(`=== ДЕТАЙЛИ ЗА ${suspiciousDates.join(' и ')} ===`);
-      console.table(filteredDebug.map(item => ({
-        ID: item.id,
-        Name: item.data?.recordName || item.name,
-        Status: item.data?.status || item.status || "НЯМА СТАТУС",
-        Gender: item.gender,
-        Raw_Date: item.castrated_at
-      })));
-      // ------------------------------------------
-
       // 1. Мапваме данните веднага
       const mappedData = rawData.map(mapDbToUi);
       
