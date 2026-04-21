@@ -189,7 +189,7 @@ const displayData = useMemo(() => {
       uId: `main-${cat.id}`, 
       displayDate: cat.castratedAt || cat.created_at,
       diagnosis: "Кастрация",
-      treatment: "Ovariohysterectomy",
+      treatment: cat.gender === 'female' ? "Ovariohysterectomy" : "Orchiectomy",
       clinicalData: cat.medical_details?.parasites || "Б.О.",
       isProtocolRow: false // Маркираме го като основен запис
     });
