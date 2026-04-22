@@ -12,7 +12,8 @@ const Calendar = () => {
 
   const [myEvents, setMyEvents] = useState([]);
   const navigate = useNavigate();
-
+  const [dayCounts, setDayCounts] = useState({});
+  
   const handleEdit = (info) => {
     // Проверка: ако кликнатият елемент е бутон или вътре в бутон, не прави нищо
     if (info.jsEvent.target.closest('button')) {
@@ -32,7 +33,9 @@ const Calendar = () => {
 
     if (error) return;
 
+    const counts = {};
     const events = data.map(element => {
+      const dateKey = element.castrated_at.split('T')[0]
       const today = new Date();
       today.setHours(0, 0, 0, 0);
 
@@ -44,6 +47,11 @@ const Calendar = () => {
       
       const rawGender = element.gender || element.data?.gender;
       const isMale = rawGender === 'male';
+
+      // Броене
+      if (!counts[dateKey]) counts[dateKey] = { male: 0, female : 0 };
+      if (isMale) counts[dateKey].male++;
+      else counts[dateKey].female++;
 
       // Логиката за цветовете (Розово/Синьо/Сиво)
       let eventColor = isPast ? '#dedede' : (isMale ? '#dbeafe' : '#ffe4e6');
@@ -69,7 +77,7 @@ const Calendar = () => {
         textColor: isPast ? '#666' : '#000'
       };
     });
-
+    setDayCounts(counts);
     setMyEvents(events);
   };
 
@@ -174,7 +182,7 @@ const Calendar = () => {
           plugins={[ dayGridPlugin, timeGridPlugin, interactionPlugin ]}
           editable={true}
           eventDrop={handleEventDrop}
-          initialView="dayGridWeek"
+          initialView="dayGridDay"
           locale="bg"
           allDaySlot={false} // Скриваме all-day за по-чист изглед
           slotLabelFormat={{ hour: '2-digit', minute: '2-digit', hour12: false }} // 24ч формат
@@ -185,6 +193,34 @@ const Calendar = () => {
           }}
           buttonText={{
               today: 'Днес', month: 'Месец', week: 'Седмица', day: 'Ден'
+          }}
+          dayCellContent={(arg) => {
+              // Вземаме локалната дата във формат YYYY-MM-DD
+              const year = arg.date.getFullYear();
+              const month = String(arg.date.getMonth() + 1).padStart(2, '0');
+              const day = String(arg.date.getDate()).padStart(2, '0');
+              const dateStr = `${year}-${month}-${day}`;
+              
+              const counts = dayCounts[dateStr];
+
+              return (
+                  <div className="w-full flex justify-between items-start p-1">
+                      <span className="fc-daygrid-day-number" style={{ float: 'none', padding: 0 }}>
+                          {arg.dayNumberText}
+                      </span>
+                      
+                      {counts && (
+                          <div className="flex flex-col items-end gap-0.5 pr-1 pt-0.5">
+                              <span className="text-[10px] leading-none px-1 rounded bg-pink-100 text-pink-700 font-bold">
+                                  ♀️{counts.female}
+                              </span>
+                              <span className="text-[10px] leading-none px-1 rounded bg-blue-100 text-blue-700 font-bold">
+                                  ♂️{counts.male}
+                              </span>
+                          </div>
+                      )}
+                  </div>
+              );
           }}
           events={myEvents}
           eventContent={(eventInfo) => {
