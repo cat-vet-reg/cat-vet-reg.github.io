@@ -34,6 +34,8 @@ const InformedConsent = ({ data, signature }) => {
   };
 
 const getLivingConditionsLabel = (conditions) => {
+  if (!conditions) return "—"; // Добави това
+  
   let condArray = conditions instanceof Set ? Array.from(conditions) : conditions;
   if (!condArray || (Array.isArray(condArray) && condArray.length === 0)) return "—";
 
@@ -141,51 +143,42 @@ const getLivingConditionsLabel = (conditions) => {
         </div>
       </div>
 
-      {/* CSS за принтиране */}
-            <style>{`
-        /* СТРАТЕГИЯ: Вместо display: none, използваме офсет */
-        @media screen {
-          .informed-print-container {
-            position: absolute;
-            left: -9999px; /* Изпращаме го далеч наляво, извън екрана */
-            top: 0;
-          }
-        }
+{/* CSS за принтиране */}
+<style>{`
+  /* Скриваме го напълно от екрана, за да не пречи на формата */
+  @media screen {
+    .informed-print-container {
+      display: none !important;
+    }
+  }
 
-        @media print {
-          /* 1. Скриваме абсолютно всичко от основния интерфейс */
-          body > #root > *:not(.informed-print-container),
-          header, 
-          form, 
-          button, 
-          .floating-btn {
-            display: none !important;
-          }
+  /* Правила само за принтиране */
+  @media print {
+    /* Скриваме всичко останало */
+    body > #root > *:not(.informed-print-container),
+    header, nav, footer, button, .floating-btn, form {
+      display: none !important;
+    }
 
-          /* 2. Показваме само нашия контейнер */
-          .informed-print-container {
-            position: static !important;
-            display: block !important;
-            width: 100% !important;
-            margin: 0 !important;
-            padding: 0 !important;
-            background: white !important;
-            color: black !important;
-          }
+    /* Показваме нашия контейнер */
+    .informed-print-container {
+      display: block !important;
+      position: relative !important;
+      left: 0 !important;
+      width: 100% !important;
+      margin: 0 !important;
+      padding: 1cm !important;
+      background: white !important;
+      color: black !important;
+      font-family: serif !important; /* По-добре за четене на хартия */
+    }
 
-          /* Изчистваме принудително всички фонове и сенки */
-          * {
-            -webkit-print-color-adjust: exact !important;
-            print-color-adjust: exact !important;
-            box-shadow: none !important;
-          }
-
-          @page {
-            size: A4;
-            margin: 1.5cm;
-          }
-        }
-      `}</style>
+    @page {
+      size: A4;
+      margin: 0; /* Контролираме марджина от контейнера */
+    }
+  }
+`}</style>
 
     </div>
   );

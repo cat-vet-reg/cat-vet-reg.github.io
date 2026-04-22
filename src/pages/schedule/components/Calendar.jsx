@@ -131,71 +131,39 @@ const Calendar = () => {
       if (!window.confirm("Маркирате този час като ПРОПУСНАТ? Стопанинът ще влезе в черния списък.")) return;
 
       try {
-          // Първо трябва да вземем текущия обект 'data', за да не го презапишем празен
-          const { data: currentRecord, error: fetchError } = await supabase
+          // Записваме САМО в основната колона status
+          const { error } = await supabase
               .from('td_records')
-              .select('data')
-              .eq('id', id)
-              .single();
-
-          if (fetchError) throw fetchError;
-
-          // Създаваме обновения обект
-          const updatedData = {
-              ...(currentRecord.data || {}),
-              status: 'missed'
-          };
-
-          // Записваме обратно в базата
-          const { error: updateError } = await supabase
-              .from('td_records')
-              .update({ data: updatedData }) 
+              .update({ status: 'missed' }) 
               .eq('id', id);
 
-          if (updateError) throw updateError;
+          if (error) throw error;
           
           await loadCalendarData(); 
-          alert("Часът е маркиран като пропуснат. Стопанинът е добавен в списъка.");
+          alert("Часът е маркиран като пропуснат.");
       } catch (err) {
           console.error("Грешка:", err);
-          alert("Грешка при обновяване: " + err.message);
+          alert("Грешка при обновяване.");
       }
   };
 
   const handleReceive = async (e, id) => {
-    e.stopPropagation(); // Спираме отварянето на формата за редакция
+      e.stopPropagation();
 
-    try {
-        // 1. Първо взимаме текущите данни, за да не загубим JSON обекта
-        const { data: currentRecord, error: fetchError } = await supabase
-            .from('td_records')
-            .select('data')
-            .eq('id', id)
-            .single();
+      try {
+          // Директно обновяваме само главната колона
+          const { error } = await supabase
+              .from('td_records')
+              .update({ status: 'received' }) 
+              .eq('id', id);
 
-        if (fetchError) throw fetchError;
-
-        const updatedData = {
-            ...(currentRecord.data || {}),
-            status: 'received'
-        };
-
-        // 2. Обновяваме и двете места
-        const { error: updateError } = await supabase
-            .from('td_records')
-            .update({ 
-                status: 'received', // Топ ниво
-                data: updatedData   // Вътре в JSON
-            }) 
-            .eq('id', id);
-
-        if (updateError) throw updateError;
-        
-        await loadCalendarData(); // Презареждаме календара
-    } catch (err) {
-        console.error("Грешка при приемане:", err);
-        alert("Грешка при обновяване на статус.");
-    }
+          if (error) throw error;
+          
+          await loadCalendarData(); 
+      } catch (err) {
+          console.error("Грешка при приемане:", err);
+          alert("Грешка при обновяване на статус.");
+      }
   };
 
   return (

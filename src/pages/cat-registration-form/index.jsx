@@ -1483,9 +1483,8 @@ const navigate = useNavigate();
         </div>      
       </div>
 
-      <InformedConsent 
-        key={formData.signature ? 'signed' : 'empty'}
-        data={{formData}} 
+      <InformedConsent
+        data={formData} 
         signature={formData.signature}
       />
 
