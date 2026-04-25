@@ -114,6 +114,7 @@
 
   * {
     @apply border-border;
+    scroll-margin-top: 5rem; /* 80px (хедър 64px + малко въздух) */
   }
 
   body {

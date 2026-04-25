@@ -193,7 +193,7 @@ const CatRegistryList = () => {
         uId: `main-${cat.id}`, 
         // Използваме кастрационната дата, ако я има
         displayDate: cat.castratedAt || cat.created_at,
-        diagnosis: "Кастрация",
+        diagnosis: "Sanus",
         treatment: cat.gender === 'female' ? "Овариохистеректомия" : "Орхиектомия",
         clinicalData: cat.data?.notes || "б.о.",
         isProtocolRow: false
@@ -297,7 +297,7 @@ const handleExport = async () => {
   worksheet.spliceRows(3, 0, ['Ветеринарна клиника: Немски кастрационен център - Пловдив']);
   worksheet.mergeCells('A3:K3');
   worksheet.getRow(3).font = { name: 'Arial', size: 9, bold: true };
-  worksheet.getRow(3).alignment = { horizontal: 'left' };
+  worksheet.getRow(3).alignment = { horizontal: 'center' };
 
   // Празен ред за разстояние (опционално)
   worksheet.spliceRows(4, 0, []);
@@ -308,9 +308,9 @@ const handleExport = async () => {
     const cityLabel = cityOptions.find(opt => opt.value === item?.location_city)?.label || item?.location_city || '-'
     
     const species = item.species === 'dog' ? 'Куче' : 'Котка';
-    const gender = item.gender === 'female' ? 'ж' : 'м';
+    const gender = item.gender === 'female' ? 'женски' : 'мъжки';
     const breed = breedOptions.find(opt => opt.value === item?.data?.breed)?.label || item?.data?.breed || 'Нер.';
-    const age = item.data?.age_value ? `${item.data.age_value}${item.data.age_unit === 'years' ? 'г' : 'м'}` : '';
+    const age = item.data?.age_value ? `${item.data.age_value}${item.data.age_unit === 'years' ? 'год.' : 'мес.'}` : '';
 
     const row = worksheet.addRow({
       seq: index + 1,

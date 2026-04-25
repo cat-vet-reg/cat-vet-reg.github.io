@@ -26,7 +26,12 @@ const BasicInfoCard = ({ cat }) => {
   const castratedAt = cat?.castrated_at ? convertDate(cat.castrated_at) : null;
   const rawHasComp = cat?.has_complications || cat?.hasComplications || cat?.data?.has_complications;
   const hasComp = rawHasComp?.toString().toUpperCase() === 'Y';
-  const selectedKeys = cat?.selectedComplications || cat?.data?.selectedComplications || [];
+  const selectedKeys = 
+    cat?.selectedComplications || 
+    cat?.selected_complications ||
+    cat?.data?.selectedComplications || 
+    cat?.data?.selected_complications || 
+    [];
 
   const rawEarStatus = cat?.earStatus || cat?.ear_status || cat?.data?.earStatus;
   const isMarked = rawStatus => {
@@ -61,7 +66,7 @@ const BasicInfoCard = ({ cat }) => {
 
   const renderComplications = () => {
     if (!hasComp || selectedKeys.length === 0) {
-      return hasComp ? "Има (не е уточнено)" : "Не";
+      return hasComp ? "Да" : "Не";
     }
 
     const allOptions = [

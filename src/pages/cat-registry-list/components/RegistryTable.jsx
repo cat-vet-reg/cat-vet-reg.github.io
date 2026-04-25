@@ -119,7 +119,7 @@ const RegistryTable = ({
                   {/* Диагноза */}
                   <td className="px-3 py-4 text-[11px]">
                     <span className="inline-block bg-slate-100 text-slate-700 px-2 py-0.5 rounded font-semibold border border-slate-200">
-                      {cat.diagnosis || "Кастрация"}
+                      {cat.diagnosis || "Sanus"}
                     </span>
                   </td>
 
