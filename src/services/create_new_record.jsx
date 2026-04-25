@@ -180,7 +180,8 @@ export async function $apiGetCats() {
         .select(`
             *,
             owner:td_owners(name, phone),
-            td_protocols (*)
+            td_protocols (*),
+            td_medical_treatments!fk_animal (*)
         `)
         .order('created_at', { ascending: false }); // Винаги най-новите отгоре
 
@@ -195,7 +196,8 @@ export async function $apiGetCats() {
         owner_name  : cat.owner?.name || cat.owner_name,
         owner_phone : cat.owner?.phone || cat.owner_phone,
         address     : cat.location_address, // Map-ваме го обратно за компоненти, които ползват .address
-        td_protocols: cat.td_protocols || []
+        td_protocols: cat.td_protocols || [],
+        td_medical_treatments: cat.td_medical_treatments || []
     }));
 
     return { data: formattedData };

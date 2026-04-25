@@ -89,11 +89,22 @@ const AddProtocol = ({ isOpen, onClose, petId, onSave, protocolToEdit = null, la
           .select();
       }
 
-      if (result.error) throw result.error;
+      if (result.error) {
+          console.error("Supabase Error:", result.error);
+          throw new Error(result.error.message);
+      }
+
+      // Проверка дали изобщо имаме върнати данни
+      if (!result.data || result.data.length === 0) {
+          throw new Error("Базата данни не върна запис след операцията.");
+      }
 
       const savedRecord = result.data[0];
       const updatedDataForUI = { ...savedRecord.data, db_id: savedRecord.id };
       
+      console.log("--- ЗАПИСАН ПРОТОКОЛ В БАЗАТА ---");
+      console.log("ID на записа в DB:", savedRecord.id); 
+      console.log("Данни вътре в JSONB колоната:", savedRecord.data);
       onSave(updatedDataForUI); 
       onClose();
 

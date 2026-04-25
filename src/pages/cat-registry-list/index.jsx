@@ -27,12 +27,16 @@ import {  bcsScores,
           discoverySourceOptions,
           reproductiveOptions
           } from "../../constants/formOptions";
+import { breedOptions         } from "../../constants/breed_options";
+import { cityOptions    } from "../../constants/city_options";
 import { mapDbToUi } from '../cat-registration-form/utils/formMapper';
 import * as XLSX from 'xlsx';
+import ExcelJS from 'exceljs';
+import { saveAs } from 'file-saver';
 
 const CatRegistryList = () => {
   const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize, setPageSize] = useState(25);
+  const [pageSize, setPageSize] = useState(100);
   const navigate = useNavigate();
 
   const [catCollection, setCatCollection] = useState([]);
@@ -101,7 +105,7 @@ const CatRegistryList = () => {
       );
     }
 
-    // Филтри: пол, цвят, статус, локация
+    // Филтри: пол, цвят, статус, лекар, локация
     if (filters.gender) result = result.filter(cat => cat.gender === filters.gender);
     if (filters.color) result = result.filter(cat => cat.data?.color === filters.color);
     if (filters.species) result = result.filter(cat => cat.species === filters.species);
@@ -168,61 +172,84 @@ const CatRegistryList = () => {
     navigate('/cat-registration-form', { state: { catData: cat, isEditing: true } });
   };
 
-  // обединява td_records и td_protocols
-const displayData = useMemo(() => {
-  // 1. Стандартен изглед - тук всичко е наред
-  if (!isClinicalView) {
-    return filteredAndSortedCats.map(cat => ({
-      ...cat,
-      uId: `base-${cat.id}`,
-      displayDate: cat.castratedAt || cat.created_at
-    }));
-  }
+  // обединява td_records,  td_protocols, td_medical_treatments
+  const displayData = useMemo(() => {
+    // 1. Стандартен изглед
+    if (!isClinicalView) {
+      return filteredAndSortedCats.map(cat => ({
+        ...cat,
+        uId: `base-${cat.id}`,
+        displayDate: cat.castratedAt || cat.created_at
+      }));
+    }
 
-  // 2. Амбулаторен дневник (Клиничен изглед)
-  let diaryRows = [];
-  
-  filteredAndSortedCats.forEach(cat => {
-    // СЪБИТИЕ 1: Добавяме самата кастрация (основния запис)
-    diaryRows.push({
-      ...cat,
-      uId: `main-${cat.id}`, 
-      displayDate: cat.castratedAt || cat.created_at,
-      diagnosis: "Кастрация",
-      treatment: cat.gender === 'female' ? "Ovariohysterectomy" : "Orchiectomy",
-      clinicalData: cat.medical_details?.parasites || "Б.О.",
-      isProtocolRow: false // Маркираме го като основен запис
-    });
-
-    // СЪБИТИЕ 2+: Добавяме всички последващи протоколи
-    const protocols = cat.td_protocols || [];
-    protocols.forEach(p => {
+    // 2. Амбулаторен дневник (Клиничен изглед)
+    let diaryRows = [];
+    
+    filteredAndSortedCats.forEach(cat => {
+      // СЪБИТИЕ А: Кастрация (Основен запис)
       diaryRows.push({
         ...cat,
-        uId: `proto-${p.id}`, 
-        displayDate: p.created_at,
-        diagnosis: p.data?.diagnosis || "Преглед",
-        treatment: p.data?.treatment || "Лечение",
-        clinicalData: p.data?.clinical_signs || "Б.О.",
-        isProtocolRow: true // Маркираме го като допълнителен протокол
+        uId: `main-${cat.id}`, 
+        // Използваме кастрационната дата, ако я има
+        displayDate: cat.castratedAt || cat.created_at,
+        diagnosis: "Кастрация",
+        treatment: cat.gender === 'female' ? "Овариохистеректомия" : "Орхиектомия",
+        clinicalData: cat.data?.notes || "б.о.",
+        isProtocolRow: false
+      });
+
+      // СЪБИТИЕ Б: Последващи протоколи (td_protocols)
+      const protocols = cat.td_protocols || [];
+      protocols.forEach(p => {
+        const anamnesis = p.data?.anamnesis ? `Анамнеза: ${p.data.anamnesis}` : '';
+        const signs = p.data?.clinical_signs ? `Симптоми: ${p.data.clinical_signs}` : '';
+        const combinedClinical = [anamnesis, signs].filter(Boolean).join('; ') || "б.о.";
+
+        diaryRows.push({
+          ...cat,
+          uId: `proto-${p.id}`, 
+          // ВАЖНО: Сортираме по датата на протокола, а не по записването му
+          displayDate: p.data?.protocol_creation_date || p.created_at,
+          diagnosis: p.data?.diagnosis || "Sanus",
+          treatment: p.data?.treatment || "без лечение",
+          clinicalData: combinedClinical,
+          examination: p.data?.examination || "няма",
+          isProtocolRow: true
+        });
+      });
+
+      // СЪБИТИЕ В: Ваксинации и Обезпаразитявания (td_medical_treatments)
+      const treatments = cat.td_medical_treatments || []; 
+      treatments.forEach(t => {
+        diaryRows.push({
+          ...cat,
+          uId: `treat-${t.id}`,
+          // Тук е важно как се казва колоната за дата в таблицата ти
+          displayDate: t.administered_at || t.created_at, 
+          diagnosis: t.data?.diagnosis || "Sanus",
+          treatment: t.type === 'vaccine' ? "Ваксинация" : "Обезпаразитяване",
+          clinicalData: t.notes || "б.о.",
+          isProtocolRow: true
+        });
       });
     });
-  });
 
-  // Сортираме хронологично всички събития
-  return diaryRows.sort((a, b) => new Date(b.displayDate) - new Date(a.displayDate));
-}, [filteredAndSortedCats, isClinicalView]);
+    // Финално сортиране: Всички събития (кастрации, прегледи, ваксини) 
+    // подредени по реална дата (displayDate) в низходящ ред
+    return diaryRows.sort((a, b) => new Date(a.displayDate) - new Date(b.displayDate));
+  }, [filteredAndSortedCats, isClinicalView]);
 
-  // Изчисляваме кои котки да се покажат на текущата страница
-const paginatedCats = useMemo(() => {
-  const startIndex = (currentPage - 1) * pageSize;
-  return displayData.slice(startIndex, startIndex + pageSize);
-}, [displayData, currentPage, pageSize]);
+    // Изчисляваме кои котки да се покажат на текущата страница
+  const paginatedCats = useMemo(() => {
+    const startIndex = (currentPage - 1) * pageSize;
+    return displayData.slice(startIndex, startIndex + pageSize);
+  }, [displayData, currentPage, pageSize]);
 
-// Важно: Нулирай страницата при смяна на режима
-useEffect(() => {
-  setCurrentPage(1);
-}, [isClinicalView, filters]);
+  // Важно: Нулирай страницата при смяна на режима
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [isClinicalView, filters]);
 
   // Важно: Ако филтрираме и броят на резултатите намалее, 
   // трябва да се върнем на първа страница, за да не гледаме празен екран
@@ -230,32 +257,106 @@ useEffect(() => {
     setCurrentPage(1);
   }, [filters]);
 
-  // ... вътре в компонента
-  const handleExport = () => {
-    // Използваме displayData, защото те съдържат точно това, което е филтрирано и подредено на екрана
-    const dataToExport = displayData.map(item => ({
-      "Дата": new Date(item.displayDate).toLocaleDateString('bg-BG'),
-      "Име на животното": item.recordName,
-      "Пол": item.gender === 'female' ? 'Женски' : 'Мъжки',
-      "Собственик": item.ownerName,
-      "Телефон": item.ownerPhone,
-      "Адрес": item.address,
-      "Диагноза/Дейност": item.diagnosis,
-      "Лечение/Манипулация": item.treatment,
-      "Клинични данни/Бележки": item.clinicalData,
-      "Хирург": item.staffSurgeon,
-      "Тип запис": item.isProtocolRow ? "Последващ протокол" : "Кастрация"
-    }));
+const handleExport = async () => {
+  const workbook = new ExcelJS.Workbook();
+  const worksheet = workbook.addWorksheet('Амбулаторен дневник', {
+    pageSetup: { paperSize: 9, orientation: 'landscape' } // A4 Landscape
+  });
 
-    const worksheet = XLSX.utils.json_to_sheet(dataToExport);
-    const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, "Registry");
+  // 1. ДЕФИНИРАНЕ НА КОЛОНИТЕ (съгласно вашите размери)
+  // Размерите в exceljs са символи. Коефициентът е около 1.2 за превръщане от вашите мерки.
+  worksheet.columns = [
+    { header: '№', key: 'seq', width: 4 },            // 3.3
+    { header: 'Амб. №', key: 'id', width: 4 },        // 3
+    { header: 'Дата', key: 'date', width: 10 },       // 8
+    { header: 'Собственик', key: 'owner', width: 17 }, // 14
+    { header: 'Пациент', key: 'animal', width: 12 },   // 9.5
+    { header: 'Идентификация', key: 'ident', width: 12 }, // 10
+    { header: 'Клинични данни', key: 'clinical', width: 10 }, // 8
+    { header: 'Изследвания', key: 'exam', width: 13 }, // 10.7
+    { header: 'Диагноза', key: 'diagnosis', width: 15 }, // 12
+    { header: 'Лечение', key: 'treatment', width: 17 }, // 14
+    { header: 'Лекар', key: 'doctor', width: 12 }      // 10
+  ];
 
-    // Генериране на име на файла с днешна дата
-    const fileName = `Registry_Export_${new Date().toISOString().slice(0,10)}.xlsx`;
+  // 2. ДОБАВЯНЕ НА ЗАГЛАВНИТЕ РЕДОВЕ (Insert at top)
+  
+  // Ред 1: Образецът на БАБХ (малки букви)
+  worksheet.spliceRows(1, 0, ['Образец КВМП – 43/ Утвърден със заповед № РД 11-1345/14.11.2012 г. на изпълнителния директор на БАБХ']);
+  worksheet.mergeCells('A1:K1');
+  worksheet.getRow(1).font = { name: 'Arial', size: 6, italic: true };
+  worksheet.getRow(1).alignment = { horizontal: 'center' };
+
+  // Ред 2: Основно заглавие
+  worksheet.spliceRows(2, 0, ['АМБУЛАТОРЕН ДНЕВНИК ЗА ВЕТЕРИНАРНИ КЛИНИКИ И АМБУЛАТОРИИ']);
+  worksheet.mergeCells('A2:K2');
+  worksheet.getRow(2).font = { name: 'Arial', size: 10, bold: true };
+  worksheet.getRow(2).alignment = { horizontal: 'center' };
+
+  // Ред 3: Име на клиниката
+  worksheet.spliceRows(3, 0, ['Ветеринарна клиника: Немски кастрационен център - Пловдив']);
+  worksheet.mergeCells('A3:K3');
+  worksheet.getRow(3).font = { name: 'Arial', size: 9, bold: true };
+  worksheet.getRow(3).alignment = { horizontal: 'left' };
+
+  // Празен ред за разстояние (опционално)
+  worksheet.spliceRows(4, 0, []);
+
+  // 3. ПОПЪЛВАНЕ НА ДАННИТЕ
+  displayData.forEach((item, index) => {
+    const staffLabel = staffOptions.find(opt => opt.value === item.staffSurgeon)?.label || item.staffSurgeon;
+    const cityLabel = cityOptions.find(opt => opt.value === item?.location_city)?.label || item?.location_city || '-'
     
-    XLSX.writeFile(workbook, fileName);
-  };
+    const species = item.species === 'dog' ? 'Куче' : 'Котка';
+    const gender = item.gender === 'female' ? 'ж' : 'м';
+    const breed = breedOptions.find(opt => opt.value === item?.data?.breed)?.label || item?.data?.breed || 'Нер.';
+    const age = item.data?.age_value ? `${item.data.age_value}${item.data.age_unit === 'years' ? 'г' : 'м'}` : '';
+
+    const row = worksheet.addRow({
+      seq: index + 1,
+      id: item.id,
+      date: new Date(item.displayDate).toLocaleDateString('bg-BG'),
+      owner: `${item.ownerName}, ${item.ownerPhone}, ${cityOptions.find(opt => opt.value === item?.location_city)?.label || item?.location_city}`,
+      animal: `${species}, ${breed}, ${gender}, ${age}`,
+      ident: [item.medical_details?.ear_status === 'marked' ? 'Маркирано ухо' : '', item.data?.ear_tag_number].filter(Boolean).join('/'),
+      clinical: item.clinicalData || 'б.о.',
+      exam: item.examination || 'не',
+      diagnosis: item.diagnosis || 'Sanus',
+      treatment: item.treatment || (item.gender === 'female' ? 'Овариохистеректомия' : 'Орхиектомия'),
+      doctor: staffLabel
+    });
+  });
+
+  // 4. ФОРМАТИРАНЕ НА ТАБЛИЦАТА (Arial 8 + Borders)
+  worksheet.eachRow((row, rowNumber) => {
+    // Прилагаме Arial 8 на всички редове от таблицата (след заглавията)
+    if (rowNumber >= 5) {
+      row.font = { name: 'Arial', size: 8 };
+      row.alignment = { vertical: 'middle', horizontal: 'left', wrapText: true };
+    }
+
+    // Всички граници (All Borders) за клетките с данни
+    row.eachCell((cell) => {
+      if (rowNumber >= 5) { // Започваме от хедъра на таблицата нататък
+        cell.border = {
+          top: { style: 'thin' },
+          left: { style: 'thin' },
+          bottom: { style: 'thin' },
+          right: { style: 'thin' }
+        };
+      }
+    });
+  });
+
+  // Стил за самия хедър на таблицата (Ред 5)
+  const headerRow = worksheet.getRow(5);
+  headerRow.font = { name: 'Arial', size: 8, bold: true };
+  headerRow.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFE0E0E0' } };
+
+  // 5. ГЕНЕРИРАНЕ И ИЗТЕГЛЯНЕ
+  const buffer = await workbook.xlsx.writeBuffer();
+  saveAs(new Blob([buffer]), `Ambulatoren_dnevnik_NKC_${new Date().toISOString().slice(0,10)}.xlsx`);
+};
 
   if (isLoading) return <div className="p-10 text-center text-xl">Зареждане на регистъра...</div>;
 
@@ -319,6 +420,8 @@ useEffect(() => {
           <RegistryTable
             cats={paginatedCats}
             isClinicalView={isClinicalView}
+            currentPage={currentPage}
+            pageSize={pageSize}
             selectedCats={selectedCats}
             onSelectCat={handleSelectCat}
             onSort={handleSort}

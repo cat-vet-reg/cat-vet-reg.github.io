@@ -16,6 +16,8 @@ import { cityOptions    } from "../../../constants/city_options";
 const RegistryTable = ({ 
   cats, 
   isClinicalView, // Важно: приемаме го от родителя
+  currentPage, // Приемаме го
+  pageSize,
   selectedCats,
   onSelectCat, 
   onSelectAll, 
@@ -52,7 +54,9 @@ const RegistryTable = ({
                   { id: 'date', label: 'Дата' },
                   { id: 'owner', label: 'Собственик (име, адрес)' },
                   { id: 'animal', label: 'Пациент (вид, пол, възраст)' },
+                  { id: 'identification', label: 'Идентификация' },
                   { id: 'clinical_signs', label: 'Клинични данни' },
+                  { id: 'diagnostics', label: 'Диагностични изследвания' },
                   { id: 'diagnosis', label: 'Диагноза' },           
                   { id: 'treatment', label: 'Лечение' }             
                 ].map(col => (
@@ -63,16 +67,25 @@ const RegistryTable = ({
               </tr>
             </thead>
             <tbody className="divide-y divide-border bg-white">
-              {cats?.map((cat, index) => (
+              {cats?.map((cat, index) => {
+                // ИЗЧИСЛЯВАНЕ НА ГЛОБАЛНИЯ ПОРЕДЕН НОМЕР
+                const globalIndex = ((currentPage - 1) * pageSize) + index + 1;
+                const earStatus = cat.medical_details?.ear_status === 'marked' ? 'маркирано ухо' : '';
+                const earTag = cat.data?.ear_tag_number ? `марка № ${cat.data.ear_tag_number}` : '';
+                const idLabel = [earStatus, earTag].filter(Boolean).join(' / ') || '—';
+
+                return (
                 <tr key={cat.uId || cat.id} className="hover:bg-slate-50/80 transition-colors align-top">
-                  <td className="px-3 py-4 text-[11px] text-muted-foreground/60 font-medium">{index + 1}</td>
+                  <td className="px-3 py-4 text-[11px] text-muted-foreground/60 font-medium">{globalIndex}</td>
                   <td className="px-3 py-4 text-[11px] font-mono text-primary font-bold">{cat.id}</td>
-                  <td className="px-3 py-4 text-[11px] whitespace-nowrap">{convertDate(cat.castratedAt)}</td>
+                  <td className="px-3 py-4 text-[11px] whitespace-nowrap">{convertDate(cat.displayDate)}</td>
                   
                   {/* Собственик */}
                   <td className="px-3 py-4 text-[11px] max-w-[200px]">
                     <div className="font-bold text-slate-900 leading-tight">{cat.ownerName}</div>
-                    <div className="text-muted-foreground mt-1 leading-normal italic">{cat.address || '—'}</div>
+                    <div className="text-muted-foreground mt-1 leading-normal italic">
+                      {cityOptions.find(opt => opt.value === cat?.location_city)?.label || cat?.location_city || '-'}
+                    </div>
                   </td>
 
                   {/* Животно */}
@@ -88,9 +101,19 @@ const RegistryTable = ({
                     </div>
                   </td>
 
-                  {/* Клинични данни - вече идват от обработения cat обект */}
+                  {/* Идентификация */}
+                  <td className="px-3 py-4 text-[11px] font-medium text-slate-600 italic">
+                    {idLabel}
+                  </td>
+
+                  {/* Клинични данни - идват от обработения cat обект */}
                   <td className="px-3 py-4 text-[11px] text-slate-600 leading-relaxed max-w-[220px]">
                     {cat.clinicalData || "Без особености"}
+                  </td>
+
+                  {/* Диагностични изследвания */}
+                  <td className="px-3 py-4 text-[11px] text-slate-500 italic max-w-[150px]">
+                    {cat.examination || "не са извършени"}
                   </td>
 
                   {/* Диагноза */}
@@ -110,7 +133,7 @@ const RegistryTable = ({
                     </div>
                   </td>
                 </tr>
-              ))}
+              )})}
             </tbody>
           </table>
         </div>

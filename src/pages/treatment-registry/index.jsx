@@ -58,6 +58,7 @@ const TreatmentRegistry = () => {
             ),
             td_protocols (id, data)
           `)
+          // Това казва на Supabase: "Дай ми данните за животното И намери всички редове в td_protocols, които са свързани с него, и ми ги сложи в един масив вътре в обекта". Това е само за визуализация (Read-only).
           .order('created_at', { ascending: false });
 
         if (error) throw error;
