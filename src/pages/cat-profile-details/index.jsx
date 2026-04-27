@@ -14,6 +14,7 @@ import AddProtocol          from './components/AddProtocol';
 import AddMedicalTreatment  from './components/AddMedicalTreatment';
 import Icon                 from '../../components/AppIcon';
 import { $apiDeleteRecord } from '../../services/create_new_record'
+import IdentificationCard   from './components/IdentificationCard';
 
 
 const CatProfileDetails = () => {
@@ -30,6 +31,7 @@ const CatProfileDetails = () => {
   const [isMedicalModalOpen, setIsMedicalModalOpen] = useState(false);
   const [medicalType, setMedicalType] = useState('vaccine');
   const [medicalCategory, setMedicalCategory] = useState(null);
+  const [identification, setIdentification] = useState(null);
 
   // Функция за отваряне на модала за редактиране
   const handleEditProtocol = (protocol) => {
@@ -57,6 +59,40 @@ const CatProfileDetails = () => {
       console.error("Грешка при зареждане на протоколи:", err);
     }
   }, [id]);
+
+  
+  // За ваксина, обезпаразитяване
+  const fetchTreatments = useCallback(async () => {
+    const { data, error } = await supabase
+      .from('td_medical_treatments')
+      .select('*')
+      .eq('animal_id', id)
+      .order('administered_at', { ascending: false });
+
+    if (!error && data) setTreatments(data);
+  }, [id]);
+
+  // За микрочип и паспорт
+  const fetchIdentification = useCallback(async () => {
+    try {
+      const { data, error } = await supabase
+        .from('td_identifications')
+        .select('*')
+        .eq('record_id', id)
+        .maybeSingle(); // maybeSingle е по-добре от single(), защото ако няма чип, няма да хвърли грешка
+
+      if (!error && data) {
+        setIdentification(data);
+      }
+    } catch (err) {
+      console.error("Грешка при зареждане на идентификация:", err);
+    }
+  }, [id]);
+
+  const handleProtocolSaved = (newProtocol) => {
+    setProtocols(prev => [newProtocol, ...prev]);
+    setIsModalOpen(false);
+  };
 
   // 2. Основен useEffect за данните на котката
   useEffect(() => {
@@ -99,27 +135,12 @@ const CatProfileDetails = () => {
     };
 
     if (id) {
-      fetchCatDetails();
-      fetchProtocols();
-      fetchTreatments();
+      fetchCatDetails();      // 1. Основни данни
+      fetchProtocols();       // 2. Операционни протоколи
+      fetchTreatments();      // 3. Ваксини/Обезпаразитяване
+      fetchIdentification();  // 4. Чип и Паспорт
     }
-  }, [id, fetchProtocols]);
-
-  // За ваксина, обезпаразитяване
-  const fetchTreatments = useCallback(async () => {
-    const { data, error } = await supabase
-      .from('td_medical_treatments')
-      .select('*')
-      .eq('animal_id', id)
-      .order('administered_at', { ascending: false });
-
-    if (!error && data) setTreatments(data);
-  }, [id]);
-
-  const handleProtocolSaved = (newProtocol) => {
-    setProtocols(prev => [newProtocol, ...prev]);
-    setIsModalOpen(false);
-  };
+  }, [id, fetchProtocols, fetchTreatments, fetchIdentification]);
 
   // За ваксина, обезпаразитяване
   const handleAddMedical = (type, category) => {
@@ -166,6 +187,7 @@ const CatProfileDetails = () => {
               <ProfileHeader cat={catData} isSidebar={true} /> 
               <BasicInfoCard cat={catData} />
               <OwnerContactCard owner={catData?.owner} />
+              <IdentificationCard identification={identification} />
               <LocationMapCard cat={catData} />
               
               <div className="pt-2">

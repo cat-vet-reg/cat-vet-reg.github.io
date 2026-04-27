@@ -74,7 +74,12 @@ const CatRegistryList = () => {
         setIsLoading(true);
         const { data } = await $apiGetCats();
         // ТУК ПРИЛАГАМЕ formMapper
-        const mappedCats = (data || []).map(mapDbToUi);
+        const mappedCats = (data || []).map(dbItem => {
+          const uiItem = mapDbToUi(dbItem);
+          // РЪЧНО закачаме идентификацията, за да не я изгубим при мапването
+          uiItem.td_identifications = dbItem.td_identifications; 
+          return uiItem;
+        });
         setCatCollection(mappedCats);
       } catch (err) {
         console.error("Грешка:", err.message);
@@ -187,12 +192,30 @@ const CatRegistryList = () => {
     let diaryRows = [];
     
     filteredAndSortedCats.forEach(cat => {
+
+      // 1. ПОДГОТОВКА НА ДАННИТЕ ЗА ИДЕНТИФИКАЦИЯ
+      const iden = cat.td_identifications && cat.td_identifications[0];
+      const chipStr = iden?.chip_number ? `Чип: ${iden.chip_number}` : '';
+      const passStr = iden?.passport_number ? `Пасп: ${iden.passport_number}` : '';
+
+      // Подготвяме низа за колона "Идентификация"
+      const identFields = [
+        cat.medical_details?.ear_status === 'marked' ? 'Маркирано ухо' : '',
+        cat.data?.ear_tag_number ? `Марка: ${cat.data.ear_tag_number}` : '',
+        iden?.chip_number ? `Чип: ${iden.chip_number}${iden.chip_date_from ? ' (' + iden.chip_date_from + ')' : ''}` : '',
+        iden?.passport_number ? `Паспорт: ${iden.passport_number}` : ''
+      ];
+
+      const idenString = identFields.filter(Boolean).join(' / ') || 'няма';
+
       // СЪБИТИЕ А: Кастрация (Основен запис)
       diaryRows.push({
         ...cat,
         uId: `main-${cat.id}`, 
         // Използваме кастрационната дата, ако я има
         displayDate: cat.castratedAt || cat.created_at,
+        identificationInfo: idenString,
+        td_identifications: cat.td_identifications,
         diagnosis: "Sanus",
         treatment: cat.gender === 'female' ? "Овариохистеректомия" : "Орхиектомия",
         clinicalData: cat.data?.notes || "б.о.",
@@ -211,6 +234,8 @@ const CatRegistryList = () => {
           uId: `proto-${p.id}`, 
           // ВАЖНО: Сортираме по датата на протокола, а не по записването му
           displayDate: p.data?.protocol_creation_date || p.created_at,
+          identificationInfo: idenString,
+          td_identifications: cat.td_identifications,
           diagnosis: p.data?.diagnosis || "Sanus",
           treatment: p.data?.treatment || "без лечение",
           clinicalData: combinedClinical,
@@ -227,14 +252,36 @@ const CatRegistryList = () => {
           uId: `treat-${t.id}`,
           // Тук е важно как се казва колоната за дата в таблицата ти
           displayDate: t.administered_at || t.created_at, 
+          identificationInfo: idenString,
+          td_identifications: cat.td_identifications,
           diagnosis: t.data?.diagnosis || "Sanus",
           treatment: t.type === 'vaccine' ? "Ваксинация" : "Обезпаразитяване",
           clinicalData: t.notes || "б.о.",
           isProtocolRow: true
         });
       });
-    });
 
+      // СЪБИТИЕ Г: Идентификация (като отделен ред в дневника)
+      if (iden && (iden.chip_number || iden.passport_number)) {
+        diaryRows.push({
+          ...cat,
+          uId: `iden-${iden.id || cat.id}`,
+          // Използваме датата на чипа или паспорта за сортиране
+          displayDate: iden.chip_date_from || iden.passport_date_from || cat.created_at,
+          identificationInfo: idenString,
+          td_identifications: cat.td_identifications,
+          diagnosis: "Идентификация",
+          treatment: [
+            iden.chip_number ? `Поставяне на микрочип № ${iden.chip_number}` : '',
+            iden.passport_number ? `Издаване на паспорт № ${iden.passport_number}` : ''
+          ].filter(Boolean).join('; '),
+          clinicalData: `Ветеринарен лекар: ${iden.chip_vet || iden.passport_vet || 'не е посочен'}`,
+          isProtocolRow: true
+        });
+      }
+    });
+console.log("2. ОБРАБОТЕНИ РЕДОВЕ ЗА ТАБЛИЦАТА:", diaryRows.filter(r => r.td_identifications?.length > 0));
+    // -----------------------
     // Финално сортиране: Всички събития (кастрации, прегледи, ваксини) 
     // подредени по реална дата (displayDate) в низходящ ред
     return diaryRows.sort((a, b) => new Date(a.displayDate) - new Date(b.displayDate));
@@ -269,13 +316,13 @@ const handleExport = async () => {
     { header: '№', key: 'seq', width: 4 },            // 3.3
     { header: 'Амб. №', key: 'id', width: 4 },        // 3
     { header: 'Дата', key: 'date', width: 10 },       // 8
-    { header: 'Собственик', key: 'owner', width: 17 }, // 14
-    { header: 'Пациент', key: 'animal', width: 12 },   // 9.5
-    { header: 'Идентификация', key: 'ident', width: 12 }, // 10
+    { header: 'Собственик (име, адрес)', key: 'owner', width: 17 }, // 14
+    { header: 'Пациент (вид, порода, пол, възраст)', key: 'animal', width: 12 },   // 9.5
+    { header: 'Идентификация на животното', key: 'ident', width: 12 }, // 10
     { header: 'Клинични данни', key: 'clinical', width: 10 }, // 8
-    { header: 'Изследвания', key: 'exam', width: 13 }, // 10.7
+    { header: 'Проведени диагностични изследвания', key: 'exam', width: 13 }, // 10.7
     { header: 'Диагноза', key: 'diagnosis', width: 15 }, // 12
-    { header: 'Лечение', key: 'treatment', width: 17 }, // 14
+    { header: 'Проведено лечение', key: 'treatment', width: 17 }, // 14
     { header: 'Лекар', key: 'doctor', width: 12 }      // 10
   ];
 
@@ -312,13 +359,22 @@ const handleExport = async () => {
     const breed = breedOptions.find(opt => opt.value === item?.data?.breed)?.label || item?.data?.breed || 'Нер.';
     const age = item.data?.age_value ? `${item.data.age_value}${item.data.age_unit === 'years' ? 'год.' : 'мес.'}` : '';
 
+    const iden = item.td_identifications && item.td_identifications[0];
+    const chipStr = iden?.chip_number ? `Чип: ${iden.chip_number}` : '';
+    const passStr = iden?.passport_number ? `Пасп: ${iden.passport_number}` : '';
+
     const row = worksheet.addRow({
       seq: index + 1,
       id: item.id,
       date: new Date(item.displayDate).toLocaleDateString('bg-BG'),
       owner: `${item.ownerName}, ${item.ownerPhone}, ${cityOptions.find(opt => opt.value === item?.location_city)?.label || item?.location_city}`,
       animal: `${species}, ${breed}, ${gender}, ${age}`,
-      ident: [item.medical_details?.ear_status === 'marked' ? 'Маркирано ухо' : '', item.data?.ear_tag_number].filter(Boolean).join('/'),
+      ident: [
+        item.medical_details?.ear_status === 'marked' ? 'Ухо' : '',
+        item.data?.ear_tag_number ? `Марка: ${item.data.ear_tag_number}` : '',
+        chipStr,
+        passStr
+      ].filter(Boolean).join(' / ') || 'няма',
       clinical: item.clinicalData || 'б.о.',
       exam: item.examination || 'не',
       diagnosis: item.diagnosis || 'Sanus',

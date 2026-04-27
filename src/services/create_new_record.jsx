@@ -137,19 +137,27 @@ export async function $apiCreateNewRecord(formData, isEditing = false, catId = n
         medical_details         : medicalDetailsField
     };
 
+    let savedCat;
+
     if (isEditing && catId) {
         const { data, error } = await supabase
             .from('td_records')
             .upsert({ id: catId, ...recordPayload })
             .select();
-
         if (error) throw error;
-        return data[0]; 
-    } 
+        savedCat = data[0];
+    } else {
+        const response = await recordAnimal(formData, finalOwnerId);
+        savedCat = response.data[0];
+    }
 
-    const response = await recordAnimal(formData, finalOwnerId);
-    return response.data?.[0] || null;
-}
+    // 3. НОВО: Записваме идентификацията, ако типът е Профилактика или има попълнени данни
+    if (formData.regType === 'prevention' || formData.chipNumber || formData.passportNumber) {
+        await recordIdentification(savedCat.id, formData);
+    }
+
+    return savedCat;
+  }
 
 // Помощни функции за собственик...
 async function recordOwner(formData) {
@@ -172,11 +180,43 @@ async function recordOwner(formData) {
 }
 
 
+async function recordIdentification(recordId, formData) {
+    const identificationData = {
+        record_id: recordId,
+        // Микрочип
+        chip_number: formData.chipNumber || null,
+        chip_date_from: formData.chipDateFrom || null,
+        chip_date_to: formData.chipDateTo || null,
+        chip_vet: formData.chipVet || null,
+        // Паспорт
+        passport_number: formData.passportNumber || null,
+        passport_date_from: formData.passportDateFrom || null,
+        passport_date_to: formData.passportDateTo || null,
+        passport_vet: formData.passportVet || null
+    };
+
+    // Използваме upsert по record_id, за да не създаваме дубликати при редактиране
+    const { error } = await supabase
+        .from('td_identifications')
+        .upsert(identificationData, { onConflict: 'record_id' });
+
+    if (error) throw error;
+}
+
+
 /**
  * ФУНКЦИЯ ЗА ЗАРЕЖДАНЕ (Използвана в Dashboard, Registry и Map)
  * Синхронизирана с твоите UI компоненти
  */
 export async function $apiGetCats() {
+    // 1. Вземаме котките
+    const records = await supabase.from('td_records').select('*');
+    
+    // 2. Вземаме ВСИЧКИ идентификации директно (за тест)
+    const idens = await supabase.from('td_identifications').select('*');
+    
+    console.log("ТЕСТ - Директни идентификации:", idens.data); // ТРЯБВА ДА ИМА ДАННИ ТУК!
+
     const { data, error } = await supabase
         .from('td_records')
         .select(`
@@ -192,8 +232,19 @@ export async function $apiGetCats() {
         return { data: [] };
     }
 
+    // 2. Вземаме ВСИЧКИ идентификации с отделна заявка
+    const { data: allIdens, error: idError } = await supabase
+        .from('td_identifications')
+        .select('*');
+
+    if (idError) console.error("Грешка идентификации:", idError);
+
     // Форматираме данните, така че компонентите ти да не забележат разликата в имената на колоните
-    const formattedData = data.map(cat => ({
+    const formattedData = data.map(cat => {
+        // Намираме идентификацията за тази конкретна котка
+        const myIden = allIdens?.find(i => i.record_id === cat.id);
+        
+        return {
         ...cat,
         owner_name    : cat.owner?.name || cat.owner_name,
         owner_phone   : cat.owner?.phone || cat.owner_phone,
@@ -201,8 +252,12 @@ export async function $apiGetCats() {
         owner_address : cat.owner?.address,
         address       : cat.location_address, // Map-ваме го обратно за компоненти, които ползват .address
         td_protocols  : cat.td_protocols || [],
-        td_medical_treatments: cat.td_medical_treatments || []
-    }));
+        td_medical_treatments: cat.td_medical_treatments || [],
+        td_identifications: myIden ? [myIden] : []
+        };
+    });
+
+    console.log("ГОТОВО! Форматирани данни с чипове:", formattedData.filter(c => c.td_identifications.length > 0));
 
     return { data: formattedData };
 }

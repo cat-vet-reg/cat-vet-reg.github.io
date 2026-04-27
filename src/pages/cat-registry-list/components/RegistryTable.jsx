@@ -68,13 +68,20 @@ const RegistryTable = ({
             </thead>
             <tbody className="divide-y divide-border bg-white">
               {cats?.map((cat, index) => {
-                // ИЗЧИСЛЯВАНЕ НА ГЛОБАЛНИЯ ПОРЕДЕН НОМЕР
-                const globalIndex = ((currentPage - 1) * pageSize) + index + 1;
-                const earStatus = cat.medical_details?.ear_status === 'marked' ? 'маркирано ухо' : '';
-                const earTag = cat.data?.ear_tag_number ? `марка № ${cat.data.ear_tag_number}` : '';
-                const idLabel = [earStatus, earTag].filter(Boolean).join(' / ') || '—';
+              const globalIndex = ((currentPage - 1) * pageSize) + index + 1;
+              
+              // АКО сме в клиничен изглед, ползваме готовия identificationInfo
+              // АКО НЕ - смятаме го както досега
+              const idLabel = cat.identificationInfo || (() => {
+                  const iden = cat.td_identifications && cat.td_identifications[0];
+                  const earStatus = cat.medical_details?.ear_status === 'marked' ? 'маркирано ухо' : '';
+                  const earTag = cat.data?.ear_tag_number ? `марка № ${cat.data.ear_tag_number}` : '';
+                  const chip = iden?.chip_number ? `чип № ${iden.chip_number}` : '';
+                  const passport = iden?.passport_number ? `пасп. № ${iden.passport_number}` : '';
+                  return [earStatus, earTag, chip, passport].filter(Boolean).join(' / ') || '—';
+              })();
 
-                return (
+              return (
                 <tr key={cat.uId || cat.id} className="hover:bg-slate-50/80 transition-colors align-top">
                   <td className="px-3 py-4 text-[11px] text-muted-foreground/60 font-medium">{globalIndex}</td>
                   <td className="px-3 py-4 text-[11px] font-mono text-primary font-bold">{cat.id}</td>
