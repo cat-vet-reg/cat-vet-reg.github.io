@@ -156,8 +156,10 @@ async function recordOwner(formData) {
     if (!formData?.ownerPhone) throw new Error("Телефонният номер е задължителен.");
 
     const cleanOwnerData = {
-        name: formData.ownerName,
-        phone: formData.ownerPhone
+        name    : formData.ownerName,
+        phone   : formData.ownerPhone,
+        egn     : formData.ownerEgn || null,
+        address : formData.ownerAddress || null
     };
 
     const { data, error } = await supabase
@@ -193,10 +195,12 @@ export async function $apiGetCats() {
     // Форматираме данните, така че компонентите ти да не забележат разликата в имената на колоните
     const formattedData = data.map(cat => ({
         ...cat,
-        owner_name  : cat.owner?.name || cat.owner_name,
-        owner_phone : cat.owner?.phone || cat.owner_phone,
-        address     : cat.location_address, // Map-ваме го обратно за компоненти, които ползват .address
-        td_protocols: cat.td_protocols || [],
+        owner_name    : cat.owner?.name || cat.owner_name,
+        owner_phone   : cat.owner?.phone || cat.owner_phone,
+        owner_egn     : cat.owner?.egn,
+        owner_address : cat.owner?.address,
+        address       : cat.location_address, // Map-ваме го обратно за компоненти, които ползват .address
+        td_protocols  : cat.td_protocols || [],
         td_medical_treatments: cat.td_medical_treatments || []
     }));
 

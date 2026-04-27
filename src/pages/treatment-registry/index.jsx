@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import Header     from "../../components/ui/Header";
-import Breadcrumb from "../../components/ui/Breadcrumb";
 import supabase   from "../../utils/supabase";
 
 import CreatePatient    from './components/CreatePatient';
@@ -8,10 +7,9 @@ import Icon             from "../../components/AppIcon";
 import FilterPanel      from '../cat-registry-list/components/FilterPanel'; 
 import Button           from '../../components/ui/Button'; 
 import Pagination       from '../cat-registry-list/components/Pagination';
-import { useNavigate }  from 'react-router-dom'; 
 
-import { mapRecordToForm, defaultFormData } from '../cat-registration-form/utils/formMapper';
-import { Search, Plus, Stethoscope, Dog, Cat, Rabbit, AlertTriangle, Eye, Edit } from 'lucide-react';
+import { mapRecordToForm } from '../cat-registration-form/utils/formMapper';
+import { useLocation, useNavigate   } from "react-router-dom";
 
 const TreatmentRegistry = () => {
   const navigate = useNavigate();
@@ -21,17 +19,22 @@ const TreatmentRegistry = () => {
   const [records, setRecords] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  // const breadcrumbItems = [
-  //   { label: 'Табло', path: '/dashboard-overview' },
-  //   { label: 'Лечение', path: '/treatment' },
-  // ];
-
   const [filters, setFilters] = useState({
     search: '',
     species: '',
     hasComplications: '',
     status: 'treatment' // По подразбиране търсим тези за лечение
   });
+
+  const location = useLocation();
+  const [showCreateModal, setShowCreateModal] = useState(false);
+
+  useEffect(() => {
+    if (location.state?.openCreate) {
+      setIsModalOpen(true);
+      navigate(location.pathname, { replace: true, state: {} });
+    }
+  }, [location.state]);
 
   const handleFilterChange = (key, value) => {
     setFilters(prev => ({ ...prev, [key]: value }));

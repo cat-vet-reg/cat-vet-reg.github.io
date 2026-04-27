@@ -4,6 +4,7 @@ import { useLocation, useNavigate   } from "react-router-dom";
 import Header                   from "../../components/ui/Header";
 import FloatingActionButton     from "../../components/ui/FloatingActionButton";
 import Input                    from "../../components/ui/Input";
+import Icon                    from "../../components/AppIcon";
 import Select                   from "../../components/ui/Select";
 import Button                   from "../../components/ui/Button";
 import FormSection              from "./components/FormSection";
@@ -49,8 +50,9 @@ import ComplicationSection  from "./components/ComplicationSection";
 
 const CatRegistrationForm = () => {
 
-const navigate = useNavigate();
+  const navigate = useNavigate();
   const location = useLocation(); 
+  const [regType, setRegType] = useState('neutering');
 
   // Вземаме данните от навигацията
   const editingData = location.state?.catData;
@@ -333,6 +335,33 @@ const navigate = useNavigate();
             </p>
           </div>
 
+          {/* КОНТРОЛЕН ПАНЕЛ ЗА ТИП РЕГИСТРАЦИЯ */}
+          <div className="flex flex-wrap gap-3 mb-8 p-4 bg-slate-50 rounded-xl border border-slate-200">
+            <button
+              type="button"
+              onClick={() => setRegType('neutering')}
+              className={`flex-1 py-3 px-4 rounded-lg font-bold transition-all ${regType === 'neutering' ? 'bg-blue-600 text-white shadow-lg' : 'bg-white text-slate-600 border'}`}
+            >
+              🐈 ЖВ за Кастрация
+            </button>
+
+            <button
+              type="button"
+              onClick={() => navigate('/treatment-registry', { state: { openCreate: true } })} // Директно прехвърляне към другия регистър
+              className="flex-1 py-3 px-4 rounded-lg font-bold bg-white text-slate-600 border hover:border-violet-400 hover:text-violet-600 transition-all"
+            >
+              🏥 ЖВ за Лечение
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setRegType('prevention')}
+              className={`flex-1 py-3 px-4 rounded-lg font-bold transition-all ${regType === 'prevention' ? 'bg-emerald-600 text-white shadow-lg' : 'bg-white text-slate-600 border'}`}
+            >
+              🛡️ ЖВ за Профилактика
+            </button>
+          </div>
+
           <form onSubmit={handleSubmit} className="space-y-6 md:space-y-8">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-8">
               <div className="space-y-6 md:space-y-8" ref={sectionRefs.owner}>
@@ -348,6 +377,77 @@ const navigate = useNavigate();
                     errors={errors} 
                   />
                 </div>
+
+                {/* Секция Идентификация - само за Профилактика */}
+{regType === 'prevention' && (
+  <FormSection title="Идентификация и Документи" className="bg-blue-50/50 rounded-[20px] p-3 border border-blue-100">
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      
+      {/* МИКРОЧИП */}
+      <div className="space-y-3 p-4 bg-white rounded-xl border border-blue-100 shadow-sm">
+        <h4 className="font-bold text-blue-700 flex items-center gap-2">
+          <Icon name="Cpu" size={18} /> Микрочип
+        </h4>
+        <Input 
+          label="Номер на чип" 
+          placeholder="9000..." 
+          value={formData.chipNumber}
+          onChange={(e) => handleInputChange("chipNumber", e.target.value)}
+        />
+        <div className="grid grid-cols-2 gap-2">
+          <Input 
+            label="Дата от" type="date" 
+            value={formData.chipDateFrom}
+            onChange={(e) => handleInputChange("chipDateFrom", e.target.value)}
+          />
+          <Input 
+            label="Дата до" type="date" 
+            value={formData.chipDateTo}
+            onChange={(e) => handleInputChange("chipDateTo", e.target.value)}
+          />
+        </div>
+        <Input 
+          label="Ветеринарен лекар" 
+          placeholder="име на лекар..." 
+          value={formData.chipVet}
+          onChange={(e) => handleInputChange("chipVet", e.target.value)}
+        />
+      </div>
+
+      {/* ПАСПОРТ */}
+      <div className="space-y-3 p-4 bg-white rounded-xl border border-blue-100 shadow-sm">
+        <h4 className="font-bold text-blue-700 flex items-center gap-2">
+          <Icon name="FileText" size={18} /> Официален паспорт
+        </h4>
+        <Input 
+          label="Номер на паспорт" 
+          placeholder="BG..." 
+          value={formData.passportNumber}
+          onChange={(e) => handleInputChange("passportNumber", e.target.value)}
+        />
+        <div className="grid grid-cols-2 gap-2">
+          <Input 
+            label="Дата от" type="date" 
+            value={formData.passportDateFrom}
+            onChange={(e) => handleInputChange("passportDateFrom", e.target.value)}
+          />
+          <Input 
+            label="Дата до" type="date" 
+            value={formData.passportDateTo}
+            onChange={(e) => handleInputChange("passportDateTo", e.target.value)}
+          />
+        </div>
+        <Input 
+          label="Ветеринарен лекар" 
+          placeholder="име на лекар..." 
+          value={formData.passportVet}
+          onChange={(e) => handleInputChange("passportVet", e.target.value)}
+        />
+      </div>
+      
+    </div>
+  </FormSection>
+)}
 
                   <TemperamentSection 
                     formData={formData} 
@@ -422,6 +522,8 @@ const navigate = useNavigate();
                   </div>
                 </FormSection>
                 
+                {regType === 'neutering' && (
+                 <>
                   <AnesthesiaSectionRaw 
                     formData={formData} 
                     handleInputChange={handleInputChange} 
@@ -441,8 +543,10 @@ const navigate = useNavigate();
                     handleInputChange={handleInputChange} 
                     errors={errors} 
                   />
+                  </>
+                )}
 
-                <FormSection title="Валидиране на протокола">
+                {/* <FormSection title="Валидиране на протокола">
                   <SignatureSection 
                     // Използваме съществуващата функция за промяна на данни
                     onSaveSignature={(data) => handleInputChange("signature", data)} 
@@ -450,7 +554,7 @@ const navigate = useNavigate();
                   {formData.signature && (
                     <p className="text-xs text-green-600 mt-2">✓ Подписът е приет дигитално</p>
                   )}
-                </FormSection>
+                </FormSection> */}
 
                 <div className="flex flex-col sm:flex-row gap-3 pt-4">
                   <Button

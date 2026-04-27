@@ -1,11 +1,22 @@
-import React from 'react';
+import React, { useState } from 'react';
 import Input from "../../../components/ui/Input";
 import FormSection from "./FormSection";
 
 const OwnerSection = ({ formData, handleInputChange, errors, isEditing }) => {
+  const [showExtraFields, setShowExtraFields] = useState(false);
+
   return (
     <FormSection title="Лице за контакти / Собственик" className="bg-[#e64072]/20 rounded-[20px] p-3">
       <div className="flex justify-between items-center mb-4">
+        {/* Бутон за разгръщане */}
+        <button
+          type="button"
+          onClick={() => setShowExtraFields(!showExtraFields)}
+          className="text-xs font-semibold text-[#e64072] hover:underline"
+        >
+          {showExtraFields ? "– Скрий допълнителни данни" : "+ Добави ЕГН и Адрес"}
+        </button>
+
         {isEditing && (
           <button
             type="button"
@@ -43,6 +54,26 @@ const OwnerSection = ({ formData, handleInputChange, errors, isEditing }) => {
         }
         error={errors?.ownerPhone}
       />
+
+      {/* СЕКЦИЯ С ДОПЪЛНИТЕЛНИ ДАННИ (ЕГН и АДРЕС) */}
+      {showExtraFields && (
+        <div className="mt-4 p-4 bg-white/40 rounded-xl space-y-4 border border-[#e64072]/10 animate-in fade-in slide-in-from-top-2">
+          <Input
+            label="ЕГН"
+            type="text"
+            placeholder="Въведете ЕГН:"
+            value={formData?.ownerEgn || ''}
+            onChange={(e) => handleInputChange("ownerEgn", e.target.value)}
+          />
+          <Input
+            label="Постоянен адрес"
+            type="text"
+            placeholder="гр. Пловдив, ул. ..."
+            value={formData?.ownerAddress || ''}
+            onChange={(e) => handleInputChange("ownerAddress", e.target.value)}
+          />
+        </div>
+      )}
 
       <label className="text-sm font-medium mb-3 block text-foreground">
         Оставено ли бе дарение?
