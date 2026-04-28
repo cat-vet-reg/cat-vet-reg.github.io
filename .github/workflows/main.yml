@@ -25,6 +25,10 @@ jobs:
     - name: Build amd Commit files
       run: npm run build
 
+    - name: Create CNAME file
+      run: | 
+        echo "nkc.nancy.vet" > build/CNAME      
+
     - name: Deploy
       uses: s0/git-publish-subdir-action@develop
       env:
