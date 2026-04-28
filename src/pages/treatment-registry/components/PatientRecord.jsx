@@ -13,9 +13,17 @@ const PatientRecordModal = ({ isOpen, onClose, patientData }) => {
   
   // Локално състояние за нов протокол
   const [newProtocol, setNewProtocol] = useState({
-    temperature: '', weight: '', anamnesis: '', clinical_signs: '',
-    examination: '', diagnosis: '', treatment: '', medications: '',
-    manipulations: '', notes: ''
+    temperature: '',
+    weight: '',
+    anamnesis: '',
+    clinical_signs: '',
+    examination: '',
+    diagnosis: '',
+    treatment: '',
+    medications: '',
+    manipulations: '',
+    notes: '',
+    outcome: 'в процес на лечение'
   });
 
   if (!isOpen || !patientData) return null;
@@ -120,6 +128,21 @@ const PatientRecordModal = ({ isOpen, onClose, patientData }) => {
                     <textarea placeholder="Анамнеза" className="col-span-2 form-input" rows="2" onChange={(e) => setNewProtocol({...newProtocol, anamnesis: e.target.value})} />
                     <textarea placeholder="Лечение" className="col-span-2 form-input" rows="2" onChange={(e) => setNewProtocol({...newProtocol, treatment: e.target.value})} />
                   </div>
+                  <div className="col-span-2">
+                  <label className="text-xs font-bold text-muted-foreground uppercase ml-1">Изход от прегледа / Статус</label>
+                  <select 
+                    className="form-input w-full mt-1"
+                    value={newProtocol.outcome}
+                    onChange={(e) => setNewProtocol({...newProtocol, outcome: e.target.value})}
+                  >
+                    <option value="в процес на лечение">В процес на лечение</option>
+                    <option value="клинично здрав / излекуван">Клинично здрав / Излекуван</option>
+                    <option value="подобрение">Подобрение</option>
+                    <option value="без промяна">Без промяна</option>
+                    <option value="влошаване">Влошаване</option>
+                    <option value="усложнение">Усложнение (виж бележки)</option>
+                  </select>
+                </div>
                   <div className="flex gap-2">
                     <Button onClick={handleSaveProtocol} variant="default">Запази</Button>
                     <Button onClick={() => setShowProtocolForm(false)} variant="outline">Отказ</Button>
@@ -143,6 +166,10 @@ const PatientRecordModal = ({ isOpen, onClose, patientData }) => {
                       <div className="p-4 border-t bg-background space-y-2 text-sm">
                         <p><strong>Анамнеза:</strong> {p.anamnesis}</p>
                         <p><strong>Лечение:</strong> {p.treatment}</p>
+                        {/* Показваме Outcome със специален стил, за да се набива на очи */}
+                        <div className="mt-2 p-2 bg-primary/5 rounded border border-primary/10">
+                          <p><strong>Изход/Статус:</strong> <span className="font-bold text-primary">{p.outcome || "Няма информация"}</span></p>
+                        </div>
                       </div>
                     )}
                   </div>

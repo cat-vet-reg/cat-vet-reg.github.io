@@ -49,16 +49,17 @@ const RegistryTable = ({
             <thead className="bg-muted/50">
               <tr>
                 {[
-                  { id: 'seq', label: '№' },
-                  { id: 'id', label: 'Амб. №' },
-                  { id: 'date', label: 'Дата' },
-                  { id: 'owner', label: 'Собственик (име, адрес)' },
-                  { id: 'animal', label: 'Пациент (вид, пол, възраст)' },
+                  { id: 'seq'     , label: '№' },
+                  { id: 'id'      , label: 'Амб. №' },
+                  { id: 'date'    , label: 'Дата' },
+                  { id: 'owner'   , label: 'Собственик (име, адрес)' },
+                  { id: 'animal'  , label: 'Пациент (вид, пол, възраст)' },
                   { id: 'identification', label: 'Идентификация' },
                   { id: 'clinical_signs', label: 'Клинични данни' },
-                  { id: 'diagnostics', label: 'Диагностични изследвания' },
-                  { id: 'diagnosis', label: 'Диагноза' },           
-                  { id: 'treatment', label: 'Лечение' }             
+                  { id: 'diagnostics'   , label: 'Диагностични изследвания' },
+                  { id: 'diagnosis'     , label: 'Диагноза' },           
+                  { id: 'treatment'     , label: 'Лечение' },
+                  { id: 'outcome'       , label: 'Изход от болестта' }
                 ].map(col => (
                   <th key={col.id} className="px-3 py-4 text-[10px] font-bold uppercase text-left border-b border-border text-muted-foreground tracking-wider">
                     {col.label}
@@ -138,6 +139,11 @@ const RegistryTable = ({
                            {getStaffLabel(cat.staffSurgeon)}
                         </span>
                     </div>
+                  </td>
+
+                  {/* Изход от болестта */}
+                  <td className="px-3 py-4 text-[11px] font-medium text-slate-600 italic">
+                    {cat.outcome || "Оздравяло"}
                   </td>
                 </tr>
               )})}

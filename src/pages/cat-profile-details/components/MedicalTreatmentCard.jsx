@@ -2,7 +2,7 @@ import React from 'react';
 import Icon from '../../../components/AppIcon';
 import Button from '../../../components/ui/Button';
 
-const MedicalSection = ({ title, icon, data, nextDate, onAdd }) => (
+const MedicalSection = ({ title, icon, data, nextDate, onAdd, onEdit }) => (
   <div className="mb-8 last:mb-0">
     <div className="flex items-center justify-between mb-3 border-b border-border/60 pb-2">
       <div className="flex items-center gap-2">
@@ -33,15 +33,25 @@ const MedicalSection = ({ title, icon, data, nextDate, onAdd }) => (
         </thead>
         <tbody className="divide-y divide-border/40">
           {data.length > 0 ? data.map((item, idx) => (
-            <tr key={idx} className="hover:bg-muted/30 transition-colors">
+            <tr 
+              key={idx} 
+              className="hover:bg-muted/30 transition-colors group cursor-pointer" 
+              onClick={() => onEdit(item)} // Цялата линия става кликаема за редакция
+            >
               <td className="py-2 text-foreground font-medium">
                 {new Date(item.administered_at).toLocaleDateString('bg-BG')}
               </td>
               <td className="py-2 text-slate-600 italic">
                 {item.product_name} {item.category ? `(${item.category})` : ''}
+                {/* Покажи партидата, ако я има */}
+                {item.batch_number && <span className="ml-2 text-[10px] bg-slate-100 px-1 rounded not-italic text-slate-500">Lot: {item.batch_number}</span>}
               </td>
-              <td className="py-2 text-right font-bold text-primary/80">
-                {item.created_by_name || '—'} 
+              <td className="py-2 text-right">
+                <div className="flex items-center justify-end gap-2">
+                  <span className="font-bold text-primary/80">{item.created_by_name || '—'}</span>
+                  {/* Икона, която се появява при hover */}
+                  <Icon name="Pencil" size={12} className="text-slate-300 group-hover:text-primary transition-colors" />
+                </div>
               </td>
             </tr>
           )) : (
@@ -55,7 +65,7 @@ const MedicalSection = ({ title, icon, data, nextDate, onAdd }) => (
   </div>
 );
 
-const MedicalTreatmentCard = ({ treatments = [], onAdd }) => {
+const MedicalTreatmentCard = ({ treatments = [], onAdd, onEdit }) => {
   // Филтрираме данните по типове
   const vaccines = treatments.filter(t => t.type === 'vaccine');
   const external = treatments.filter(t => t.type === 'parasite' && t.category === 'external');
@@ -83,7 +93,8 @@ const MedicalTreatmentCard = ({ treatments = [], onAdd }) => {
           data={vaccines} 
           nextDate={getNextDate(vaccines)}
           onAdd={() => onAdd('vaccine')} 
-        />
+          onEdit={onEdit}
+          />
         
         <MedicalSection 
           title="Външно обезпаразитяване" 
@@ -91,6 +102,7 @@ const MedicalTreatmentCard = ({ treatments = [], onAdd }) => {
           data={external} 
           nextDate={getNextDate(external)}
           onAdd={() => onAdd('parasite', 'external')} 
+          onEdit={onEdit}
         />
 
         <MedicalSection 
@@ -99,6 +111,7 @@ const MedicalTreatmentCard = ({ treatments = [], onAdd }) => {
           data={internal} 
           nextDate={getNextDate(internal)}
           onAdd={() => onAdd('parasite', 'internal')} 
+          onEdit={onEdit}
         />
       </div>
     </div>

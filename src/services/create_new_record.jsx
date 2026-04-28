@@ -214,8 +214,6 @@ export async function $apiGetCats() {
     
     // 2. Вземаме ВСИЧКИ идентификации директно (за тест)
     const idens = await supabase.from('td_identifications').select('*');
-    
-    console.log("ТЕСТ - Директни идентификации:", idens.data); // ТРЯБВА ДА ИМА ДАННИ ТУК!
 
     const { data, error } = await supabase
         .from('td_records')
@@ -256,8 +254,6 @@ export async function $apiGetCats() {
         td_identifications: myIden ? [myIden] : []
         };
     });
-
-    console.log("ГОТОВО! Форматирани данни с чипове:", formattedData.filter(c => c.td_identifications.length > 0));
 
     return { data: formattedData };
 }

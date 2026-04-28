@@ -32,6 +32,7 @@ const CatProfileDetails = () => {
   const [medicalType, setMedicalType] = useState('vaccine');
   const [medicalCategory, setMedicalCategory] = useState(null);
   const [identification, setIdentification] = useState(null);
+  const [editingTreatment, setEditingTreatment] = useState(null);
 
   // Функция за отваряне на модала за редактиране
   const handleEditProtocol = (protocol) => {
@@ -45,7 +46,7 @@ const CatProfileDetails = () => {
       const { data, error } = await supabase
         .from('td_protocols')
         .select('*')
-        .eq('record_id', id) // Тук беше грешката с catId
+        .eq('record_id', id)
         .order('id', { ascending: false });
 
       if (!error && data) {
@@ -149,6 +150,12 @@ const CatProfileDetails = () => {
     setIsMedicalModalOpen(true);
   };
 
+  const handleEditMedical = (treatment) => {
+    setMedicalType(treatment.type);
+    setMedicalCategory(treatment.category);
+    setEditingTreatment(treatment);
+    setIsMedicalModalOpen(true);
+  };
   const handleDelete = async () => {
     console.log("Опит за изтриване на запис с ID:", catData?.id); // Добави това за дебъг
     if (!catData?.id) {
@@ -239,6 +246,7 @@ const CatProfileDetails = () => {
                 <MedicalTreatmentCard 
                   treatments={treatments} 
                   onAdd={handleAddMedical}
+                  onEdit={handleEditMedical}
                 />
                 <AddMedicalTreatment 
                   isOpen={isMedicalModalOpen}

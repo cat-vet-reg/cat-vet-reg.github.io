@@ -116,22 +116,66 @@ const Today = () => {
     };
   };
 
-  const toggleService = async (id, serviceName) => {
-    const animal = animals.find(a => a.id === id);
-    let currentServices = animal.services || [];
-    
-    // Ако услугата вече я има - махаме я, ако я няма - добавяме я
-    const newServices = currentServices.includes(serviceName)
-      ? currentServices.filter(s => s !== serviceName)
-      : [...currentServices, serviceName];
+  const SERVICE_MAP = {
+    'Ваксина': { type: 'vaccine', category: null, product: 'Tricat Trio' },
+    'Вътрешно': { type: 'parasite', category: 'internal', product: 'Вътрешно обезп.' },
+    'Външно': { type: 'parasite', category: 'external', product: 'Фипронил spot-on' }
+  };
 
-    const { error } = await supabase
-      .from('td_records')
-      .update({ services: newServices })
-      .eq('id', id);
+  const toggleService = async (recordId, serviceName) => {
+    const animal = animals.find(a => a.id === recordId);
+    if (!animal) return;
 
-    if (!error) {
-      setAnimals(prev => prev.map(a => a.id === id ? { ...a, services: newServices } : a));
+    const hasService = animal.services?.includes(serviceName);
+    let updatedServices = [];
+
+    if (hasService) {
+      // Премахване на услугата
+      updatedServices = animal.services.filter(s => s !== serviceName);
+    } else {
+      // Добавяне на услугата
+      updatedServices = [...(animal.services || []), serviceName];
+    }
+
+    try {
+      // 1. Обновяваме основния запис (td_records)
+      const { error: recordError } = await supabase
+        .from('td_records')
+        .update({ services: updatedServices })
+        .eq('id', recordId);
+
+      if (recordError) throw recordError;
+
+      // 2. АКО ДОБАВЯМЕ услуга (ваксина/обезпаразитяване), записваме и в медицинската таблица
+      if (!hasService && SERVICE_MAP[serviceName]) {
+        const { type, category, product } = SERVICE_MAP[serviceName];
+        const { data: userData } = await supabase.auth.getUser();
+
+        const medicalPayload = {
+          animal_id: recordId, // Приемаме, че recordId тук съответства на animal_id
+          type: type,
+          category: category,
+          product_name: product,
+          administered_at: new Date().toISOString().split('T')[0],
+          created_by: userData?.user?.id,
+          notes: 'Автоматично добавено от дневния отчет'
+        };
+
+        const { error: medError } = await supabase
+          .from('td_medical_treatments')
+          .insert([medicalPayload]);
+
+        if (medError) console.error("Грешка при медицински запис:", medError);
+      }
+
+      // 3. Обновяваме локалния стейт на таблицата, за да се види веднага
+      setAnimals(prev => prev.map(item => 
+        item.id === recordId ? { ...item, services: updatedServices } : item
+      ));
+
+    } catch (err) {
+      console.error("Грешка при toggleService:", err);
+      alert("Неуспешно обновяване на услугите.");
     }
   };
 
@@ -210,7 +254,6 @@ const Today = () => {
                                       handleUpdateField={handleUpdateField} />
                     </td>
 
-                    {/* УСЛУГИ */}
                     {/* УСЛУГИ */}
                     <td className="snap-start border p-2 min-w-[160px]">
                       <div className="flex flex-wrap gap-1 mb-2 min-h-[24px]">

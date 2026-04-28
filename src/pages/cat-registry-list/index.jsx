@@ -200,13 +200,31 @@ const CatRegistryList = () => {
 
       // Подготвяме низа за колона "Идентификация"
       const identFields = [
-        cat.medical_details?.ear_status === 'marked' ? 'Маркирано ухо' : '',
+        cat.medical_details?.ear_status === 'marked' ? 'V-образен разрез на дясното ухо' : '',
         cat.data?.ear_tag_number ? `Марка: ${cat.data.ear_tag_number}` : '',
         iden?.chip_number ? `Чип: ${iden.chip_number}${iden.chip_date_from ? ' (' + iden.chip_date_from + ')' : ''}` : '',
         iden?.passport_number ? `Паспорт: ${iden.passport_number}` : ''
       ];
 
       const idenString = identFields.filter(Boolean).join(' / ') || 'няма';
+
+      let outcomeText = "пълно възстановяване";
+
+      if (cat.hasComplications === 'Y' && cat.selectedComplications?.length > 0) {
+        // Събираме всички възможни опции за усложнения в един списък
+        const allOptions = [
+          ...complicationOptions.female, 
+          ...complicationOptions.male, 
+          ...complicationOptions.general
+        ];
+        
+        // Намираме етикетите за избраните ID-та
+        const compLabels = cat.selectedComplications.map(compId => {
+          return allOptions.find(o => o.id === compId)?.label || compId;
+        });
+
+        outcomeText = `Усложнение: ${compLabels.join(', ')}`;
+      }
 
       // СЪБИТИЕ А: Кастрация (Основен запис)
       diaryRows.push({
@@ -216,8 +234,9 @@ const CatRegistryList = () => {
         displayDate: cat.castratedAt || cat.created_at,
         identificationInfo: idenString,
         td_identifications: cat.td_identifications,
-        diagnosis: "Sanus",
-        treatment: cat.gender === 'female' ? "Овариохистеректомия" : "Орхиектомия",
+        diagnosis: "Клинично здраво за кастрация",
+        treatment: "Операция:" + (cat.gender === 'female' ? "Овариохистеректомия" : "Орхиектомия") + ". Лекарства: Шотапен инж. 0.5 мл ПК, Ревмокам 5 мг/мл инж. 0,1 мл ПК, Фипронил спрей 1 впръскване. Упояване с Коктейл (Медетомидин, буторфанол, Золетил) 0,11 мл." ,
+        outcome: outcomeText,
         clinicalData: cat.data?.notes || "б.о.",
         isProtocolRow: false
       });
@@ -236,8 +255,9 @@ const CatRegistryList = () => {
           displayDate: p.data?.protocol_creation_date || p.created_at,
           identificationInfo: idenString,
           td_identifications: cat.td_identifications,
-          diagnosis: p.data?.diagnosis || "Sanus",
+          diagnosis: p.data?.diagnosis || "здраво",
           treatment: p.data?.treatment || "без лечение",
+          outcome: outcomeText,
           clinicalData: combinedClinical,
           examination: p.data?.examination || "няма",
           isProtocolRow: true
@@ -245,20 +265,44 @@ const CatRegistryList = () => {
       });
 
       // СЪБИТИЕ В: Ваксинации и Обезпаразитявания (td_medical_treatments)
+      // Намираме основния ред на кастрацията, който току-що добавихме
+      const mainCastrationRow = diaryRows.find(r => r.uId === `main-${cat.id}`);
+      const castrationDate = cat.castratedAt || cat.created_at;
+
+      // СЪБИТИЕ В: Ваксинации и Обезпаразитявания
       const treatments = cat.td_medical_treatments || []; 
+
       treatments.forEach(t => {
-        diaryRows.push({
-          ...cat,
-          uId: `treat-${t.id}`,
-          // Тук е важно как се казва колоната за дата в таблицата ти
-          displayDate: t.administered_at || t.created_at, 
-          identificationInfo: idenString,
-          td_identifications: cat.td_identifications,
-          diagnosis: t.data?.diagnosis || "Sanus",
-          treatment: t.type === 'vaccine' ? "Ваксинация" : "Обезпаразитяване",
-          clinicalData: t.notes || "б.о.",
-          isProtocolRow: true
-        });
+        const treatmentDate = t.administered_at || t.created_at;
+        
+        // Проверяваме дали датите съвпадат (сравняваме само YYYY-MM-DD)
+        const isSameDayAsCastration = 
+          new Date(treatmentDate).toISOString().split('T')[0] === 
+          new Date(castrationDate).toISOString().split('T')[0];
+
+        if (isSameDayAsCastration && mainCastrationRow) {
+          // АКО Е В СЪЩИЯ ДЕН: Добавяме към описанието на основния ред
+          const treatText = t.type === 'vaccine' ? `Ваксинация (${t.product_name})` : `Обезпаразитяване (${t.product_name})`;
+          mainCastrationRow.treatment += `; ${treatText}`;
+          
+          // Ако има бележки (notes) за процедурата, добавяме и тях към клиничните данни
+          if (t.notes) {
+            mainCastrationRow.clinicalData += `; ${t.notes}`;
+          }
+        } else {
+          // АКО Е В РАЗЛИЧЕН ДЕН: Създаваме нов ред (както досега)
+          diaryRows.push({
+            ...cat,
+            uId: `treat-${t.id}`,
+            displayDate: treatmentDate, 
+            identificationInfo: idenString,
+            td_identifications: cat.td_identifications,
+            diagnosis: "Клинично здраво",
+            treatment: t.type === 'vaccine' ? `Ваксинация: ${t.product_name}` : `Обезпаразитяване: ${t.product_name}`,
+            clinicalData: t.notes || "б.о.",
+            isProtocolRow: true
+          });
+        }
       });
 
       // СЪБИТИЕ Г: Идентификация (като отделен ред в дневника)
@@ -270,18 +314,18 @@ const CatRegistryList = () => {
           displayDate: iden.chip_date_from || iden.passport_date_from || cat.created_at,
           identificationInfo: idenString,
           td_identifications: cat.td_identifications,
-          diagnosis: "Идентификация",
+          diagnosis: "Клинично здраво",
           treatment: [
             iden.chip_number ? `Поставяне на микрочип № ${iden.chip_number}` : '',
             iden.passport_number ? `Издаване на паспорт № ${iden.passport_number}` : ''
           ].filter(Boolean).join('; '),
-          clinicalData: `Ветеринарен лекар: ${iden.chip_vet || iden.passport_vet || 'не е посочен'}`,
+          outcome: "пълно възстановяване",
+          clinicalData: "Клинично здраво",
           isProtocolRow: true
         });
       }
     });
-console.log("2. ОБРАБОТЕНИ РЕДОВЕ ЗА ТАБЛИЦАТА:", diaryRows.filter(r => r.td_identifications?.length > 0));
-    // -----------------------
+
     // Финално сортиране: Всички събития (кастрации, прегледи, ваксини) 
     // подредени по реална дата (displayDate) в низходящ ред
     return diaryRows.sort((a, b) => new Date(a.displayDate) - new Date(b.displayDate));
@@ -323,6 +367,7 @@ const handleExport = async () => {
     { header: 'Проведени диагностични изследвания', key: 'exam', width: 13 }, // 10.7
     { header: 'Диагноза', key: 'diagnosis', width: 15 }, // 12
     { header: 'Проведено лечение', key: 'treatment', width: 17 }, // 14
+    { header: 'Изход от болестта', key: 'outcome', width: 8 }, // 6.6
     { header: 'Лекар', key: 'doctor', width: 12 }      // 10
   ];
 
@@ -352,7 +397,6 @@ const handleExport = async () => {
   // 3. ПОПЪЛВАНЕ НА ДАННИТЕ
   displayData.forEach((item, index) => {
     const staffLabel = staffOptions.find(opt => opt.value === item.staffSurgeon)?.label || item.staffSurgeon;
-    const cityLabel = cityOptions.find(opt => opt.value === item?.location_city)?.label || item?.location_city || '-'
     
     const species = item.species === 'dog' ? 'Куче' : 'Котка';
     const gender = item.gender === 'female' ? 'женски' : 'мъжки';
@@ -367,17 +411,18 @@ const handleExport = async () => {
       seq: index + 1,
       id: item.id,
       date: new Date(item.displayDate).toLocaleDateString('bg-BG'),
-      owner: `${item.ownerName}, ${item.ownerPhone}, ${cityOptions.find(opt => opt.value === item?.location_city)?.label || item?.location_city}`,
+      owner: `${item.ownerName}, ${cityOptions.find(opt => opt.value === item?.location_city)?.label || item?.location_city}`,
       animal: `${species}, ${breed}, ${gender}, ${age}`,
       ident: [
-        item.medical_details?.ear_status === 'marked' ? 'Ухо' : '',
+        item.medical_details?.ear_status === 'marked' ? 'V-образен разрез на дясното ухо' : '',
         item.data?.ear_tag_number ? `Марка: ${item.data.ear_tag_number}` : '',
         chipStr,
         passStr
       ].filter(Boolean).join(' / ') || 'няма',
       clinical: item.clinicalData || 'б.о.',
-      exam: item.examination || 'не',
-      diagnosis: item.diagnosis || 'Sanus',
+      exam: item.examination || 'няма',
+      diagnosis: item.diagnosis || 'здраво',
+      outcome: item.outcome || 'пълно възстановяване',
       treatment: item.treatment || (item.gender === 'female' ? 'Овариохистеректомия' : 'Орхиектомия'),
       doctor: staffLabel
     });

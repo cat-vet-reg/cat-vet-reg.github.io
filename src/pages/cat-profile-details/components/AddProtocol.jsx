@@ -21,7 +21,8 @@ const AddProtocol = ({ isOpen, onClose, petId, onSave, protocolToEdit = null, la
     medications: '',
     manipulations: '',
     notes: '',
-    photo_link: ''
+    photo_link: '',
+    outcome: 'в процес на лечение'
   };
 
   const [formData, setFormData] = useState(initialFormState);
@@ -71,7 +72,8 @@ const AddProtocol = ({ isOpen, onClose, petId, onSave, protocolToEdit = null, la
         clinical_signs: formData.clinical_signs ? formData.clinical_signs.split(',').map(s => s.trim()).filter(s => s !== "") : [],
         manipulations: formData.manipulations ? formData.manipulations.split(',').map(m => m.trim()).filter(m => m !== "") : [],
         photo_link: formData.photo_link ? formData.photo_link.split(',').map(l => l.trim()).filter(l => l !== "") : [],
-        notes: formData.notes
+        notes: formData.notes,
+        outcome: formData.outcome || "в процес на лечение"
       };
 
       let result;
@@ -285,6 +287,26 @@ const AddProtocol = ({ isOpen, onClose, petId, onSave, protocolToEdit = null, la
                   placeholder="https://drive.google.com/..." 
                 />
              </div>
+          </div>
+
+          {/* Секция: Изход от лечението */}
+          <div className="bg-muted/50 p-4 rounded-xl border border-border">
+            <label className="text-sm font-bold mb-1.5 block flex items-center gap-2 text-foreground">
+              <Activity size={16} className="text-primary"/> Изход от прегледа / Статус на лечението
+            </label>
+            <select 
+              name="outcome"
+              value={formData.outcome ?? 'в процес на лечение'} 
+              onChange={handleChange}
+              className="w-full p-2.5 rounded-lg border bg-background text-foreground font-medium focus:ring-2 focus:ring-primary/20 outline-none"
+            >
+              <option value="в процес на лечение">🔄 В процес на лечение</option>
+              <option value="подобрение">📈 Подобрение</option>
+              <option value="без промяна">➖ Без промяна</option>
+              <option value="влошаване">📉 Влошаване</option>
+              <option value="клинично здрав / излекуван">✅ Клинично здрав / Излекуван</option>
+              <option value="усложнение">⚠️ Усложнение (опиши в бележките)</option>
+            </select>
           </div>
 
           {/* Footer Buttons */}
