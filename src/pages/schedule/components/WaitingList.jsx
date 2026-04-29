@@ -5,12 +5,13 @@ import supabase from '../../../utils/supabase';
 import { Trash2, CalendarCheck, Dog, Cat } from "lucide-react";
 import WaitingStats from './WaitingStats';
 
-const WaitingList = ({ onSelectToSchedule }) => {
+const WaitingList = ({ onSelectToSchedule, onStartEdit }) => {
   const [waitingList, setWaitingList] = useState([]);
   const [loading, setLoading] = useState(true);
   const [mapUrl, setMapUrl] = useState(null);
   const [autocompleteKey, setAutocompleteKey] = useState(0);
   const [animalsToAdd, setAnimalsToAdd] = useState([]);
+  const [editingId, setEditingId] = useState(null);
 
   const [currentAnimal, setCurrentAnimal] = useState({
     animal_type: "cat",
@@ -95,48 +96,100 @@ const WaitingList = ({ onSelectToSchedule }) => {
   };
 
   // 3. Добавяне на нов запис
-  const handleAdd = async () => {
+  const handleSave = async () => {
     if (!newEntry.owner_name || !newEntry.zona_number) {
       alert("Моля, попълнете име и изберете адрес!");
       return;
     }
-    if (animalsToAdd.length === 0) {
-      alert("Добавете поне едно животно в списъка отдолу!");
-      return;
-    }
 
-    // Подготвяме всички записи за Supabase
-    const recordsToInsert = [];
-    
-    animalsToAdd.forEach(group => {
-      for (let i = 0; i < group.count; i++) {
-        recordsToInsert.push({
-          owner_name: newEntry.owner_name,
-          phone: newEntry.phone,
-          address: newEntry.address,
-          lat: newEntry.lat,
-          lng: newEntry.lng,
+    if (editingId) {
+      console.log("Обновявам със следните данни:", {
+        type: currentAnimal.animal_type,
+        gender: currentAnimal.gender
+      });
+      // ЛОГИКА ЗА РЕДАКЦИЯ
+      const { error } = await supabase
+        .from("td_waiting_list")
+        .update({
+          owner_name:   newEntry.owner_name,
+          phone:        newEntry.phone,
+          address:      newEntry.address,
+          lat:         newEntry.lat,
+          lng:         newEntry.lng,
           zona_number: newEntry.zona_number,
-          animal_type: group.animal_type,
-          gender: group.gender,
-          status: "waiting"
-        });
+          animal_type: currentAnimal.animal_type,
+          gender:      currentAnimal.gender
+        })
+        .eq("id", editingId);
+
+    if (error) {
+        alert("Грешка при обновяване: " + error.message);
+      } else {
+        setEditingId(null);
+        resetForm();
+        alert("Записът е обновен успешно!");
       }
-    });
+    } else {
+      // ЛОГИКА ЗА НОВ ЗАПИС (твоят стар код)
+      if (animalsToAdd.length === 0) {
+        alert("Добавете поне едно животно!");
+        return;
+      }
+    const recordsToInsert = [];
+      animalsToAdd.forEach(group => {
+        for (let i = 0; i < group.count; i++) {
+          recordsToInsert.push({
+            owner_name: newEntry.owner_name,
+            phone: newEntry.phone,
+            address: newEntry.address,
+            lat: newEntry.lat,
+            lng: newEntry.lng,
+            zona_number: newEntry.zona_number,
+            animal_type: group.animal_type,
+            gender: group.gender,
+            status: "waiting"
+          });
+        }
+      });
 
-    const { error } = await supabase.from("td_waiting_list").insert(recordsToInsert);
-
-    if (error) alert("Грешка: " + error.message);
-    else {
-      // Изчистваме всичко
-      setNewEntry({ owner_name: "", phone: "", address: "", lat: null, lng: null, zona_number: null });
-      setAnimalsToAdd([]); 
-      setAutocompleteKey(prev => prev + 1);
-      fetchWaitingList();
+      const { error } = await supabase.from("td_waiting_list").insert(recordsToInsert);
+      if (error) alert(error.message);
+      else resetForm();
     }
   };
 
-  // 4. Изтриване на запис
+const resetForm = () => {
+  setNewEntry({ owner_name: "", phone: "", address: "", lat: null, lng: null, zona_number: null });
+  setAnimalsToAdd([]);
+  setAutocompleteKey(prev => prev + 1);
+  fetchWaitingList();
+};
+
+  // 4. Функция за стартиране на редакция
+  const startEdit = (item) => {
+    setEditingId(item.id);
+    setNewEntry({
+      owner_name: item.owner_name,
+      phone: item.phone,
+      address: item.address,
+      lat: item.lat,
+      lng: item.lng,
+      zona_number: item.zona_number,
+    });
+
+    // Пълним данните за конкретното животно в селекторите
+    setCurrentAnimal({
+      animal_type: item.animal_type,
+      gender: item.gender,
+      count: 1 // При редакция на ред, редактираме 1 бройка
+    });
+    // Извиквам ФУНКЦИЯТА ЗА СКРОЛВАНЕ тук
+    if (onStartEdit) {
+      onStartEdit();
+    }
+  };
+
+  // 5. Изтриване на запис
   const handleDelete = async (id) => {
     if (!window.confirm("Изтриване на чакащия?")) return;
     const { error } = await supabase.from("td_waiting_list").delete().eq("id", id);
@@ -227,12 +280,19 @@ const WaitingList = ({ onSelectToSchedule }) => {
               onChange={(e) => setCurrentAnimal({...currentAnimal, count: parseInt(e.target.value) || 1})}
             />
           </div>
-          <button 
-            onClick={addAnimalToLocalList}
-            className="h-9 bg-slate-600 text-white rounded-md text-sm font-bold hover:bg-slate-700 transition-all"
-          >
-            + Добави животно
-          </button>
+          {/* Смени оригиналния бутон с това: */}
+          {editingId ? (
+            <div className="h-9 flex items-center justify-center bg-amber-100 text-amber-700 rounded-md text-xs font-bold border border-amber-200">
+              Режим на редакция
+            </div>
+          ) : (
+            <button 
+              onClick={addAnimalToLocalList}
+              className="h-9 bg-slate-600 text-white rounded-md text-sm font-bold hover:bg-slate-700 transition-all"
+            >
+              + Добави животно
+            </button>
+          )}
         </div>
 
         {/* МАЛЪК СПИСЪК С ДОБАВЕНИТЕ ЖИВОТНИ */}
@@ -249,13 +309,25 @@ const WaitingList = ({ onSelectToSchedule }) => {
         )}
 
         {/* ГЛАВЕН БУТОН ЗА ЗАПИС В БАЗАТА */}
-        <button
-          onClick={handleAdd}
-          disabled={animalsToAdd.length === 0}
-          className="h-12 w-full mt-4 bg-pink-600 text-white rounded-md font-bold hover:bg-pink-700 transition-all shadow-md disabled:opacity-50"
-        >
-          Запиши всички {animalsToAdd.reduce((sum, a) => sum + a.count, 0)} животни в чакащи
-        </button>
+        <div className="flex gap-2 mt-4">
+          <button
+            onClick={handleSave}
+            className={`h-12 flex-1 rounded-md font-bold text-white transition-all shadow-md ${
+              editingId ? 'bg-amber-600 hover:bg-amber-700' : 'bg-pink-600 hover:bg-pink-700'
+            }`}
+          >
+            {editingId ? "✅ Запази промените" : `Запиши всички в чакащи`}
+          </button>
+
+          {editingId && (
+            <button
+              onClick={() => { setEditingId(null); resetForm(); }}
+              className="h-12 px-6 bg-slate-300 text-slate-700 rounded-md font-bold hover:bg-slate-400"
+            >
+              Отказ
+            </button>
+          )}
+        </div>
       </div>
 
       <WaitingStats data={waitingList} />
@@ -336,6 +408,13 @@ const WaitingList = ({ onSelectToSchedule }) => {
                         title="Запиши час"
                       >
                         <CalendarCheck size={20} />
+                      </button>
+                      <button
+                        onClick={() => startEdit(item)}
+                        className="p-2 text-amber-600 hover:bg-amber-100 rounded-full transition-colors"
+                        title="Редактирай данните"
+                      >
+                        <span className="text-lg">✏️</span>
                       </button>
                       <button
                         onClick={() => handleDelete(item.id)}

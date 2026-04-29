@@ -225,7 +225,8 @@ const Schedule = () => {
             </div>
             <WaitingList
             key={`waiting-list-${refreshKey}`}
-            onSelectToSchedule={handleSelectFromWaitingList} />
+            onSelectToSchedule={handleSelectFromWaitingList} 
+            onStartEdit={() => scrollToSection(waitingListRef)} />
           </div>
         </div>
       </div>
