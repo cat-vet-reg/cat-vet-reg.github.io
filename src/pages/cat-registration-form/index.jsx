@@ -104,29 +104,34 @@ const CatRegistrationForm = () => {
     return () => clearTimeout(timer);
   }, [formData.recordCity, formData.address, formData.zonaNumber]); // Добавяме zonaNumber тук
 
-  // Автоматично намиране на име на собственик по телефонен номер
+  // Автоматично намиране на пълен профил на собственик по телефонен номер
   useEffect(() => {
-    // Вече позволяваме търсене дори при редакция, ако името е празно
-    if (formData.ownerPhone && formData.ownerPhone.length >= 6) {
+    // Търсим само ако има поне 6 цифри и името в момента е ПРАЗНО 
+    // (това е важно, за да не презаписваме, ако потребителят пише в момента)
+    if (formData.ownerPhone && formData.ownerPhone.length >= 6 && !formData.ownerName) {
       const timer = setTimeout(async () => {
         try {
           const { data } = await supabase
             .from('td_owners')
-            .select('name')
+            .select('name, egn, address') // Вземаме всичко налично
             .eq('phone', formData.ownerPhone)
             .maybeSingle();
 
-          // Ако намерим човек в базата с този телефон, автоматично попълваме името му
-          if (data && data.name && !formData.ownerName) {
+          if (data && data.name) {
+            // Попълваме името
             handleInputChange("ownerName", data.name);
+            
+            // Ако има ЕГН и адрес, попълваме и тях автоматично
+            if (data.egn) handleInputChange("ownerEgn", data.egn);
+            if (data.address) handleInputChange("ownerAddress", data.address);
           }
         } catch (err) {
-          console.error(err);
+          console.error("Грешка при търсене на собственик:", err);
         }
       }, 800);
       return () => clearTimeout(timer);
     }
-  }, [formData.ownerPhone]); // Махаме isEditing от условията
+  }, [formData.ownerPhone, formData.ownerName]); // Следим и двете
 
 
   const SignatureSection = ({ onSaveSignature }) => {
@@ -367,7 +372,9 @@ const CatRegistrationForm = () => {
               <div className="space-y-6 md:space-y-8" ref={sectionRefs.owner}>
                 <OwnerSection 
                   formData={formData} 
-                  handleInputChange={handleInputChange} 
+                  handleInputChange={handleInputChange}
+                  errors={errors} 
+                  isEditing={isEditing}
                 />
                 
                 <div ref={sectionRefs.basic}>
