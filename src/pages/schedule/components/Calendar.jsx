@@ -27,49 +27,55 @@ const Calendar = () => {
   
   // ФУНКЦИЯ ЗА ЗАРЕЖДАНЕ
   const loadCalendarData = async () => {
-    const { data, error } = await supabase.from('td_records')
+    // КОРИГИРАНО: data: records
+    const { data: records, error: err1 } = await supabase.from('td_records')
       .select(`*, owner:owner_id (name, phone)`)
       .order('castrated_at', { ascending: false });
-
-    if (error) return;
+    
+    const { data: adminEvents, error: err2 } = await supabase.from('td_calendar_events').select('*');
+    
+    if (err1 || err2) {
+        console.error("Грешка при зареждане:", err1, err2);
+        return;
+    }
 
     const counts = {};
-    const events = data.map(element => {
-      const dateKey = element.castrated_at.split('T')[0]
+    
+    // Подготовка на животните
+    const animalEvents = (records || []).map(element => {
+      const dateKey = element.castrated_at.split('T')[0];
       const today = new Date();
       today.setHours(0, 0, 0, 0);
 
       const eventDate = new Date(element.castrated_at);
       eventDate.setHours(0, 0, 0, 0);
 
-      // Вече е "минало" само ако датата е преди днешната
       const isPast = eventDate < today;
       
+      // КОРИГИРАНО: елементът сам по себе си е записа
       const rawGender = element.gender || element.data?.gender;
       const isMale = rawGender === 'male';
 
-      // Броене
       if (!counts[dateKey]) counts[dateKey] = { male: 0, female : 0 };
       if (isMale) counts[dateKey].male++;
       else counts[dateKey].female++;
 
-      // Логиката за цветовете (Розово/Синьо/Сиво)
       let eventColor = isPast ? '#dedede' : (isMale ? '#dbeafe' : '#ffe4e6');
       const genderSym = isMale ? "♂️" : "♀️";
       const species = (element.species || element.data?.species || 'Котка');
 
       return {
-        id: element.id,
+        id: element.id.toString(),
         title: `${genderSym} ${species} - ${element.owner?.name}`, 
         start: element.castrated_at,
         extendedProps: { 
+          type: 'animal', // Важно за разграничаване
           phone: element.owner?.phone, 
           gender: genderSym,
           isMale: isMale,
           species: species,
           ownerName: element.owner?.name,
           displayId: element.id.toString().slice(-4),
-          fullId: element.id,
           data: element 
         },
         backgroundColor: eventColor,
@@ -77,8 +83,56 @@ const Calendar = () => {
         textColor: isPast ? '#666' : '#000'
       };
     });
+
+    // Подготовка на административните събития
+    const staffEvents = (adminEvents || []).map(ev => ({
+      id: `admin-${ev.id}`,
+      title: ev.note,
+      start: ev.date,
+      allDay: true, 
+      display: 'block',
+      extendedProps: { 
+          type: 'admin', 
+          adminType: ev.type 
+      },
+      backgroundColor: ev.type === 'holiday' ? '#fca5a5' : '#fef08a', 
+      textColor: '#000',
+      borderColor: 'transparent'
+    }));
+
     setDayCounts(counts);
-    setMyEvents(events);
+    setMyEvents([...animalEvents, ...staffEvents]);
+  };
+
+  // ФУНКЦИЯ ЗА ДОБАВЯНЕ НА БЕЛЕЖКА (Отпуска/Празник)
+  const handleDateClick = async (arg) => {
+    const note = window.prompt("Въведете бележка (напр. 'Д-р Петрова - отпуска' или 'Почивен ден'):");
+    if (!note) return;
+
+    const type = window.confirm("Това официален празник ли е? (Cancel за отпуска/отсъствие)") ? 'holiday' : 'leave';
+
+    const { error } = await supabase
+      .from('td_calendar_events')
+      .insert([{ date: arg.dateStr, note, type }]);
+
+    if (!error) loadCalendarData();
+  };
+
+  const handleEventClick = (info) => {
+    // Ако е административно събитие, можем да го изтрием
+    if (info.event.extendedProps.type === 'admin') {
+      if (window.confirm("Изтриване на тази бележка?")) {
+        const id = info.event.id.replace('admin-', '');
+        supabase.from('td_calendar_events').delete().eq('id', id).then(() => loadCalendarData());
+      }
+      return;
+    }
+    
+    // Ако е животно - стандартната логика за редакция
+    if (info.jsEvent.target.closest('button')) return;
+    navigate('/cat-registration-form', { 
+      state: { catData: info.event.extendedProps.data, isEditing: true } 
+    });
   };
 
   useEffect(() => {
@@ -178,6 +232,7 @@ const Calendar = () => {
     <div className="mt-10 bg-card p-6 rounded-xl shadow-lg border border-border calendar-container">
       <FullCalendar
           eventClick={handleEdit}
+          dateClick={handleDateClick}
           dayMaxEvents={false}
           plugins={[ dayGridPlugin, timeGridPlugin, interactionPlugin ]}
           editable={true}
@@ -224,12 +279,24 @@ const Calendar = () => {
           }}
           events={myEvents}
           eventContent={(eventInfo) => {
-            const { isMale, gender, species, phone, ownerName, displayId } = eventInfo.event.extendedProps;
-            const isPast = eventInfo.event.backgroundColor === '#dedede';
-            const currentStatus = eventInfo.event.extendedProps.data.status;
-            // Списък със статуси, които означават, че животното Е в клиниката:
-            const isAtClinic = !['recorded', 'missed', undefined, null].includes(currentStatus);
+            // 1. ПЪРВО ПРОВЕРЯВАМЕ ТИПА
+            const type = eventInfo.event.extendedProps.type;
 
+            // АКО Е АДМИНИСТРАТИВНО СЪБИТИЕ
+            if (type === 'admin') {
+                return (
+                    <div className="p-1 text-[10px] font-bold uppercase overflow-hidden truncate">
+                        {eventInfo.event.extendedProps.adminType === 'holiday' ? '🏮 ' : '👨‍⚕️ '} 
+                        {eventInfo.event.title}
+                    </div>
+                );
+            }
+
+            // АКО Е ЖИВОТНО (Вадим данните само ако е animal)
+            const { isMale, gender, species, phone, ownerName, displayId, data } = eventInfo.event.extendedProps;
+            const isPast = eventInfo.event.backgroundColor === '#dedede';
+            const currentStatus = data?.status;
+            const isAtClinic = !['recorded', 'missed', undefined, null].includes(currentStatus);
             return (
               <div className="p-1 overflow-hidden text-[10px] sm:text-xs cursor-pointer hover:brightness-95 transition-all leading-tight relative">
                 <button 
@@ -306,6 +373,52 @@ const Calendar = () => {
             );
           }}
       />
+      {/* Секция с инструкции под календара */}
+<div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4 text-sm border-t border-slate-200 pt-6">
+  <div className="bg-blue-50/50 p-4 rounded-xl border border-blue-100">
+    <h3 className="font-bold text-blue-800 mb-2 flex items-center gap-2">
+      📅 Работа с графици
+    </h3>
+    <ul className="space-y-1.5 text-slate-600">
+      <li>• <strong>Нов запис:</strong> Кликнете на празно място в деня, за да добавите отпуска или празник.</li>
+      <li>• <strong>Преместване:</strong> Хванете и плъзнете (drag & drop) запис на котка, за да промените датата му.</li>
+      <li>• <strong>Редакция:</strong> Кликнете върху името на стопанина, за да отворите формата за редакция.</li>
+      <li>• <strong>Изтриване:</strong> Кликнете върху жълта/червена лента, за да я премахнете от графика.</li>
+    </ul>
+  </div>
+
+  <div className="bg-slate-50 p-4 rounded-xl border border-slate-200">
+    <h3 className="font-bold text-slate-800 mb-2 flex items-center gap-2">
+      🎨 Легенда на цветовете
+    </h3>
+    <div className="grid grid-cols-2 gap-2">
+      <div className="flex items-center gap-2">
+        <span className="w-3 h-3 rounded-full bg-[#ffe4e6] border border-[#f43f5e]"></span>
+        <span>Женски котки</span>
+      </div>
+      <div className="flex items-center gap-2">
+        <span className="w-3 h-3 rounded-full bg-[#dbeafe] border border-[#3b82f6]"></span>
+        <span>Мъжки котки</span>
+      </div>
+      <div className="flex items-center gap-2">
+        <span className="w-3 h-3 rounded-full bg-[#fef08a]"></span>
+        <span>Отпуска / Отсъствие</span>
+      </div>
+      <div className="flex items-center gap-2">
+        <span className="w-3 h-3 rounded-full bg-[#fca5a5]"></span>
+        <span>Официален празник</span>
+      </div>
+      <div className="flex items-center gap-2">
+        <span className="w-3 h-3 rounded-full bg-[#dedede]"></span>
+        <span>Минали събития</span>
+      </div>
+      <div className="flex items-center gap-2">
+        <span>✅ / 📥</span>
+        <span>Прием в клиниката</span>
+      </div>
+    </div>
+  </div>
+</div>
     </div>
   );
 };
