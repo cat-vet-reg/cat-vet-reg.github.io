@@ -25,9 +25,9 @@ import If                                   from "components/If";
 import Autocomplete                         from "react-google-autocomplete";
 import { Checkbox } from 'components/ui/Checkbox';
 
-const LocationSection = ({ formData, handleInputChange, errors }) => {
+const LocationSection = ({ getCoordinates, findDistrict, address, city, formData, handleInputChange, errors, setIsValidatingAddress, setFormData, onCheckLocation }) => {
   const [mapUrl, setMapUrl]     = useState('AIzaSyCSyjPTq09LYc7lcBxotOnv-KBTiEfNbOI');
-
+  const url = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(address)}&components=locality:${encodeURIComponent(city)}|country:BG&key=${mapUrl}`;
 
   useEffect(() => {
     fetch(`https://mihail-petrov.me/apimap/index.php`)
@@ -37,29 +37,13 @@ const LocationSection = ({ formData, handleInputChange, errors }) => {
   }, []); // Празен масив = изпълнява се само при "Mount"
 
 
-  const getCoordinates = async (city, address) => {
-    // Търсим само по чистия адрес, за да не объркваме Google с името на града в низа
-    const url = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(address)}&components=locality:${encodeURIComponent(city)}|country:BG&key=${mapUrl}`;
-
-    try {
-      const response = await fetch(url);
-      const data = await response.json();
-
-      if (data.status === 'OK') {
-        const location = data.results[0].geometry.location;
-        return { 
-          lat: location.lat, 
-          lng: location.lng,
-          address: address 
-        };
-      } else {
-        console.error("Geocoding Status Error:", data.status);
-        return null;
-      }
-    } catch (error) {
-      console.error("Грешка при връзка с Google Geocoding:", error);
-      return null;
-    }
+  // Логика за чекбоксовете
+  const toggleLivingCondition = (value) => {
+    const current = formData.livingCondition || [];
+    const updated = current.includes(value)
+      ? current.filter(v => v !== value)
+      : [...current, value];
+    handleInputChange("livingCondition", updated);
   };
 
   return (

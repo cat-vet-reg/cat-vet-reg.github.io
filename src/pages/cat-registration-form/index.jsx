@@ -133,6 +133,30 @@ const CatRegistrationForm = () => {
     }
   }, [formData.ownerPhone, formData.ownerName]); // Следим и двете
 
+    const getCoordinates = async (city, address) => {
+    // Търсим само по чистия адрес, за да не объркваме Google с името на града в низа
+    const url = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(address)}&components=locality:${encodeURIComponent(city)}|country:BG&key=${mapUrl}`;
+
+    try {
+      const response = await fetch(url);
+      const data = await response.json();
+
+      if (data.status === 'OK') {
+        const location = data.results[0].geometry.location;
+        return { 
+          lat: location.lat, 
+          lng: location.lng,
+          address: address 
+        };
+      } else {
+        console.error("Geocoding Status Error:", data.status);
+        return null;
+      }
+    } catch (error) {
+      console.error("Грешка при връзка с Google Geocoding:", error);
+      return null;
+    }
+  };
 
   const SignatureSection = ({ onSaveSignature }) => {
     const sigCanvas = useRef({});
@@ -386,75 +410,75 @@ const CatRegistrationForm = () => {
                 </div>
 
                 {/* Секция Идентификация - само за Профилактика */}
-{regType === 'prevention' && (
-  <FormSection title="Идентификация и Документи" className="bg-blue-50/50 rounded-[20px] p-3 border border-blue-100">
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-      
-      {/* МИКРОЧИП */}
-      <div className="space-y-3 p-4 bg-white rounded-xl border border-blue-100 shadow-sm">
-        <h4 className="font-bold text-blue-700 flex items-center gap-2">
-          <Icon name="Cpu" size={18} /> Микрочип
-        </h4>
-        <Input 
-          label="Номер на чип" 
-          placeholder="9000..." 
-          value={formData.chipNumber}
-          onChange={(e) => handleInputChange("chipNumber", e.target.value)}
-        />
-        <div className="grid grid-cols-2 gap-2">
-          <Input 
-            label="Дата от" type="date" 
-            value={formData.chipDateFrom}
-            onChange={(e) => handleInputChange("chipDateFrom", e.target.value)}
-          />
-          <Input 
-            label="Дата до" type="date" 
-            value={formData.chipDateTo}
-            onChange={(e) => handleInputChange("chipDateTo", e.target.value)}
-          />
-        </div>
-        <Input 
-          label="Ветеринарен лекар" 
-          placeholder="име на лекар..." 
-          value={formData.chipVet}
-          onChange={(e) => handleInputChange("chipVet", e.target.value)}
-        />
-      </div>
+                {regType === 'prevention' && (
+                  <FormSection title="Идентификация и Документи" className="bg-blue-50/50 rounded-[20px] p-3 border border-blue-100">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      
+                      {/* МИКРОЧИП */}
+                      <div className="space-y-3 p-4 bg-white rounded-xl border border-blue-100 shadow-sm">
+                        <h4 className="font-bold text-blue-700 flex items-center gap-2">
+                          <Icon name="Cpu" size={18} /> Микрочип
+                        </h4>
+                        <Input 
+                          label="Номер на чип" 
+                          placeholder="9000..." 
+                          value={formData.chipNumber}
+                          onChange={(e) => handleInputChange("chipNumber", e.target.value)}
+                        />
+                        <div className="grid grid-cols-2 gap-2">
+                          <Input 
+                            label="Дата от" type="date" 
+                            value={formData.chipDateFrom}
+                            onChange={(e) => handleInputChange("chipDateFrom", e.target.value)}
+                          />
+                          <Input 
+                            label="Дата до" type="date" 
+                            value={formData.chipDateTo}
+                            onChange={(e) => handleInputChange("chipDateTo", e.target.value)}
+                          />
+                        </div>
+                        <Input 
+                          label="Ветеринарен лекар" 
+                          placeholder="име на лекар..." 
+                          value={formData.chipVet}
+                          onChange={(e) => handleInputChange("chipVet", e.target.value)}
+                        />
+                      </div>
 
-      {/* ПАСПОРТ */}
-      <div className="space-y-3 p-4 bg-white rounded-xl border border-blue-100 shadow-sm">
-        <h4 className="font-bold text-blue-700 flex items-center gap-2">
-          <Icon name="FileText" size={18} /> Официален паспорт
-        </h4>
-        <Input 
-          label="Номер на паспорт" 
-          placeholder="BG..." 
-          value={formData.passportNumber}
-          onChange={(e) => handleInputChange("passportNumber", e.target.value)}
-        />
-        <div className="grid grid-cols-2 gap-2">
-          <Input 
-            label="Дата от" type="date" 
-            value={formData.passportDateFrom}
-            onChange={(e) => handleInputChange("passportDateFrom", e.target.value)}
-          />
-          <Input 
-            label="Дата до" type="date" 
-            value={formData.passportDateTo}
-            onChange={(e) => handleInputChange("passportDateTo", e.target.value)}
-          />
-        </div>
-        <Input 
-          label="Ветеринарен лекар" 
-          placeholder="име на лекар..." 
-          value={formData.passportVet}
-          onChange={(e) => handleInputChange("passportVet", e.target.value)}
-        />
-      </div>
-      
-    </div>
-  </FormSection>
-)}
+                      {/* ПАСПОРТ */}
+                      <div className="space-y-3 p-4 bg-white rounded-xl border border-blue-100 shadow-sm">
+                        <h4 className="font-bold text-blue-700 flex items-center gap-2">
+                          <Icon name="FileText" size={18} /> Официален паспорт
+                        </h4>
+                        <Input 
+                          label="Номер на паспорт" 
+                          placeholder="BG..." 
+                          value={formData.passportNumber}
+                          onChange={(e) => handleInputChange("passportNumber", e.target.value)}
+                        />
+                        <div className="grid grid-cols-2 gap-2">
+                          <Input 
+                            label="Дата от" type="date" 
+                            value={formData.passportDateFrom}
+                            onChange={(e) => handleInputChange("passportDateFrom", e.target.value)}
+                          />
+                          <Input 
+                            label="Дата до" type="date" 
+                            value={formData.passportDateTo}
+                            onChange={(e) => handleInputChange("passportDateTo", e.target.value)}
+                          />
+                        </div>
+                        <Input 
+                          label="Ветеринарен лекар" 
+                          placeholder="име на лекар..." 
+                          value={formData.passportVet}
+                          onChange={(e) => handleInputChange("passportVet", e.target.value)}
+                        />
+                      </div>
+                      
+                    </div>
+                  </FormSection>
+                )}
 
                   <TemperamentSection 
                     formData={formData} 
@@ -464,9 +488,14 @@ const CatRegistrationForm = () => {
                 
                 <div ref={sectionRefs.location}>
                   <LocationSection 
+                    getCoordinates={getCoordinates}
+                    findDistrict={findDistrict}
                     formData={formData} 
                     handleInputChange={handleInputChange} 
                     errors={errors} 
+                    setFormData={setFormData}
+                    setIsValidatingAddress={setIsValidatingAddress}
+                    onCheckLocation={onCheckLocation}
                   />
                 </div>
 
