@@ -58,6 +58,7 @@ const CatRegistrationForm = () => {
   const editingData = location.state?.catData;
   const [isEditing, setIsEditing] = useState(!!location.state?.isEditing);
   const [formData, setFormData] = useState(() => mapRecordToForm(editingData));
+  const [mapUrl, setMapUrl]     = useState('AIzaSyCSyjPTq09LYc7lcBxotOnv-KBTiEfNbOI');
 
   useEffect(() => {
 
@@ -293,6 +294,7 @@ const CatRegistrationForm = () => {
 
     if (state == "close") {
       setFormData(defaultFormData);
+      navigate('/schedule');
     }
 
     if (state == "same_owner") {
