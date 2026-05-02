@@ -9,7 +9,7 @@ const Login = () => {
         {/* Секция за Логото */}
         <div className="flex flex-col items-center mb-6">
           <img 
-            src="/nkc-logo.jpg" // Увери се, че логото е в папката public или използваш правилния път
+            src="/nkc-logo.jpg"
             alt="Лого Кастрационен Център" 
             className="h-20 w-auto mb-4" // Регулирай височината според нуждите
           />
@@ -20,8 +20,13 @@ const Login = () => {
         </div>
         <Auth
           supabaseClient={supabase}
-          appearance={{ theme: ThemeSupa }}
-          providers={[]} // Изключваме Google/Facebook за по-голяма сигурност
+          appearance={{ 
+            theme: ThemeSupa,
+            style: {
+              anchor: { display: 'none' }, // Това скрива всички линкове (Forgot password / Sign up)
+            },
+          }}
+          providers={[]}
           localization={{
             variables: {
               sign_in: {
