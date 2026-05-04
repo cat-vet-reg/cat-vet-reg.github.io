@@ -64,3 +64,8 @@
     min-height: 30px;
   }
 }
+
+@media print {
+  .no-print, header, nav, .sidebar { display: none !important; }
+  .calendar-container { width: 100%; border: none; }
+}

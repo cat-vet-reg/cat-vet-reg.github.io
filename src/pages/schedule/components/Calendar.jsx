@@ -1,12 +1,17 @@
 import React, { useState, useEffect } from "react";
+import * as XLSX from 'xlsx';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 import './CalendarCustom.css';
-import FullCalendar     from '@fullcalendar/react';
-import dayGridPlugin    from '@fullcalendar/daygrid';
-import timeGridPlugin   from '@fullcalendar/timegrid';
-import supabase         from "utils/supabase";
-import { useNavigate }  from 'react-router-dom';
-import { color }        from "d3";
-import interactionPlugin from '@fullcalendar/interaction';
+import FullCalendar       from '@fullcalendar/react';
+import dayGridPlugin      from '@fullcalendar/daygrid';
+import timeGridPlugin     from '@fullcalendar/timegrid';
+import supabase           from "utils/supabase";
+import { useNavigate }    from 'react-router-dom';
+import { color }          from "d3";
+import interactionPlugin  from '@fullcalendar/interaction';
+import { useRef }                           from 'react';
+
 
 const Calendar = () => {
 
@@ -14,6 +19,7 @@ const Calendar = () => {
   const navigate = useNavigate();
   const [dayCounts, setDayCounts] = useState({});
   const [weeklyStats, setWeeklyStats] = useState({ male: 0, female: 0, total: 0 });
+  const calendarRef = useRef(null);
 
   const handleEdit = (info) => {
     // Проверка: ако кликнатият елемент е бутон или вътре в бутон, не прави нищо
@@ -297,152 +303,243 @@ const Calendar = () => {
     hibiscrub_ml: "Хибискръб (мл)"
   };
 
+const exportWeeklyPDF = (currentView) => {
+  const start = currentView.activeStart;
+  const end = currentView.activeEnd;
+
+  const doc = new jsPDF('landscape');
+
+  // Вграждаме шрифта
+  doc.addFont("https://cdn.jsdelivr.net/npm/roboto-font@0.1.0/fonts/Roboto/roboto-regular-webfont.ttf", "Roboto", "normal");
+  doc.setFont("Roboto");
+
+  const title = `ГРАФИК ЗА ПЕРИОДА: ${start.toLocaleDateString('bg-BG')} - ${new Date(end - 1).toLocaleDateString('bg-BG')}`;
+  doc.setFontSize(12);
+  doc.text(title, 14, 12);
+
+  const daysOfWeek = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+  const scheduleByDay = { 0: [], 1: [], 2: [], 3: [], 4: [], 5: [], 6: [] };
+
+  myEvents.forEach(ev => {
+    if (ev.extendedProps?.type === 'animal') {
+      const eventDate = new Date(ev.start);
+      if (eventDate >= start && eventDate < end) {
+        let dayIndex = eventDate.getDay();
+        dayIndex = dayIndex === 0 ? 6 : dayIndex - 1;
+
+        const props = ev.extendedProps || {};
+        const d = props.data || {};
+        
+        // Логика за пола и вида
+        const genderLabel = d.gender === 'female' ? "женска" : (d.gender === 'male' ? "мъжка" : "");
+        const speciesLabel = d.species === 'cat' ? "котка" : (d.species || "котка");
+        const animalInfo = `№${d.id || ev.id || "—"} ${genderLabel} ${speciesLabel}`;
+        const ownerInfo = `${props.ownerName || "—"} - ${props.phone || "—"}`;
+
+        scheduleByDay[dayIndex].push(`${ownerInfo}\n${animalInfo}`);
+      }
+    }
+  });
+
+  // Определяме броя редове
+  const maxRows = Math.max(...Object.values(scheduleByDay).map(d => d.length), 10);
+  const tableRows = [];
+
+  for (let i = 0; i < maxRows; i++) {
+    const row = [];
+    for (let day = 0; day < 7; day++) {
+      row.push(scheduleByDay[day][i] || "");
+    }
+    tableRows.push(row);
+  }
+
+  autoTable(doc, {
+    head: [daysOfWeek],
+    body: tableRows,
+    startY: 20,
+    styles: { 
+      font: "Roboto", // Задължително тук
+      fontSize: 7,    // По-малък шрифт, за да се събере всичко
+      cellPadding: 2, 
+      valign: 'middle', 
+      lineWidth: 0.1,
+      overflow: 'linebreak' 
+    },
+    headStyles: { 
+      font: "Roboto", // И тук, за да няма йероглифи в дните
+      fillColor: [52, 73, 94], 
+      textColor: 255, 
+      halign: 'center',
+      fontSize: 8 
+    },
+    columnStyles: {
+      0: { cellWidth: 39 }, 1: { cellWidth: 39 }, 2: { cellWidth: 39 },
+      3: { cellWidth: 39 }, 4: { cellWidth: 39 }, 5: { cellWidth: 39 }, 6: { cellWidth: 39 }
+    },
+    margin: { left: 10, right: 10 },
+    theme: 'grid'
+  });
+
+  doc.save(`Grafik_${start.toISOString().split('T')[0]}.pdf`);
+};
   return (
     <div className="mt-10 bg-card p-6 rounded-xl shadow-lg border border-border calendar-container">
-
+      {/* Бутон за Експорт */}
+      <div className="flex justify-end gap-3 mb-4 no-print">
+<button
+  onClick={() => {
+    const api = calendarRef.current.getApi();
+    exportWeeklyPDF(api.view);
+  }}
+  className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-bold shadow-md"
+>
+  🖨️ ПРИНТИРАЙ ТАЗИ СЕДМИЦА
+</button>
+      </div>
       <FullCalendar
-          datesSet={handleDatesSet}
-          eventClick={handleEdit}
-          dateClick={handleDateClick}
-          dayMaxEvents={false}
-          plugins={[ dayGridPlugin, timeGridPlugin, interactionPlugin ]}
-          editable={true}
-          eventDrop={handleEventDrop}
-          initialView="dayGridDay"
-          locale="bg"
-          allDaySlot={false} // Скриваме all-day за по-чист изглед
-          slotLabelFormat={{ hour: '2-digit', minute: '2-digit', hour12: false }} // 24ч формат
-          headerToolbar={{
-              left: 'prev,next today',
-              center: 'title',
-              right: 'dayGridMonth,dayGridWeek,dayGridDay'
-          }}
-          buttonText={{
-              today: 'Днес', month: 'Месец', week: 'Седмица', day: 'Ден'
-          }}
-          dayCellContent={(arg) => {
-              // Вземаме локалната дата във формат YYYY-MM-DD
-              const year = arg.date.getFullYear();
-              const month = String(arg.date.getMonth() + 1).padStart(2, '0');
-              const day = String(arg.date.getDate()).padStart(2, '0');
-              const dateStr = `${year}-${month}-${day}`;
-              
-              const counts = dayCounts[dateStr];
+        ref={calendarRef}
+        datesSet={handleDatesSet}
+        eventClick={handleEdit}
+        dateClick={handleDateClick}
+        dayMaxEvents={false}
+        plugins={[ dayGridPlugin, timeGridPlugin, interactionPlugin ]}
+        editable={true}
+        eventDrop={handleEventDrop}
+        initialView="dayGridDay"
+        locale="bg"
+        allDaySlot={false} // Скриваме all-day за по-чист изглед
+        slotLabelFormat={{ hour: '2-digit', minute: '2-digit', hour12: false }} // 24ч формат
+        headerToolbar={{
+            left: 'prev,next today',
+            center: 'title',
+            right: 'dayGridMonth,dayGridWeek,dayGridDay'
+        }}
+        buttonText={{
+            today: 'Днес', month: 'Месец', week: 'Седмица', day: 'Ден'
+        }}
+        dayCellContent={(arg) => {
+            // Вземаме локалната дата във формат YYYY-MM-DD
+            const year = arg.date.getFullYear();
+            const month = String(arg.date.getMonth() + 1).padStart(2, '0');
+            const day = String(arg.date.getDate()).padStart(2, '0');
+            const dateStr = `${year}-${month}-${day}`;
+            
+            const counts = dayCounts[dateStr];
 
+            return (
+                <div className="w-full flex justify-between items-start p-1">
+                    <span className="fc-daygrid-day-number" style={{ float: 'none', padding: 0 }}>
+                        {arg.dayNumberText}
+                    </span>
+                    
+                    {counts && (
+                        <div className="flex flex-col items-end gap-0.5 pr-1 pt-0.5">
+                            <span className="text-[10px] leading-none px-1 rounded bg-pink-100 text-pink-700 font-bold">
+                                ♀️{counts.female}
+                            </span>
+                            <span className="text-[10px] leading-none px-1 rounded bg-blue-100 text-blue-700 font-bold">
+                                ♂️{counts.male}
+                            </span>
+                        </div>
+                    )}
+                </div>
+            );
+        }}
+        events={myEvents}
+        eventContent={(eventInfo) => {
+          // 1. ПЪРВО ПРОВЕРЯВАМЕ ТИПА
+          const type = eventInfo.event.extendedProps.type;
+
+          // АКО Е АДМИНИСТРАТИВНО СЪБИТИЕ
+          if (type === 'admin') {
               return (
-                  <div className="w-full flex justify-between items-start p-1">
-                      <span className="fc-daygrid-day-number" style={{ float: 'none', padding: 0 }}>
-                          {arg.dayNumberText}
-                      </span>
-                      
-                      {counts && (
-                          <div className="flex flex-col items-end gap-0.5 pr-1 pt-0.5">
-                              <span className="text-[10px] leading-none px-1 rounded bg-pink-100 text-pink-700 font-bold">
-                                  ♀️{counts.female}
-                              </span>
-                              <span className="text-[10px] leading-none px-1 rounded bg-blue-100 text-blue-700 font-bold">
-                                  ♂️{counts.male}
-                              </span>
-                          </div>
-                      )}
+                  <div className="p-1 text-[10px] font-bold uppercase overflow-hidden truncate">
+                      {eventInfo.event.extendedProps.adminType === 'holiday' ? '🏮 ' : '👨‍⚕️ '} 
+                      {eventInfo.event.title}
                   </div>
               );
-          }}
-          events={myEvents}
-          eventContent={(eventInfo) => {
-            // 1. ПЪРВО ПРОВЕРЯВАМЕ ТИПА
-            const type = eventInfo.event.extendedProps.type;
+          }
 
-            // АКО Е АДМИНИСТРАТИВНО СЪБИТИЕ
-            if (type === 'admin') {
-                return (
-                    <div className="p-1 text-[10px] font-bold uppercase overflow-hidden truncate">
-                        {eventInfo.event.extendedProps.adminType === 'holiday' ? '🏮 ' : '👨‍⚕️ '} 
-                        {eventInfo.event.title}
-                    </div>
-                );
-            }
+          // АКО Е ЖИВОТНО (Вадим данните само ако е animal)
+          const { isMale, gender, species, phone, ownerName, displayId, data } = eventInfo.event.extendedProps;
+          const isPast = eventInfo.event.backgroundColor === '#dedede';
+          const currentStatus = data?.status;
+          const isAtClinic = !['recorded', 'missed', undefined, null].includes(currentStatus);
+          return (
+            <div className="p-1 overflow-hidden text-[10px] sm:text-xs cursor-pointer hover:brightness-95 transition-all leading-tight relative">
+              <button 
+                onTouchStart={(e) => e.stopPropagation()}
+                onClick={(e) => {
+                    if (isAtClinic) return; // Спираме действието, ако вече е прието
+                    handleReceive(e, eventInfo.event.id);
+                }}
+                className={`absolute top-0 right-14 p-1 font-bold transition-transform hover:scale-120 ${
+                    isAtClinic 
+                    ? 'text-green-600' 
+                    : 'text-gray-400 hover:text-green-500'
+                }`}
+                title="Маркирай като пристигнало (Received)"
+              >
+                {/* Ако е в клиниката (който и да е работен статус), показваме тикче */}
+                {isAtClinic ? '✅' : '📥'}
+              </button>
+              {/* Промяна и на зелената точка (пулсацията) */}
+              {isAtClinic && (
+                  <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse" title="Животното е в клиниката" />
+              )}
+              <button 
+                onTouchStart={(e) => e.stopPropagation()}
+                onClick={(e) => handleDelete(e, eventInfo.event.id)}
+                className="absolute top-0 right-0 p-1 text-red-500/50 hover:text-red-600 hover:bg-red-50 rounded-bl-lg transition-colors z-50 font-bold"
+                title="Изтрий часа"
+              >
+                ✕ 
+              </button>
 
-            // АКО Е ЖИВОТНО (Вадим данните само ако е animal)
-            const { isMale, gender, species, phone, ownerName, displayId, data } = eventInfo.event.extendedProps;
-            const isPast = eventInfo.event.backgroundColor === '#dedede';
-            const currentStatus = data?.status;
-            const isAtClinic = !['recorded', 'missed', undefined, null].includes(currentStatus);
-            return (
-              <div className="p-1 overflow-hidden text-[10px] sm:text-xs cursor-pointer hover:brightness-95 transition-all leading-tight relative">
-                <button 
+              <button 
                   onTouchStart={(e) => e.stopPropagation()}
-                  onClick={(e) => {
-                      if (isAtClinic) return; // Спираме действието, ако вече е прието
-                      handleReceive(e, eventInfo.event.id);
-                  }}
-                  className={`absolute top-0 right-14 p-1 font-bold transition-transform hover:scale-120 ${
-                      isAtClinic 
-                      ? 'text-green-600' 
-                      : 'text-gray-400 hover:text-green-500'
-                  }`}
-                  title="Маркирай като пристигнало (Received)"
-                >
-                  {/* Ако е в клиниката (който и да е работен статус), показваме тикче */}
-                  {isAtClinic ? '✅' : '📥'}
-                </button>
-                {/* Промяна и на зелената точка (пулсацията) */}
-                {isAtClinic && (
-                    <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse" title="Животното е в клиниката" />
+                  onClick={(e) => handleMissed(e, eventInfo.event.id)}
+                  className="absolute top-0 right-7 p-1 text-orange-500 hover:text-orange-700 font-bold"
+                  title="Маркирай като пропуснат"
+              >
+                  🚫
+              </button>
+
+              {/* Основен акцент: ПОЛ И ВИД */}
+              <div className="font-bold flex items-center justify-between mb-0.5 border-b border-black/5 pb-0.5">
+                <div className="flex items-center gap-1">
+                  <span style={{ 
+                    color: isPast ? '#666' : (isMale ? '#1d4ed8' : '#be123c'), 
+                    fontSize: '14px'
+                  }}>
+                    {gender}
+                  </span> 
+                  <span className={isPast ? "text-gray-500" : "text-black"}>
+                    {species.toUpperCase()}
+                  </span>
+                </div>
+              
+                {/* ID НОМЕР - откроен в малко сиво правоъгълниче */}
+                {eventInfo.event.extendedProps.data.status === 'received' && (
+                  <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse" title="Прието в центъра" />
                 )}
-                <button 
-                  onTouchStart={(e) => e.stopPropagation()}
-                  onClick={(e) => handleDelete(e, eventInfo.event.id)}
-                  className="absolute top-0 right-0 p-1 text-red-500/50 hover:text-red-600 hover:bg-red-50 rounded-bl-lg transition-colors z-50 font-bold"
-                  title="Изтрий часа"
-                >
-                  ✕ 
-                </button>
-
-                <button 
-                    onTouchStart={(e) => e.stopPropagation()}
-                    onClick={(e) => handleMissed(e, eventInfo.event.id)}
-                    className="absolute top-0 right-7 p-1 text-orange-500 hover:text-orange-700 font-bold"
-                    title="Маркирай като пропуснат"
-                >
-                    🚫
-                </button>
-
-                {/* Основен акцент: ПОЛ И ВИД */}
-                <div className="font-bold flex items-center justify-between mb-0.5 border-b border-black/5 pb-0.5">
-                  <div className="flex items-center gap-1">
-                    <span style={{ 
-                      color: isPast ? '#666' : (isMale ? '#1d4ed8' : '#be123c'), 
-                      fontSize: '14px'
-                    }}>
-                      {gender}
-                    </span> 
-                    <span className={isPast ? "text-gray-500" : "text-black"}>
-                      {species.toUpperCase()}
-                    </span>
-                  </div>
-               
-                  {/* ID НОМЕР - откроен в малко сиво правоъгълниче */}
-                  {eventInfo.event.extendedProps.data.status === 'received' && (
-                    <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse" title="Прието в центъра" />
-                  )}
-                  <span className="bg-black/5 px-1 rounded text-[9px] text-gray-600 font-mono">
-                    #{displayId}
-                  </span>
-                </div>
-                
-                {/* Вторичен план: СОБСТВЕНИК И ТЕЛЕФОН */}
-                <div className="flex flex-col text-gray-500 border-t border-black/5 mt-0.5 pt-0.5 font-normal">
-                  <span className="truncate italic">
-                    {ownerName || "—"}
-                  </span>
-                  <span className="text-[9px] tracking-tighter opacity-80">
-                    {phone || "няма тел."}
-                  </span>
-                </div>
+                <span className="bg-black/5 px-1 rounded text-[9px] text-gray-600 font-mono">
+                  #{displayId}
+                </span>
               </div>
-            );
-          }}
+              
+              {/* Вторичен план: СОБСТВЕНИК И ТЕЛЕФОН */}
+              <div className="flex flex-col text-gray-500 border-t border-black/5 mt-0.5 pt-0.5 font-normal">
+                <span className="truncate italic">
+                  {ownerName || "—"}
+                </span>
+                <span className="text-[9px] tracking-tighter opacity-80">
+                  {phone || "няма тел."}
+                </span>
+              </div>
+            </div>
+          );
+        }}
       />
 
       {/* Прогноза */}
