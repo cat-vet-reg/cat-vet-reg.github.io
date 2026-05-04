@@ -13,7 +13,8 @@ const Calendar = () => {
   const [myEvents, setMyEvents] = useState([]);
   const navigate = useNavigate();
   const [dayCounts, setDayCounts] = useState({});
-  
+  const [weeklyStats, setWeeklyStats] = useState({ male: 0, female: 0, total: 0 });
+
   const handleEdit = (info) => {
     // Проверка: ако кликнатият елемент е бутон или вътре в бутон, не прави нищо
     if (info.jsEvent.target.closest('button')) {
@@ -228,9 +229,79 @@ const Calendar = () => {
       }
   };
 
+  const handleDatesSet = (dateInfo) => {
+    // dateInfo.start и dateInfo.end са обхватът, който се вижда в момента
+    const start = dateInfo.start;
+    const end = dateInfo.end;
+
+    let maleCount = 0;
+    let femaleCount = 0;
+
+    // Филтрираме събитията, които са от тип 'animal' и попадат в периода
+    myEvents.forEach(ev => {
+      if (ev.extendedProps?.type === 'animal') {
+        const eventDate = new Date(ev.start);
+        if (eventDate >= start && eventDate < end) {
+          if (ev.extendedProps.isMale) maleCount++;
+          else femaleCount++;
+        }
+      }
+    });
+
+    setWeeklyStats({
+      male: maleCount,
+      female: femaleCount,
+      total: maleCount + femaleCount
+    });
+  };
+
+  const suppliesConfig = {
+    blue_needles: 2,
+    orange_needles: 1,
+    pink_needles: 0.5,
+    syringes_one_ml: 1,
+    syringes_two_ml: 1,
+    catheters: 1,
+    leukoplast: 0.01,
+
+    drape_60_90: 0.5,
+    gloves: 1.1,
+    scalpel: 1,
+    gauzes: 6,
+    suture_3_0: 1,
+    suture_2_0: 1,
+
+    cocktail_ml: 0.11,
+    novocaine_ml: 0.5,
+    shotapen_ml: 0.5,
+    rheumocam_ml: 0.02,
+    fipronil_ml: 0.5,
+    fluids_ml: 50,
+    alcohol_ml: 10,
+    hibiscrub_ml: 15
+  };
+
+  const supplyLabels = {
+    orange_needles: "Оранжеви игли",
+    blue_needles: "Сини игли",
+    pink_needles: "Розови игли",
+    syringes_one_ml: "Спринцовки 1мл",
+    syringes_two_ml: "Спринцовки 2мл",
+    catheters: "Абокати",
+    drape_60_90: "Подложки 60/90",
+    shotapen_ml: "Шотапен (мл)",
+    rheumocam_ml: "Ревмокам (мл)",
+    fipronil_ml: "Фипронил (мл)",
+    fluids_ml: "Флуиди (мл)",
+    alcohol_ml: "Спирт (мл)",
+    hibiscrub_ml: "Хибискръб (мл)"
+  };
+
   return (
     <div className="mt-10 bg-card p-6 rounded-xl shadow-lg border border-border calendar-container">
+
       <FullCalendar
+          datesSet={handleDatesSet}
           eventClick={handleEdit}
           dateClick={handleDateClick}
           dayMaxEvents={false}
@@ -373,52 +444,98 @@ const Calendar = () => {
             );
           }}
       />
-      {/* Секция с инструкции под календара */}
-<div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4 text-sm border-t border-slate-200 pt-6">
-  <div className="bg-blue-50/50 p-4 rounded-xl border border-blue-100">
-    <h3 className="font-bold text-blue-800 mb-2 flex items-center gap-2">
-      📅 Работа с графици
-    </h3>
-    <ul className="space-y-1.5 text-slate-600">
-      <li>• <strong>Нов запис:</strong> Кликнете на празно място в деня, за да добавите отпуска или празник.</li>
-      <li>• <strong>Преместване:</strong> Хванете и плъзнете (drag & drop) запис на котка, за да промените датата му.</li>
-      <li>• <strong>Редакция:</strong> Кликнете върху името на стопанина, за да отворите формата за редакция.</li>
-      <li>• <strong>Изтриване:</strong> Кликнете върху жълта/червена лента, за да я премахнете от графика.</li>
-    </ul>
-  </div>
 
-  <div className="bg-slate-50 p-4 rounded-xl border border-slate-200">
-    <h3 className="font-bold text-slate-800 mb-2 flex items-center gap-2">
-      🎨 Легенда на цветовете
-    </h3>
-    <div className="grid grid-cols-2 gap-2">
-      <div className="flex items-center gap-2">
-        <span className="w-3 h-3 rounded-full bg-[#ffe4e6] border border-[#f43f5e]"></span>
-        <span>Женски котки</span>
-      </div>
-      <div className="flex items-center gap-2">
-        <span className="w-3 h-3 rounded-full bg-[#dbeafe] border border-[#3b82f6]"></span>
-        <span>Мъжки котки</span>
-      </div>
-      <div className="flex items-center gap-2">
-        <span className="w-3 h-3 rounded-full bg-[#fef08a]"></span>
-        <span>Отпуска / Отсъствие</span>
-      </div>
-      <div className="flex items-center gap-2">
-        <span className="w-3 h-3 rounded-full bg-[#fca5a5]"></span>
-        <span>Официален празник</span>
-      </div>
-      <div className="flex items-center gap-2">
-        <span className="w-3 h-3 rounded-full bg-[#dedede]"></span>
-        <span>Минали събития</span>
-      </div>
-      <div className="flex items-center gap-2">
-        <span>✅ / 📥</span>
-        <span>Прием в клиниката</span>
-      </div>
-    </div>
+      {/* Прогноза */}
+      <div className="mb-6 grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="bg-gradient-to-br from-blue-500 to-blue-600 p-4 rounded-xl text-white shadow-md">
+          <h4 className="text-xs uppercase opacity-80 font-bold">Планирани за периода</h4>
+          <div className="text-2xl font-black">
+            {weeklyStats.total} животни (♂️{weeklyStats.male} | ♀️{weeklyStats.female})
+          </div>
+        </div>
+        
+        <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm col-span-2">
+          <h4 className="text-xs uppercase text-slate-500 font-bold mb-2">Нужни консумативи (прогноза)</h4>
+<div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm col-span-full">
+  <h4 className="text-xs uppercase text-slate-500 font-black mb-4 flex items-center gap-2">
+    <span className="w-2 h-2 bg-blue-500 rounded-full"></span>
+    Прогноза за нужни консумативи (Седмичен отчет)
+  </h4>
+  
+  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
+    {Object.entries(supplyLabels).map(([key, label]) => {
+      const amount = weeklyStats.total * (suppliesConfig[key] || 0);
+      
+      return (
+        <div key={key} className="flex items-center gap-3 p-2 rounded-lg border border-slate-50 hover:bg-slate-50 transition-colors">
+          <div className="w-8 h-8 bg-slate-100 rounded flex items-center justify-center text-lg shadow-sm">
+            {key.includes('needle') || key.includes('catheter') ? '📍' : 
+             key.includes('syringe') ? '💉' : 
+             key.includes('_ml') ? '🧪' : '📦'}
+          </div>
+          <div className="flex flex-col min-w-0">
+            <span className="text-[13px] font-bold text-slate-700 truncate leading-tight">
+              {amount.toLocaleString()} <small className="text-[10px] font-normal text-slate-400 uppercase">{key.includes('_ml') ? 'ml' : 'бр'}</small>
+            </span>
+            <span className="text-[10px] text-slate-500 truncate uppercase tracking-tighter">
+              {label}
+            </span>
+          </div>
+        </div>
+      );
+    })}
   </div>
 </div>
+        </div>
+      </div>
+
+      {/* Секция с инструкции под календара */}
+      <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4 text-sm border-t border-slate-200 pt-6">
+        <div className="bg-blue-50/50 p-4 rounded-xl border border-blue-100">
+          <h3 className="font-bold text-blue-800 mb-2 flex items-center gap-2">
+            📅 Работа с графици
+          </h3>
+          <ul className="space-y-1.5 text-slate-600">
+            <li>• <strong>Нов запис:</strong> Кликнете на празно място в деня, за да добавите отпуска или празник.</li>
+            <li>• <strong>Преместване:</strong> Хванете и плъзнете (drag & drop) запис на котка, за да промените датата му.</li>
+            <li>• <strong>Редакция:</strong> Кликнете върху името на стопанина, за да отворите формата за редакция.</li>
+            <li>• <strong>Изтриване:</strong> Кликнете върху червения хикс, за да я премахнете от графика.</li>
+            <li>• <strong>Почивен ден/отпуска:</strong> Кликнете върху дадения ден два пъти, при което въведете "Почивен ден" или "Отпуска".</li>
+          </ul>
+        </div>
+
+        <div className="bg-slate-50 p-4 rounded-xl border border-slate-200">
+          <h3 className="font-bold text-slate-800 mb-2 flex items-center gap-2">
+            🎨 Легенда на цветовете
+          </h3>
+          <div className="grid grid-cols-2 gap-2">
+            <div className="flex items-center gap-2">
+              <span className="w-3 h-3 rounded-full bg-[#ffe4e6] border border-[#f43f5e]"></span>
+              <span>Женски котки</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="w-3 h-3 rounded-full bg-[#dbeafe] border border-[#3b82f6]"></span>
+              <span>Мъжки котки</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="w-3 h-3 rounded-full bg-[#fef08a]"></span>
+              <span>Отпуска / Отсъствие</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="w-3 h-3 rounded-full bg-[#fca5a5]"></span>
+              <span>Официален празник</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="w-3 h-3 rounded-full bg-[#dedede]"></span>
+              <span>Минали събития</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span>✅ / 📥</span>
+              <span>Прием в клиниката</span>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   );
 };
