@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
 import Header           from "../../components/ui/Header";
-import Breadcrumb       from "../../components/ui/Breadcrumb";
 
 import supabase         from "../../utils/supabase";
 import { $apiCreateNewRecord } from "../../services/create_new_record";

@@ -11,7 +11,7 @@ const Login = () => {
           <img 
             src="/nkc-logo.jpg"
             alt="Лого Кастрационен Център" 
-            className="h-20 w-auto mb-4" // Регулирай височината според нуждите
+            className="h-20 w-auto mb-4" 
           />
           <h2 className="text-2xl font-bold text-center text-slate-800">
             Вход в Системата
