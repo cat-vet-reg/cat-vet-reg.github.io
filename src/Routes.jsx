@@ -14,6 +14,7 @@ import TreatmentRegistry   from './pages/treatment-registry';
 import Today               from './pages/today';
 import Profile             from './pages/profile';
 import PublicStatusPage    from './pages/public-status';
+// import InventoryLog        from './pages/inventory-log';
 import Login               from "./Login";
 
 // ПОМОЩЕН КОМПОНЕНТ ЗА ЗАЩИТА
@@ -49,15 +50,16 @@ const Routes = ({ session, userRole }) => {
             
             {/* ЗАЩИТЕНИ СТРАНИЦИ */}
             <Route path="/" element={session ? <Schedule /> : <Navigate to="/login" />} />
-            <Route path="/dashboard-overview" element={session ? <DashboardOverview /> : <Navigate to="/login" />} />
-            <Route path="/cat-profile-details/:id" element={session ? <CatProfileDetails /> : <Navigate to="/login" />} />
             <Route path="/schedule" element={session ? <Schedule /> : <Navigate to="/login" />} />
             <Route path="/today" element={session ? <Today /> : <Navigate to="/login" />} />
             <Route path="/cat-registry-list" element={session ? <CatRegistryList /> : <Navigate to="/login" />} />
+            {/* <Route path="/inventory-log" element={session ? <InventoryLog /> : <Navigate to="/login" />} /> */}
+            <Route path="/cat-profile-details/:id" element={session ? <CatProfileDetails /> : <Navigate to="/login" />} />
+            <Route path="/cat-registration-form" element={session ? <CatRegistrationForm /> : <Navigate to="/login" />} />
             <Route path="/treatment-registry" element={session ? <TreatmentRegistry /> : <Navigate to="/login" />} />
             <Route path="/interactive-cat-map" element={session ? <InteractiveCatMap /> : <Navigate to="/login" />} />
             <Route path="/statistics" element={session ? <StatisticsTable /> : <Navigate to="/login" />} />
-            <Route path="/cat-registration-form" element={session ? <CatRegistrationForm /> : <Navigate to="/login" />} />
+            <Route path="/dashboard-overview" element={session ? <DashboardOverview /> : <Navigate to="/login" />} />
             <Route path="/profile" element={session ? <Profile userEmail={session?.user?.email} userRole={userRole} /> : <Navigate to="/login" />} />
             
             <Route path="*" element={<NotFound />} />

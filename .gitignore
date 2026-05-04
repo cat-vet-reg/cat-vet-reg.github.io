@@ -12,6 +12,9 @@ dist
 dist-ssr
 *.local
 
+# Специфични за проекта папки
+src/pages/inventory-log/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
