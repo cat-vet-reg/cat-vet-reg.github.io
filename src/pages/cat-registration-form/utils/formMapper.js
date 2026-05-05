@@ -52,7 +52,7 @@ export const defaultFormData = {
   // Сегашен статус
   status                  : "recorded",
   staffReceived           : "",
-  staffSurgeon            : "dr_taneva",
+  staffSurgeon            : "dr_dimitrova",
   staffReleased           : "",
   earStatus               : "",
   parasites               : "none",
