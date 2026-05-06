@@ -303,85 +303,122 @@ const Calendar = () => {
     hibiscrub_ml: "Хибискръб (мл)"
   };
 
-const exportWeeklyPDF = (currentView) => {
-  const start = currentView.activeStart;
-  const end = currentView.activeEnd;
+  const exportWeeklyPDF = (currentView) => {
+    const start = currentView.activeStart;
+    const end = currentView.activeEnd;
 
-  const doc = new jsPDF('landscape');
+    const doc = new jsPDF('landscape');
 
-  // Вграждаме шрифта
-  doc.addFont("https://cdn.jsdelivr.net/npm/roboto-font@0.1.0/fonts/Roboto/roboto-regular-webfont.ttf", "Roboto", "normal");
-  doc.setFont("Roboto");
+    // 1. Вграждане на шрифта
+    doc.addFont("https://cdn.jsdelivr.net/npm/roboto-font@0.1.0/fonts/Roboto/roboto-regular-webfont.ttf", "Roboto", "normal");
+    doc.setFont("Roboto");
 
-  const title = `ГРАФИК ЗА ПЕРИОДА: ${start.toLocaleDateString('bg-BG')} - ${new Date(end - 1).toLocaleDateString('bg-BG')}`;
-  doc.setFontSize(12);
-  doc.text(title, 14, 12);
+    //const title = `ГРАФИК ЗА ПЕРИОДА: ${start.toLocaleDateString('bg-BG')} - ${new Date(end - 1).toLocaleDateString('bg-BG')}`;
+    doc.setFontSize(12);
+    //doc.text(title, 14, 12);
 
-  const daysOfWeek = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
-  const scheduleByDay = { 0: [], 1: [], 2: [], 3: [], 4: [], 5: [], 6: [] };
+    // 2. Генериране на заглавия с ДЕН + ДАТА (на български)
+    const daysBase = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+    // const daysBase = ["Понеделник", "Вторник", "Сряда", "Четвъртък", "Петък", "Събота", "Неделя"];
+    const daysWithDates = daysBase.map((dayName, index) => {
+      const date = new Date(start);
+      date.setDate(date.getDate() + index);
+      const formattedDate = date.toLocaleDateString('bg-BG', { day: '2-digit', month: '2-digit' });
+      return `${dayName}\n${formattedDate}`;
+    });
 
-  myEvents.forEach(ev => {
-    if (ev.extendedProps?.type === 'animal') {
-      const eventDate = new Date(ev.start);
-      if (eventDate >= start && eventDate < end) {
-        let dayIndex = eventDate.getDay();
-        dayIndex = dayIndex === 0 ? 6 : dayIndex - 1;
+    const scheduleByDay = { 0: [], 1: [], 2: [], 3: [], 4: [], 5: [], 6: [] };
 
-        const props = ev.extendedProps || {};
-        const d = props.data || {};
-        
-        // Логика за пола и вида
-        const genderLabel = d.gender === 'female' ? "женска" : (d.gender === 'male' ? "мъжка" : "");
-        const speciesLabel = d.species === 'cat' ? "котка" : (d.species || "котка");
-        const animalInfo = `№${d.id || ev.id || "—"} ${genderLabel} ${speciesLabel}`;
-        const ownerInfo = `${props.ownerName || "—"} - ${props.phone || "—"}`;
+    myEvents.forEach(ev => {
+      if (ev.extendedProps?.type === 'animal') {
+        const eventDate = new Date(ev.start);
+        if (eventDate >= start && eventDate < end) {
+          let dayIndex = eventDate.getDay();
+          dayIndex = dayIndex === 0 ? 6 : dayIndex - 1;
 
-        scheduleByDay[dayIndex].push(`${ownerInfo}\n${animalInfo}`);
+          const props = ev.extendedProps || {};
+          const d = props.data || {};
+          
+          const genderLabel = d.gender === 'female' ? "женска" : (d.gender === 'male' ? "мъжка" : "");
+          const speciesLabel = d.species === 'cat' ? "котка" : (d.species || "котка");
+          
+          // Новата подредба по твое изискване
+          const ownerLine = `${props.ownerName || "—"} - ${props.phone || "—"}`;
+          const animalLine = `№${d.id || ev.id || "—"} ${genderLabel} ${speciesLabel}`;
+
+          scheduleByDay[dayIndex].push(`${ownerLine}\n${animalLine}`);
+        }
       }
+    });
+
+    const maxRows = Math.max(...Object.values(scheduleByDay).map(d => d.length), 10);
+    const tableRows = [];
+
+    for (let i = 0; i < maxRows; i++) {
+      const row = [];
+      for (let day = 0; day < 7; day++) {
+        row.push(scheduleByDay[day][i] || "");
+      }
+      tableRows.push(row);
     }
-  });
 
-  // Определяме броя редове
-  const maxRows = Math.max(...Object.values(scheduleByDay).map(d => d.length), 10);
-  const tableRows = [];
+    // 3. Генериране на таблицата с принудителен шрифт Roboto навсякъде
+    autoTable(doc, {
+      head: [daysWithDates],
+      body: tableRows,
+      startY: 20,
+      styles: { 
+        font: "Roboto",     // Това оправя кирилицата в редовете
+        fontSize: 7, 
+        cellPadding: 2, 
+        valign: 'middle', 
+        lineWidth: 0.1,
+        overflow: 'linebreak' 
+      },
+      headStyles: { 
+        font: "Roboto",     // Това оправя кирилицата в заглавията (Понеделник...)
+        fillColor: [52, 73, 94], 
+        textColor: 255, 
+        halign: 'center',
+        fontSize: 8,
+        cellPadding: 1      // Малко по-тясно заглавие, за да има място за датата
+      },
+      columnStyles: {
+        0: { cellWidth: 39 }, 1: { cellWidth: 39 }, 2: { cellWidth: 39 },
+        3: { cellWidth: 39 }, 4: { cellWidth: 39 }, 5: { cellWidth: 39 }, 6: { cellWidth: 39 }
+      },
+      margin: { left: 10, right: 10 },
+      theme: 'grid'
+    });
 
-  for (let i = 0; i < maxRows; i++) {
-    const row = [];
-    for (let day = 0; day < 7; day++) {
-      row.push(scheduleByDay[day][i] || "");
-    }
-    tableRows.push(row);
-  }
+    doc.save(`Grafik_ODBKH_${start.toISOString().split('T')[0]}.pdf`);
+  };
 
-  autoTable(doc, {
-    head: [daysOfWeek],
-    body: tableRows,
-    startY: 20,
-    styles: { 
-      font: "Roboto", // Задължително тук
-      fontSize: 7,    // По-малък шрифт, за да се събере всичко
-      cellPadding: 2, 
-      valign: 'middle', 
-      lineWidth: 0.1,
-      overflow: 'linebreak' 
-    },
-    headStyles: { 
-      font: "Roboto", // И тук, за да няма йероглифи в дните
-      fillColor: [52, 73, 94], 
-      textColor: 255, 
-      halign: 'center',
-      fontSize: 8 
-    },
-    columnStyles: {
-      0: { cellWidth: 39 }, 1: { cellWidth: 39 }, 2: { cellWidth: 39 },
-      3: { cellWidth: 39 }, 4: { cellWidth: 39 }, 5: { cellWidth: 39 }, 6: { cellWidth: 39 }
-    },
-    margin: { left: 10, right: 10 },
-    theme: 'grid'
-  });
+  // Използваме 768px като граница за мобилни устройства
+  const [initialView, setInitialView] = useState(
+    window.innerWidth < 768 ? 'dayGridDay' : 'dayGridWeek'
+  );
 
-  doc.save(`Grafik_${start.toISOString().split('T')[0]}.pdf`);
-};
+  useEffect(() => {
+    const handleResize = () => {
+      const calendarApi = calendarRef.current?.getApi();
+      if (!calendarApi) return;
+
+      if (window.innerWidth < 768) {
+        if (calendarApi.view.type !== 'dayGridDay') {
+          calendarApi.changeView('dayGridDay');
+        }
+      } else {
+        if (calendarApi.view.type !== 'dayGridWeek') {
+          calendarApi.changeView('dayGridWeek');
+        }
+      }
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
   return (
     <div className="mt-10 bg-card p-6 rounded-xl shadow-lg border border-border calendar-container">
       {/* Бутон за Експорт */}
@@ -405,14 +442,14 @@ const exportWeeklyPDF = (currentView) => {
         plugins={[ dayGridPlugin, timeGridPlugin, interactionPlugin ]}
         editable={true}
         eventDrop={handleEventDrop}
-        initialView="dayGridDay"
+        initialView={initialView}
         locale="bg"
         allDaySlot={false} // Скриваме all-day за по-чист изглед
         slotLabelFormat={{ hour: '2-digit', minute: '2-digit', hour12: false }} // 24ч формат
         headerToolbar={{
-            left: 'prev,next today',
-            center: 'title',
-            right: 'dayGridMonth,dayGridWeek,dayGridDay'
+          left: 'prev,next today',
+          center: 'title',
+          right: window.innerWidth < 768 ? 'dayGridDay' : 'dayGridMonth,dayGridWeek,dayGridDay' 
         }}
         buttonText={{
             today: 'Днес', month: 'Месец', week: 'Седмица', day: 'Ден'
