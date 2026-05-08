@@ -41,6 +41,7 @@ const MakeAppointment = ({ selectedDate, onAnimalAdd, prefillData }) => {
                 ...prev,
                 ownerName: prefillData.ownerName || "",
                 phone: prefillData.phone || "",
+                notes: prefillData.notes,
                 address: prefillData.address || "",
                 zonaNumber: prefillData.zonaNumber || "",
                 coords: prefillData.coords || null,
@@ -163,11 +164,24 @@ const MakeAppointment = ({ selectedDate, onAnimalAdd, prefillData }) => {
                 <div className="flex flex-col gap-1">
                     <input 
                         type="text" 
-                        placeholder="тел. Номер" 
-                        className="p-2 rounded border bg-background border-border" 
+                        placeholder="тел. Номер (минимум 10 цифри)" 
+                        className={`p-2 rounded border transition-colors duration-300 ${
+                            appointment.phone.length > 0 && appointment.phone.length < 10 
+                            ? 'border-orange-400 bg-orange-50 shadow-[0_0_8px_rgba(251,146,60,0.2)]' // Оранжево за предупреждение
+                            : 'bg-background border-border text-foreground'
+                        }`} 
                         value={appointment.phone}
-                        onChange={(e) => setAppointment({...appointment, phone: e.target.value})}
+                        onChange={(e) => {
+                            // Позволяваме само цифри (филтър)
+                            const onlyNums = e.target.value.replace(/[^0-9]/g, '');
+                            setAppointment({...appointment, phone: onlyNums});
+                        }}
                     />
+                    {appointment.phone.length > 0 && appointment.phone.length < 10 && (
+                        <span className="text-[10px] text-orange-600 font-bold ml-1 italic">
+                            * Номерът трябва да е поне 10 цифри
+                        </span>
+                    )}
                 </div>
                 <div className="flex flex-col gap-1">
                     <input 

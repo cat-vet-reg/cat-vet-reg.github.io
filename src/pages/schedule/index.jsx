@@ -36,6 +36,7 @@ const Schedule = () => {
       animalType  : item.animal_type,
       gender      : item.gender,
       zonaNumber  : item.zona_number,
+      notes       : item.notes,
       coords      : { lat: item.lat, lng: item.lng }
     });
     // 3. Скролни до конкретния елемент вместо до 0

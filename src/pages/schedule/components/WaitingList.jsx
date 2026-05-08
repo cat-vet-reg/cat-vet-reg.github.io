@@ -13,6 +13,10 @@ const WaitingList = ({ onSelectToSchedule, onStartEdit }) => {
   const [animalsToAdd, setAnimalsToAdd] = useState([]);
   const [editingId, setEditingId] = useState(null);
 
+  const [filterType, setFilterType] = useState("all");
+  const [filterGender, setFilterGender] = useState("all");
+  const [filterZone, setFilterZone] = useState("all");
+
   const [currentAnimal, setCurrentAnimal] = useState({
     animal_type: "cat",
     gender: "female",
@@ -28,7 +32,8 @@ const WaitingList = ({ onSelectToSchedule, onStartEdit }) => {
     zona_number: null,
     animal_type: "cat",
     gender: "female",
-    status: "waiting" // Използваме статус тук
+    status: "waiting",
+    notes: ""
   });
 
   // 1. Зареждане на API Ключа - ЕДНОКРАТНО
@@ -97,32 +102,39 @@ const WaitingList = ({ onSelectToSchedule, onStartEdit }) => {
 
   // 3. Добавяне на нов запис
   const handleSave = async () => {
-    if (!newEntry.owner_name || !newEntry.zona_number) {
-      alert("Моля, попълнете име и изберете адрес!");
+    // 1. Проверка за име
+    if (!newEntry.owner_name) {
+      alert("Моля, въведете име на собственика!");
       return;
     }
 
+    // 2. Проверка за телефон
+    if (newEntry.phone.length < 10) {
+      alert("Телефонният номер трябва да е точно 10 цифри!");
+      return;
+    }
+
+    // Подготвяме зоната - ако е празна, става null, ако не - цяло число
+    const zonaValue = newEntry.zona_number ? parseInt(newEntry.zona_number) : null;
+
     if (editingId) {
-      console.log("Обновявам със следните данни:", {
-        type: currentAnimal.animal_type,
-        gender: currentAnimal.gender
-      });
       // ЛОГИКА ЗА РЕДАКЦИЯ
       const { error } = await supabase
         .from("td_waiting_list")
         .update({
-          owner_name:   newEntry.owner_name,
-          phone:        newEntry.phone,
-          address:      newEntry.address,
-          lat:         newEntry.lat,
-          lng:         newEntry.lng,
-          zona_number: newEntry.zona_number,
-          animal_type: currentAnimal.animal_type,
-          gender:      currentAnimal.gender
+          owner_name   : newEntry.owner_name,
+          phone        : newEntry.phone,
+          address      : newEntry.address,
+          lat          : newEntry.lat,
+          lng          : newEntry.lng,
+          zona_number  : zonaValue, // Използваме обработената стойност
+          animal_type  : currentAnimal.animal_type,
+          gender       : currentAnimal.gender,
+          notes        : newEntry.notes
         })
         .eq("id", editingId);
 
-    if (error) {
+      if (error) {
         alert("Грешка при обновяване: " + error.message);
       } else {
         setEditingId(null);
@@ -130,12 +142,13 @@ const WaitingList = ({ onSelectToSchedule, onStartEdit }) => {
         alert("Записът е обновен успешно!");
       }
     } else {
-      // ЛОГИКА ЗА НОВ ЗАПИС (твоят стар код)
+      // ЛОГИКА ЗА НОВ ЗАПИС
       if (animalsToAdd.length === 0) {
         alert("Добавете поне едно животно!");
         return;
       }
-    const recordsToInsert = [];
+
+      const recordsToInsert = [];
       animalsToAdd.forEach(group => {
         for (let i = 0; i < group.count; i++) {
           recordsToInsert.push({
@@ -144,26 +157,27 @@ const WaitingList = ({ onSelectToSchedule, onStartEdit }) => {
             address: newEntry.address,
             lat: newEntry.lat,
             lng: newEntry.lng,
-            zona_number: newEntry.zona_number,
+            zona_number: zonaValue, // Използваме обработената стойност (null или число)
             animal_type: group.animal_type,
             gender: group.gender,
+            notes: newEntry.notes,
             status: "waiting"
           });
         }
       });
 
       const { error } = await supabase.from("td_waiting_list").insert(recordsToInsert);
-      if (error) alert(error.message);
+      if (error) alert("Грешка при запис: " + error.message);
       else resetForm();
     }
   };
 
-const resetForm = () => {
-  setNewEntry({ owner_name: "", phone: "", address: "", lat: null, lng: null, zona_number: null });
-  setAnimalsToAdd([]);
-  setAutocompleteKey(prev => prev + 1);
-  fetchWaitingList();
-};
+  const resetForm = () => {
+    setNewEntry({ owner_name: "", phone: "", address: "", lat: null, lng: null, zona_number: null, notes: "" });
+    setAnimalsToAdd([]);
+    setAutocompleteKey(prev => prev + 1);
+    fetchWaitingList();
+  };
 
   // 4. Функция за стартиране на редакция
   const startEdit = (item) => {
@@ -175,6 +189,7 @@ const resetForm = () => {
       lat: item.lat,
       lng: item.lng,
       zona_number: item.zona_number,
+      notes: item.notes || ""
     });
 
     // Пълним данните за конкретното животно в селекторите
@@ -196,6 +211,22 @@ const resetForm = () => {
     if (!error) fetchWaitingList();
   };
 
+  // Създаваме филтрирания списък
+  const filteredList = waitingList.filter(item => {
+    const matchesType = filterType === 'all' || item.animal_type === filterType;
+    
+    // Добавяме това:
+    const matchesGender = filterGender === 'all' || item.gender === filterGender;
+    
+    const itemZone = item.zona_number === null ? "null" : String(item.zona_number);
+    const matchesZone = filterZone === 'all' || itemZone === filterZone;
+
+    return matchesType && matchesZone && matchesGender; // Включваме го тук
+  });
+
+  // Уникални зони за падащото меню
+  const uniqueZones = [...new Set(waitingList.map(item => item.zona_number))].filter(Boolean).sort((a, b) => a - b);
+
   return (
     <div className="p-5 bg-slate-50 border-b border-slate-200">
       <h3 className="text-lg font-bold text-slate-700 mb-4">Добавяне в списък на чакащи</h3>
@@ -203,20 +234,36 @@ const resetForm = () => {
       <div className="flex flex-col gap-5">
         {/* ПЪРВИ РЕД: Лични данни и Адрес */}
         <div className="grid grid-cols-1 md:grid-cols-5 gap-3">
-        <input
-          className={`h-10 rounded-md border px-3 py-2 text-sm transition-colors ${
-            newEntry.owner_name ? 'border-red-300 text-red-900 shadow-[0_0_10px_rgba(230,64,114,0.2)]' : 'border-input'
-          }`}
-          placeholder="Име и Фамилия"
-          value={newEntry.owner_name}
-          onChange={(e) => setNewEntry({ ...newEntry, owner_name: e.target.value })}
-        />
           <input
-            className="h-10 rounded-md border border-input px-3 py-2 text-sm"
-            placeholder="Телефон"
-            value={newEntry.phone}
-            onChange={(e) => setNewEntry({ ...newEntry, phone: e.target.value })}
+            className={`h-10 rounded-md border px-3 py-2 text-sm transition-colors ${
+              newEntry.owner_name ? 'border-red-300 text-red-900 shadow-[0_0_10px_rgba(230,64,114,0.2)]' : 'border-input'
+            }`}
+            placeholder="Име и Фамилия"
+            value={newEntry.owner_name}
+            onChange={(e) => setNewEntry({ ...newEntry, owner_name: e.target.value })}
           />
+          <div className="flex flex-col gap-1">
+            <input
+              className={`h-10 rounded-md border px-3 py-2 text-sm transition-all ${
+                newEntry.phone.length > 0 && newEntry.phone.length < 10 
+                ? 'border-orange-400 bg-orange-50 shadow-[0_0_8px_rgba(251,146,60,0.1)]' 
+                : 'border-input bg-white'
+              }`}
+              placeholder="Телефон (10 цифри)"
+              value={newEntry.phone}
+              maxLength={10} // Ограничаваме до 10 символа макс
+              onChange={(e) => {
+                // Позволяваме само въвеждане на цифри
+                const value = e.target.value.replace(/\D/g, ""); 
+                setNewEntry({ ...newEntry, phone: value });
+              }}
+            />
+            {newEntry.phone.length > 0 && newEntry.phone.length < 10 && (
+              <span className="text-[9px] text-orange-600 font-bold italic ml-1">
+                * Трябват още {10 - newEntry.phone.length} цифри
+              </span>
+            )}
+          </div>
           {/* Адресът заема 2 колони място, за да е дълъг */}
           <div className="md:col-span-2">
             {mapUrl && (
@@ -241,10 +288,22 @@ const resetForm = () => {
               />
             )}
           </div>
-          {/* Полето за Зона - само за информация, не се пипа ръчно */}
-          <div className="h-10 flex items-center px-3 bg-slate-200 rounded-md text-sm font-bold text-slate-600">
-            {newEntry.zona_number ? `Зона: ${newEntry.zona_number}` : "Зона: --"}
+          {/* Полето за Зона */}
+          <div className={`h-10 flex items-center px-3 rounded-md text-sm font-bold transition-colors ${
+            newEntry.zona_number 
+            ? "bg-blue-100 text-blue-700" 
+            : "bg-slate-200 text-slate-500"
+          }`}>
+            {newEntry.zona_number ? `Зона: ${newEntry.zona_number}` : "Извън Пловдив / Без зона"}
           </div>
+
+          {/* НОВОТО ПОЛЕ ЗА БЕЛЕЖКИ */}
+          <input
+            className="h-10 md:col-span-1 rounded-md border border-input px-3 py-2 text-sm bg-white"
+            placeholder="Бележки (напр. агресивно)"
+            value={newEntry.notes}
+            onChange={(e) => setNewEntry({ ...newEntry, notes: e.target.value })}
+          />
         </div>
 
         {/* ВТОРИ РЕД: Животно и Бутон */}
@@ -330,9 +389,52 @@ const resetForm = () => {
         </div>
       </div>
 
+<div className="flex flex-wrap items-center gap-4 bg-white p-3 rounded-xl border border-slate-200 mb-4">
+  <div className="flex items-center gap-2">
+    <span className="text-xs font-bold text-slate-500 uppercase">Филтър:</span>
+    <select 
+      value={filterType} 
+      onChange={(e) => setFilterType(e.target.value)}
+      className="text-xs font-bold border-none bg-slate-100 rounded-lg p-2 focus:ring-0"
+    >
+      <option value="all">Всички видове</option>
+      <option value="cat">Само Котки</option>
+      <option value="dog">Само Кучета</option>
+    </select>
+  </div>
+
+  <div className="flex items-center gap-2">
+    <select 
+      value={filterZone} 
+      onChange={(e) => setFilterZone(e.target.value)}
+      className="text-xs font-bold border-none bg-slate-100 rounded-lg p-2 focus:ring-0"
+    >
+      <option value="all">Всички Зони</option>
+      {uniqueZones.map(z => <option key={z} value={String(z)}>Зона {z}</option>)}
+      <option value="null">Извън града</option>
+    </select>
+  </div>
+
+  <div className="flex items-center gap-2">
+    <select 
+      value={filterGender} 
+      onChange={(e) => setFilterGender(e.target.value)}
+      className="text-xs font-bold border-none bg-slate-100 rounded-lg p-2 focus:ring-0"
+    >
+      <option value="all">Всички полове</option>
+      <option value="female">Само Женски</option>
+      <option value="male">Само Мъжки</option>
+    </select>
+  </div>
+  
+  <div className="ml-auto text-[10px] font-bold text-slate-400">
+    Показани: {filteredList.length} от {waitingList.length}
+  </div>
+</div>
+
       <WaitingStats data={waitingList} />
 
-      <div className="overflow-x-auto">
+      <div className="overflow-x-auto max-h-[600px] overflow-y-auto border border-slate-200 rounded-lg shadow-inner bg-white">
         <table className="w-full text-left border-collapse">
           <thead className="bg-slate-100 text-slate-600 text-[11px] uppercase tracking-wider">
             <tr>
@@ -341,6 +443,7 @@ const resetForm = () => {
               <th className="p-4 border-b">Животно</th>
               <th className="p-4 border-b">Собственик / Телефон</th>
               <th className="p-4 border-b">Адрес</th>
+              <th className="p-4 border-b">Бележки</th>
               <th className="p-4 border-b text-right">Действие</th>
             </tr>
           </thead>
@@ -359,7 +462,7 @@ const resetForm = () => {
                 <td colSpan="5" className="text-center p-10 text-slate-400">Няма чакащи в списъка.</td>
               </tr>
             ) : (
-              waitingList.map((item) => (
+              filteredList.map((item) => (
                 <tr key={item.id} className="hover:bg-pink-50/30 transition-colors group">
                   <td className="p-4">
                     <span className="flex flex-col text-slate-700 text-xs">
@@ -372,9 +475,15 @@ const resetForm = () => {
                     </span>
                   </td>
                   <td className="p-4">
-                    <span className="bg-pink-100 text-pink-700 px-2.5 py-1 rounded-lg font-bold text-xs">
-                      Зона {item.zona_number}
-                    </span>
+                    {item.zona_number ? (
+                      <span className="bg-pink-100 text-pink-700 px-2.5 py-1 rounded-lg font-bold text-xs">
+                        Зона {item.zona_number}
+                      </span>
+                    ) : (
+                      <span className="bg-slate-100 text-slate-500 px-2.5 py-1 rounded-lg font-medium text-[10px]">
+                        Извън града
+                      </span>
+                    )}
                   </td>
                   <td className="p-4">
                     <div className="flex items-center gap-2 text-slate-700">
@@ -400,6 +509,11 @@ const resetForm = () => {
                       {item.address}
                     </div>
                   </td>
+<td className="p-4">
+        <div className="text-xs text-slate-500 italic max-w-[150px] truncate" title={item.notes}>
+          {item.notes || "-"}
+        </div>
+      </td>
                   <td className="p-4 text-right">
                     <div className="flex justify-end gap-2">
                       <button
