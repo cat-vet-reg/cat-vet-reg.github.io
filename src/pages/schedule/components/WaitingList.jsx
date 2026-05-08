@@ -509,11 +509,11 @@ const WaitingList = ({ onSelectToSchedule, onStartEdit }) => {
                       {item.address}
                     </div>
                   </td>
-<td className="p-4">
-        <div className="text-xs text-slate-500 italic max-w-[150px] truncate" title={item.notes}>
-          {item.notes || "-"}
-        </div>
-      </td>
+                  <td className="p-4">
+                    <div className="text-xs text-slate-500 italic whitespace-normal break-words min-w-[150px] max-w-[200px]">
+                      {item.notes || "-"}
+                    </div>
+                  </td>
                   <td className="p-4 text-right">
                     <div className="flex justify-end gap-2">
                       <button
