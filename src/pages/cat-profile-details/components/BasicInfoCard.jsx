@@ -22,7 +22,10 @@ import {  speciesOptions,
           } from "../../../constants/formOptions";
 
 const BasicInfoCard = ({ cat }) => {
-
+  // Вземаме рождената дата - промени 'birth_date' на 'date', ако я записваш там
+  const birthDateValue = cat?.data?.birth_date;
+  const formattedBirthDate = birthDateValue ? convertDate(birthDateValue) : '—';
+  
   const castratedAt = cat?.castrated_at ? convertDate(cat.castrated_at) : null;
   const rawHasComp = cat?.has_complications || cat?.hasComplications || cat?.data?.has_complications;
   const hasComp = rawHasComp?.toString().toUpperCase() === 'Y';
@@ -97,6 +100,12 @@ const infoItems = [
       label: 'Тегло',
       value: cat?.weight ? `${cat?.weight} кг` : '—',
       color: 'text-warning'
+    },
+    {
+      icon: 'Cake',
+      label: 'Рождена дата',
+      value: formattedBirthDate,
+      color: 'text-primary'
     },
     {
       icon: 'Sprout',

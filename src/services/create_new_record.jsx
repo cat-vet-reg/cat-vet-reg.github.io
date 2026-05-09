@@ -12,6 +12,7 @@ function prepareJsonFields(formData) {
         // Тези вече ще живеят САМО тук:
         age_value         : parseNum(formData.ageValue),
         age_unit          : formData.ageUnit || "months",
+        birth_date        : formData.birthDate || null,
         weight            : parseNum(formData.weight),
         color             : formData.color || "",
         custom_color      : formData.customColor || "",
@@ -165,10 +166,12 @@ async function recordOwner(formData) {
 
     const cleanOwnerData = {
         name    : formData.ownerName,
-        phone   : formData.ownerPhone,
-        egn     : formData.ownerEgn || null,
-        address : formData.ownerAddress || null
+        phone   : formData.ownerPhone
     };
+
+    // Добавяме ЕГН и Адрес само ако са попълнени във формата
+    if (formData.ownerEgn) cleanOwnerData.egn = formData.ownerEgn;
+    if (formData.ownerAddress) cleanOwnerData.address = formData.ownerAddress;
 
     const { data, error } = await supabase
         .from('td_owners')
@@ -219,7 +222,7 @@ export async function $apiGetCats() {
         .from('td_records')
         .select(`
             *,
-            owner:td_owners(name, phone),
+            owner:td_owners(name, phone, egn, address),
             td_protocols (*),
             td_medical_treatments!fk_animal (*)
         `)
@@ -246,8 +249,8 @@ export async function $apiGetCats() {
         ...cat,
         owner_name    : cat.owner?.name || cat.owner_name,
         owner_phone   : cat.owner?.phone || cat.owner_phone,
-        owner_egn     : cat.owner?.egn,
-        owner_address : cat.owner?.address,
+        owner_egn     : cat.owner?.egn || "",
+        owner_address : cat.owner?.address || "",
         address       : cat.location_address, // Map-ваме го обратно за компоненти, които ползват .address
         td_protocols  : cat.td_protocols || [],
         td_medical_treatments: cat.td_medical_treatments || [],

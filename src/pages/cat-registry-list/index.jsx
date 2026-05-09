@@ -348,116 +348,198 @@ const CatRegistryList = () => {
     setCurrentPage(1);
   }, [filters]);
 
-const handleExport = async () => {
-  const workbook = new ExcelJS.Workbook();
-  const worksheet = workbook.addWorksheet('Амбулаторен дневник', {
-    pageSetup: { paperSize: 9, orientation: 'landscape' } // A4 Landscape
-  });
-
-  // 1. ДЕФИНИРАНЕ НА КОЛОНИТЕ (съгласно вашите размери)
-  // Размерите в exceljs са символи. Коефициентът е около 1.2 за превръщане от вашите мерки.
-  worksheet.columns = [
-    { header: '№', key: 'seq', width: 4 },            // 3.3
-    { header: 'Амб. №', key: 'id', width: 4 },        // 3
-    { header: 'Дата', key: 'date', width: 10 },       // 8
-    { header: 'Собственик (име, адрес)', key: 'owner', width: 17 }, // 14
-    { header: 'Пациент (вид, порода, пол, възраст)', key: 'animal', width: 12 },   // 9.5
-    { header: 'Идентификация на животното', key: 'ident', width: 12 }, // 10
-    { header: 'Клинични данни', key: 'clinical', width: 10 }, // 8
-    { header: 'Проведени диагностични изследвания', key: 'exam', width: 13 }, // 10.7
-    { header: 'Диагноза', key: 'diagnosis', width: 15 }, // 12
-    { header: 'Проведено лечение', key: 'treatment', width: 17 }, // 14
-    { header: 'Изход от болестта', key: 'outcome', width: 8 }, // 6.6
-    { header: 'Лекар', key: 'doctor', width: 12 }      // 10
-  ];
-
-  // 2. ДОБАВЯНЕ НА ЗАГЛАВНИТЕ РЕДОВЕ (Insert at top)
-  
-  // Ред 1: Образецът на БАБХ (малки букви)
-  worksheet.spliceRows(1, 0, ['Образец КВМП – 43/ Утвърден със заповед № РД 11-1345/14.11.2012 г. на изпълнителния директор на БАБХ']);
-  worksheet.mergeCells('A1:K1');
-  worksheet.getRow(1).font = { name: 'Arial', size: 6, italic: true };
-  worksheet.getRow(1).alignment = { horizontal: 'center' };
-
-  // Ред 2: Основно заглавие
-  worksheet.spliceRows(2, 0, ['АМБУЛАТОРЕН ДНЕВНИК ЗА ВЕТЕРИНАРНИ КЛИНИКИ И АМБУЛАТОРИИ']);
-  worksheet.mergeCells('A2:K2');
-  worksheet.getRow(2).font = { name: 'Arial', size: 10, bold: true };
-  worksheet.getRow(2).alignment = { horizontal: 'center' };
-
-  // Ред 3: Име на клиниката
-  worksheet.spliceRows(3, 0, ['Ветеринарна клиника: Немски кастрационен център - Пловдив']);
-  worksheet.mergeCells('A3:K3');
-  worksheet.getRow(3).font = { name: 'Arial', size: 9, bold: true };
-  worksheet.getRow(3).alignment = { horizontal: 'center' };
-
-  // Празен ред за разстояние (опционално)
-  worksheet.spliceRows(4, 0, []);
-
-  // 3. ПОПЪЛВАНЕ НА ДАННИТЕ
-  displayData.forEach((item, index) => {
-    const staffLabel = staffOptions.find(opt => opt.value === item.staffSurgeon)?.label || item.staffSurgeon;
-    
-    const species = item.species === 'dog' ? 'Куче' : 'Котка';
-    const gender = item.gender === 'female' ? 'женски' : 'мъжки';
-    const breed = breedOptions.find(opt => opt.value === item?.data?.breed)?.label || item?.data?.breed || 'Нер.';
-    const age = item.data?.age_value ? `${item.data.age_value}${item.data.age_unit === 'years' ? 'год.' : 'мес.'}` : '';
-
-    const iden = item.td_identifications && item.td_identifications[0];
-    const chipStr = iden?.chip_number ? `Чип: ${iden.chip_number}` : '';
-    const passStr = iden?.passport_number ? `Пасп: ${iden.passport_number}` : '';
-
-    const row = worksheet.addRow({
-      seq: index + 1,
-      id: item.id,
-      date: new Date(item.displayDate).toLocaleDateString('bg-BG'),
-      owner: `${item.ownerName}, ${cityOptions.find(opt => opt.value === item?.location_city)?.label || item?.location_city}`,
-      animal: `${species}, ${breed}, ${gender}, ${age}`,
-      ident: [
-        item.medical_details?.ear_status === 'marked' ? 'V-образен разрез на дясното ухо' : '',
-        item.data?.ear_tag_number ? `Марка: ${item.data.ear_tag_number}` : '',
-        chipStr,
-        passStr
-      ].filter(Boolean).join(' / ') || 'няма',
-      clinical: item.clinicalData || 'б.о.',
-      exam: item.examination || 'няма',
-      diagnosis: item.diagnosis || 'здраво',
-      outcome: item.outcome || 'пълно възстановяване',
-      treatment: item.treatment || (item.gender === 'female' ? 'Овариохистеректомия' : 'Орхиектомия'),
-      doctor: staffLabel
+  const handleExport = async () => {
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet('Амбулаторен дневник', {
+      pageSetup: { paperSize: 9, orientation: 'landscape' } // A4 Landscape
     });
-  });
 
-  // 4. ФОРМАТИРАНЕ НА ТАБЛИЦАТА (Arial 8 + Borders)
-  worksheet.eachRow((row, rowNumber) => {
-    // Прилагаме Arial 8 на всички редове от таблицата (след заглавията)
-    if (rowNumber >= 5) {
+    // 1. ДЕФИНИРАНЕ НА КОЛОНИТЕ (съгласно вашите размери)
+    // Размерите в exceljs са символи. Коефициентът е около 1.2 за превръщане от вашите мерки.
+    worksheet.columns = [
+      { header: '№', key: 'seq', width: 4 },            // 3.3
+      { header: 'Амб. №', key: 'id', width: 4 },        // 3
+      { header: 'Дата', key: 'date', width: 10 },       // 8
+      { header: 'Собственик (име, адрес)', key: 'owner', width: 17 }, // 14
+      { header: 'Пациент (вид, порода, пол, възраст)', key: 'animal', width: 12 },   // 9.5
+      { header: 'Идентификация на животното', key: 'ident', width: 12 }, // 10
+      { header: 'Клинични данни', key: 'clinical', width: 10 }, // 8
+      { header: 'Проведени диагностични изследвания', key: 'exam', width: 13 }, // 10.7
+      { header: 'Диагноза', key: 'diagnosis', width: 15 }, // 12
+      { header: 'Проведено лечение', key: 'treatment', width: 17 }, // 14
+      { header: 'Изход от болестта', key: 'outcome', width: 8 }, // 6.6
+      { header: 'Лекар', key: 'doctor', width: 12 }      // 10
+    ];
+
+    // 2. ДОБАВЯНЕ НА ЗАГЛАВНИТЕ РЕДОВЕ (Insert at top)
+    
+    // Ред 1: Образецът на БАБХ (малки букви)
+    worksheet.spliceRows(1, 0, ['Образец КВМП – 43/ Утвърден със заповед № РД 11-1345/14.11.2012 г. на изпълнителния директор на БАБХ']);
+    worksheet.mergeCells('A1:K1');
+    worksheet.getRow(1).font = { name: 'Arial', size: 6, italic: true };
+    worksheet.getRow(1).alignment = { horizontal: 'center' };
+
+    // Ред 2: Основно заглавие
+    worksheet.spliceRows(2, 0, ['АМБУЛАТОРЕН ДНЕВНИК ЗА ВЕТЕРИНАРНИ КЛИНИКИ И АМБУЛАТОРИИ']);
+    worksheet.mergeCells('A2:K2');
+    worksheet.getRow(2).font = { name: 'Arial', size: 10, bold: true };
+    worksheet.getRow(2).alignment = { horizontal: 'center' };
+
+    // Ред 3: Име на клиниката
+    worksheet.spliceRows(3, 0, ['Ветеринарна клиника: Немски кастрационен център - Пловдив']);
+    worksheet.mergeCells('A3:K3');
+    worksheet.getRow(3).font = { name: 'Arial', size: 9, bold: true };
+    worksheet.getRow(3).alignment = { horizontal: 'center' };
+
+    // Празен ред за разстояние (опционално)
+    worksheet.spliceRows(4, 0, []);
+
+    // 3. ПОПЪЛВАНЕ НА ДАННИТЕ
+    displayData.forEach((item, index) => {
+      const staffLabel = staffOptions.find(opt => opt.value === item.staffSurgeon)?.label || item.staffSurgeon;
+      
+      const species = item.species === 'dog' ? 'Куче' : 'Котка';
+      const gender = item.gender === 'female' ? 'женски' : 'мъжки';
+      const breed = breedOptions.find(opt => opt.value === item?.data?.breed)?.label || item?.data?.breed || 'Нер.';
+      const age = item.data?.age_value ? `${item.data.age_value}${item.data.age_unit === 'years' ? 'год.' : 'мес.'}` : '';
+
+      const iden = item.td_identifications && item.td_identifications[0];
+      const chipStr = iden?.chip_number ? `Чип: ${iden.chip_number}` : '';
+      const passStr = iden?.passport_number ? `Пасп: ${iden.passport_number}` : '';
+
+      const row = worksheet.addRow({
+        seq: index + 1,
+        id: item.id,
+        date: new Date(item.displayDate).toLocaleDateString('bg-BG'),
+        owner: `${item.ownerName}, ${cityOptions.find(opt => opt.value === item?.location_city)?.label || item?.location_city}`,
+        animal: `${species}, ${breed}, ${gender}, ${age}`,
+        ident: [
+          item.medical_details?.ear_status === 'marked' ? 'V-образен разрез на дясното ухо' : '',
+          item.data?.ear_tag_number ? `Марка: ${item.data.ear_tag_number}` : '',
+          chipStr,
+          passStr
+        ].filter(Boolean).join(' / ') || 'няма',
+        clinical: item.clinicalData || 'б.о.',
+        exam: item.examination || 'няма',
+        diagnosis: item.diagnosis || 'здраво',
+        outcome: item.outcome || 'пълно възстановяване',
+        treatment: item.treatment || (item.gender === 'female' ? 'Овариохистеректомия' : 'Орхиектомия'),
+        doctor: staffLabel
+      });
+    });
+
+    // 4. ФОРМАТИРАНЕ НА ТАБЛИЦАТА (Arial 8 + Borders)
+    worksheet.eachRow((row, rowNumber) => {
+      // Прилагаме Arial 8 на всички редове от таблицата (след заглавията)
+      if (rowNumber >= 5) {
+        row.font = { name: 'Arial', size: 8 };
+        row.alignment = { vertical: 'middle', horizontal: 'left', wrapText: true };
+      }
+
+      // Всички граници (All Borders) за клетките с данни
+      row.eachCell((cell) => {
+        if (rowNumber >= 5) { // Започваме от хедъра на таблицата нататък
+          cell.border = {
+            top: { style: 'thin' },
+            left: { style: 'thin' },
+            bottom: { style: 'thin' },
+            right: { style: 'thin' }
+          };
+        }
+      });
+    });
+
+    // Стил за самия хедър на таблицата (Ред 5)
+    const headerRow = worksheet.getRow(5);
+    headerRow.font = { name: 'Arial', size: 8, bold: true };
+    headerRow.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFE0E0E0' } };
+
+    // 5. ГЕНЕРИРАНЕ И ИЗТЕГЛЯНЕ
+    const buffer = await workbook.xlsx.writeBuffer();
+    saveAs(new Blob([buffer]), `Ambulatoren_dnevnik_NKC_${new Date().toISOString().slice(0,10)}.xlsx`);
+  };
+
+  const handleExportChips = async () => {
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet('Регистър чипове и паспорти');
+
+    // 1. Дефиниране на колоните с новите изисквания
+    worksheet.columns = [
+      { header: 'Амб. №', key: 'id', width: 8 },
+      { header: 'Собственик', key: 'owner', width: 20 },
+      { header: 'ЕГН (Собственик)', key: 'egn', width: 12 },
+      { header: 'Адрес (Собственик)', key: 'address', width: 25 },
+      { header: 'Телефон', key: 'phone', width: 15 },
+      { header: 'Име на животно', key: 'animalName', width: 15 },
+      { header: 'Вид/Пол', key: 'animalType', width: 15 },
+      { header: 'Рождена дата', key: 'birthDate', width: 12 },
+      { header: 'Микрочип №', key: 'chip', width: 20 },
+      { header: 'Дата на поставяне (чип)', key: 'chip_date', width: 12 },
+      { header: 'Паспорт №', key: 'passport', width: 15 },
+      { header: 'Дата на издаване (паспорт)', key: 'passport_date', width: 12 }
+    ];
+
+    // 2. Филтриране - само тези с чип или паспорт
+    const catsWithIds = catCollection.filter(cat => {
+      const iden = cat.td_identifications?.[0];
+      return iden?.chip_number || iden?.passport_number;
+    });
+
+    catsWithIds.forEach(item => {
+      const iden = item.td_identifications[0];
+
+      // ВАЖНО: Твоят API ($apiGetCats) връща 'owner_egn' и 'owner_address'
+      // Проверяваме и двата варианта (с долна черта и camelCase), за да сме сигурни
+      const egn = item.owner_egn || item.ownerEgn || item.owner?.egn || item.td_owners?.egn || "—";
+      const address = item.owner_address || item.ownerAddress || item.owner?.address || item.location_address || "—";
+
+      // Взимаме данните от td_owners (ако са мапнати в обекта)
+      // Обикновено при join в Supabase те идват в обект 'td_owners'
+      const ownerData = item.td_owners || {};
+
+      const species = item.species === 'dog' ? 'Куче' : 'Котка';
+      const gender = item.gender === 'female' ? 'женски' : 'мъжки';
+
+      worksheet.addRow({
+        id: item.id,
+        owner: item.ownerName || ownerData.name || '—',
+        egn: egn, 
+        address: address,
+        phone: item.ownerPhone || ownerData.phone || '—',
+        animalName: item.recordName || '—',
+        animalType: `${species}, ${gender}`,
+        birthDate: item.data?.birth_date ? new Date(item.data.birth_date).toLocaleDateString('bg-BG') : '—',
+        chip: iden?.chip_number || '—',
+        chip_date: iden?.chip_date_from ? new Date(iden.chip_date_from).toLocaleDateString('bg-BG') : '—',
+        passport: iden?.passport_number || '—',
+        passport_date: iden?.passport_date_from ? new Date(iden.passport_date_from).toLocaleDateString('bg-BG') : '—' // Дата на паспорт
+      });
+    });
+
+    // 3. Стилизиране (Arial 8 за прегледност)
+    worksheet.getRow(1).font = { bold: true, name: 'Arial', size: 9 };
+    worksheet.getRow(1).fill = {
+      type: 'pattern',
+      pattern: 'solid',
+      fgColor: { argb: 'FFE0E0E0' }
+    };
+
+    worksheet.eachRow((row, rowNumber) => {
       row.font = { name: 'Arial', size: 8 };
       row.alignment = { vertical: 'middle', horizontal: 'left', wrapText: true };
-    }
-
-    // Всички граници (All Borders) за клетките с данни
-    row.eachCell((cell) => {
-      if (rowNumber >= 5) { // Започваме от хедъра на таблицата нататък
-        cell.border = {
-          top: { style: 'thin' },
-          left: { style: 'thin' },
-          bottom: { style: 'thin' },
-          right: { style: 'thin' }
-        };
+      if (rowNumber > 0) {
+        row.eachCell((cell) => {
+          cell.border = {
+            top: { style: 'thin' }, left: { style: 'thin' },
+            bottom: { style: 'thin' }, right: { style: 'thin' }
+          };
+        });
       }
     });
-  });
 
-  // Стил за самия хедър на таблицата (Ред 5)
-  const headerRow = worksheet.getRow(5);
-  headerRow.font = { name: 'Arial', size: 8, bold: true };
-  headerRow.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFE0E0E0' } };
-
-  // 5. ГЕНЕРИРАНЕ И ИЗТЕГЛЯНЕ
-  const buffer = await workbook.xlsx.writeBuffer();
-  saveAs(new Blob([buffer]), `Ambulatoren_dnevnik_NKC_${new Date().toISOString().slice(0,10)}.xlsx`);
-};
+    const buffer = await workbook.xlsx.writeBuffer();
+    saveAs(new Blob([buffer]), `Register_Chips_Full_${new Date().toISOString().slice(0,10)}.xlsx`);
+  };
 
   if (isLoading) return <div className="p-10 text-center text-xl">Зареждане на регистъра...</div>;
 
@@ -480,21 +562,32 @@ const handleExport = async () => {
               } животни
             </p>
 
-            <Button
-              variant={isClinicalView ? "default" : "outline"} // Промяна на цвета при активен режим
-              iconName="FileText"
-              onClick={() => setIsClinicalView(!isClinicalView)}
-            >
-              {isClinicalView ? "Към стандартен регистър" : "Амбулаторен дневник"}
-            </Button>
+            <div className="flex flex-wrap gap-2 mt-4">
+              <Button
+                variant={isClinicalView ? "default" : "outline"} // Промяна на цвета при активен режим
+                iconName="FileText"
+                onClick={() => setIsClinicalView(!isClinicalView)}
+              >
+                {isClinicalView ? "Към стандартен регистър" : "Амбулаторен дневник"}
+              </Button>
 
-            <Button 
-              variant="outline" 
-              iconName="Download" 
-              onClick={handleExport}
-            >
-              Експорт към Excel
-            </Button>
+              <Button 
+                variant="outline" 
+                iconName="Download" 
+                onClick={handleExport}
+              >
+                Експорт към Excel
+              </Button>
+
+              {/* НОВИЯТ БУТОН */}
+              <Button 
+                variant="outline" 
+                iconName="CreditCard" // Може да ползвате и "Download" или друг подходящ икон от AppIcon
+                onClick={handleExportChips}
+              >
+                Експорт на чипове
+              </Button>
+            </div>
           </div>
 
           <Button

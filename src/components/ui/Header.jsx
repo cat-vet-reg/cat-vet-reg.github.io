@@ -12,6 +12,7 @@ const Header = () => {
     { label: 'График', path: '/schedule', icon: 'Calendar' },
     { label: 'Операции', path: '/today', icon: 'Activity' },
     { label: 'Регистър', path: '/cat-registry-list', icon: 'BookOpen' },
+    // { label: 'Склад', path: '/inventory-log', icon: 'Warehouse' },
     { label: 'Лечение', path: '/treatment-registry', icon: 'Stethoscope' },
     { label: 'Карта', path: '/interactive-cat-map', icon: 'Map' },
     { label: 'Отчети', path: '/statistics', icon: 'ChartArea' },
@@ -21,8 +22,12 @@ const Header = () => {
   ];
 
   // Групи за десктоп версията
+
   const workItems = allNavigationItems.slice(0, 3); // График, Операции, Регистър
   const secondaryItems = allNavigationItems.slice(3, 6); // Лечение, Карта, Отчети
+
+  // const workItems = allNavigationItems.slice(0, 4); // График, Операции, Регистър, Склад
+  // const secondaryItems = allNavigationItems.slice(4, 7); // Лечение, Карта, Отчети
 
   const toggleMobileMenu = () => setIsMobileMenuOpen(!isMobileMenuOpen);
   const closeMobileMenu = () => setIsMobileMenuOpen(false);

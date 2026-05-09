@@ -63,6 +63,7 @@ export const defaultFormData = {
 };
 
 //mapRecordToForm подготвя данните така, че Формата (Input) да ги разбере. Тя трябва да попълни всеки checkbox, input и select точно с очакваните стойности.
+// когато Редактираме данните
 export const mapRecordToForm = (record) => {
   if (!record) return { ...defaultFormData };
 
@@ -168,17 +169,34 @@ export const defaultRecordStructure = {
 
 //mapDbToUi подготвя данните за Списъка (Read-only). Тук не ни трябват 50 полета, а само тези, по които филтрираме и сортираме.
 export const mapDbToUi = (record) => {
+
   if (!record) return {};
+
+  // 1. Първо вадим основното
+  const base = { ...record };
+
+  // 2. Вадим собственика (внимателно, защото Supabase го връща като 'owner' или 'td_owners')
+  const ownerObj = record.owner || record.td_owners || {};
 
   return {
     // 1. Вземаме всичко от топ нивото на записа
-    ...record, 
+    ...base, 
     
     // 2. Уеднаквяваме имената към camelCase за твоя React код
     id              : record.id,
     recordName      : record.name || `Животно №${record.id}`,
-    ownerName       : record.owner_name || record.owner?.name || "Няма име",
-    ownerPhone      : record.owner_phone || record.owner?.phone || "Няма телефон",
+    // ownerName       : record.owner_name || record.owner?.name || "Няма име",
+    // ownerPhone      : record.owner_phone || record.owner?.phone || "Няма телефон",
+
+    // ТЕЗИ ТРИ РЕДА ТРЯБВА ДА СА ТАКА:
+    ownerName: ownerObj.name || record.owner_name || "—",
+    ownerEgn: ownerObj.egn || record.owner_egn || "—",
+    ownerAddress: ownerObj.address || record.owner_address || record.location_address || "—",
+    ownerPhone: ownerObj.phone || record.owner_phone || "—",
+
+    // Тук е полето, което добавихме последно
+    birthDate: record.data?.birth_date || record.birth_date || null,
+
     castratedAt     : record.castrated_at ? record.castrated_at : null, 
     status          : record.status || "recorded",
     staffReceived   : record.staffReceived || "",

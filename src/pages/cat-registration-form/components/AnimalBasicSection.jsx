@@ -23,6 +23,7 @@ import { breedOptions } from "../../../constants/breed_options";
 
 
 const AnimalBasicSection = ({ formData, handleInputChange, errors }) => {
+
   return (
     <FormSection title="Основна информация">
       <div className="bg-[#e64072]/20 rounded-[20px] p-3">
@@ -211,6 +212,16 @@ const AnimalBasicSection = ({ formData, handleInputChange, errors }) => {
           options={ageUnitOptions}
           value={formData.ageUnit}
           onChange={(value) => handleInputChange("ageUnit", value)}
+        />
+      </div>
+
+      <div className="mt-4 p-3 bg-slate-50 rounded-xl border border-dashed border-slate-300">
+        <Input
+          label="Рождена дата (за ВетИС)"
+          type="date"
+          value={formData.birthDate || ''}
+          onChange={(e) => handleInputChange("birthDate", e.target.value)}
+          helperText="Генерира се автоматично от възрастта, но може да се коригира"
         />
       </div>
 

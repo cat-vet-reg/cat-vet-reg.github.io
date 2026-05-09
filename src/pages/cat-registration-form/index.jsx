@@ -134,7 +134,24 @@ const CatRegistrationForm = () => {
     }
   }, [formData.ownerPhone, formData.ownerName]); // Следим и двете
 
-    const getCoordinates = async (city, address) => {
+useEffect(() => {
+  // Ако сме в режим на редактиране и вече имаме дата, не искаме да я презаписваме автоматично
+  if (isEditing && formData.birthDate) return;
+
+  if (formData.ageValue) {
+    const autoDate = calculateBirthDate(formData.ageValue, formData.ageUnit || "months");
+    
+    // Проверяваме дали новата дата е различна, за да не влизаме в безкраен цикъл
+    if (autoDate !== formData.birthDate) {
+      setFormData(prev => ({
+        ...prev,
+        birthDate: autoDate
+      }));
+    }
+  }
+}, [formData.ageValue, formData.ageUnit]); // Изпълнява се само при промяна на тези две полета
+
+  const getCoordinates = async (city, address) => {
     // Търсим само по чистия адрес, за да не объркваме Google с името на града в низа
     const url = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(address)}&components=locality:${encodeURIComponent(city)}|country:BG&key=${mapUrl}`;
 
@@ -227,6 +244,17 @@ const CatRegistrationForm = () => {
         imagePreview: URL.createObjectURL(file), // Създава временен линк за преглед
       }));
     }
+  };
+
+  const calculateBirthDate = (value, unit) => {
+    if (!value || isNaN(value)) return "";
+    const date = new Date();
+    if (unit === "months") {
+      date.setMonth(date.getMonth() - parseInt(value));
+    } else {
+      date.setFullYear(date.getFullYear() - parseInt(value));
+    }
+    return date.toISOString().split('T')[0]; // Връща YYYY-MM-DD
   };
 
   const handleInputChange = (field, value) => {
