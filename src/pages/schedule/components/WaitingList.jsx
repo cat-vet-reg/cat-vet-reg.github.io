@@ -389,50 +389,50 @@ const WaitingList = ({ onSelectToSchedule, onStartEdit }) => {
         </div>
       </div>
 
-<div className="flex flex-wrap items-center gap-4 bg-white p-3 rounded-xl border border-slate-200 mb-4">
-  <div className="flex items-center gap-2">
-    <span className="text-xs font-bold text-slate-500 uppercase">Филтър:</span>
-    <select 
-      value={filterType} 
-      onChange={(e) => setFilterType(e.target.value)}
-      className="text-xs font-bold border-none bg-slate-100 rounded-lg p-2 focus:ring-0"
-    >
-      <option value="all">Всички видове</option>
-      <option value="cat">Само Котки</option>
-      <option value="dog">Само Кучета</option>
-    </select>
-  </div>
+      <div className="flex flex-wrap items-center gap-4 bg-white p-3 rounded-xl border border-slate-200 mb-4">
+        <div className="flex items-center gap-2">
+          <span className="text-xs font-bold text-slate-500 uppercase">Филтър:</span>
+          <select 
+            value={filterType} 
+            onChange={(e) => setFilterType(e.target.value)}
+            className="text-xs font-bold border-none bg-slate-100 rounded-lg p-2 focus:ring-0"
+          >
+            <option value="all">Всички видове</option>
+            <option value="cat">Само Котки</option>
+            <option value="dog">Само Кучета</option>
+          </select>
+        </div>
 
-  <div className="flex items-center gap-2">
-    <select 
-      value={filterZone} 
-      onChange={(e) => setFilterZone(e.target.value)}
-      className="text-xs font-bold border-none bg-slate-100 rounded-lg p-2 focus:ring-0"
-    >
-      <option value="all">Всички Зони</option>
-      {uniqueZones.map(z => <option key={z} value={String(z)}>Зона {z}</option>)}
-      <option value="null">Извън града</option>
-    </select>
-  </div>
+        <div className="flex items-center gap-2">
+          <select 
+            value={filterZone} 
+            onChange={(e) => setFilterZone(e.target.value)}
+            className="text-xs font-bold border-none bg-slate-100 rounded-lg p-2 focus:ring-0"
+          >
+            <option value="all">Всички Зони</option>
+            {uniqueZones.map(z => <option key={z} value={String(z)}>Зона {z}</option>)}
+            <option value="null">Извън града</option>
+          </select>
+        </div>
 
-  <div className="flex items-center gap-2">
-    <select 
-      value={filterGender} 
-      onChange={(e) => setFilterGender(e.target.value)}
-      className="text-xs font-bold border-none bg-slate-100 rounded-lg p-2 focus:ring-0"
-    >
-      <option value="all">Всички полове</option>
-      <option value="female">Само Женски</option>
-      <option value="male">Само Мъжки</option>
-    </select>
-  </div>
-  
-  <div className="ml-auto text-[10px] font-bold text-slate-400">
-    Показани: {filteredList.length} от {waitingList.length}
-  </div>
-</div>
+        <div className="flex items-center gap-2">
+          <select 
+            value={filterGender} 
+            onChange={(e) => setFilterGender(e.target.value)}
+            className="text-xs font-bold border-none bg-slate-100 rounded-lg p-2 focus:ring-0"
+          >
+            <option value="all">Всички полове</option>
+            <option value="female">Само Женски</option>
+            <option value="male">Само Мъжки</option>
+          </select>
+        </div>
+        
+        <div className="ml-auto text-[10px] font-bold text-slate-400">
+          Показани: {filteredList.length} от {waitingList.length}
+        </div>
+      </div>
 
-      <WaitingStats data={waitingList} />
+      <WaitingStats data={filteredList} />
 
       <div className="overflow-x-auto max-h-[600px] overflow-y-auto border border-slate-200 rounded-lg shadow-inner bg-white">
         <table className="w-full text-left border-collapse">

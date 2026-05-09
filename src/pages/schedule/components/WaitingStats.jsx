@@ -2,12 +2,26 @@ import React from 'react';
 import { TrendingUp, Users, Map as MapIcon, Dog, Cat } from "lucide-react";
 
 const WaitingStats = ({ data = [] }) => {
-  if (data.length === 0) return null;
+  if (data.length === 0) return (
+    <div className="mb-6 p-4 bg-white border border-slate-200 rounded-2xl text-center text-slate-400 text-xs italic">
+      Няма данни за избраните филтри
+    </div>
+  );
 
   // Изчисляване на статистика
   const total = data.length;
   const cats = data.filter(d => d.animal_type === 'cat').length;
   const dogs = data.filter(d => d.animal_type === 'dog').length;
+  
+  // Детайлна статистика
+  const catFemales = data.filter(d => d.animal_type === 'cat' && d.gender === 'female').length;
+  const catMales = data.filter(d => d.animal_type === 'cat' && d.gender === 'male').length;
+  
+  const dogFemales = data.filter(d => d.animal_type === 'dog' && d.gender === 'female').length;
+  const dogMales = data.filter(d => d.animal_type === 'dog' && d.gender === 'male').length;
+
+  const totalCats = catFemales + catMales;
+  const totalDogs = dogFemales + dogMales;
   
   const getZoneStats = () => {
     const stats = data.reduce((acc, item) => {
@@ -26,20 +40,40 @@ const WaitingStats = ({ data = [] }) => {
   return (
     <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 mb-6">
       {/* КАРТА: ОБЩО */}
-      <div className="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm">
-        <div className="text-[10px] font-black text-slate-400 uppercase mb-2">Общо чакащи</div>
-        <div className="flex items-end justify-between">
-          <span className="text-3xl font-black text-slate-700">{total}</span>
-          <div className="flex gap-2 pb-1">
-            <span className="flex items-center text-xs font-bold text-blue-500 bg-blue-50 px-2 py-1 rounded-lg">
-              <Cat size={12} className="mr-1" /> {cats}
-            </span>
-            <span className="flex items-center text-xs font-bold text-amber-600 bg-amber-50 px-2 py-1 rounded-lg">
-              <Dog size={12} className="mr-1" /> {dogs}
-            </span>
-          </div>
-        </div>
+<div className="flex flex-col gap-3">
+  {/* ГОРЕН РЕД: ОБЩО ЧАКАЩИ (заема целия ред) */}
+  <div className="flex items-baseline gap-2 pb-1 border-b border-slate-100">
+    <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Общо чакащи:</span>
+    <span className="text-2xl font-black text-slate-700">{total}</span>
+  </div>
+
+  {/* ДОЛЕН РЕД: ГРИД С ДВЕ КОЛОНИ (Котки и Кучета) */}
+  <div className="grid grid-cols-2 gap-2">
+    {/* КАРТА: КОТКИ */}
+    <div className="bg-blue-50/50 p-2 rounded-xl border border-blue-100/50">
+      <div className="flex items-center text-blue-600 mb-1">
+        <Cat size={14} className="mr-1" />
+        <span className="text-[10px] font-black uppercase">Котки ({totalCats})</span>
       </div>
+      <div className="flex justify-between text-[11px] font-bold">
+        <span className="text-pink-500">♀ {catFemales}</span>
+        <span className="text-blue-400">♂ {catMales}</span>
+      </div>
+    </div>
+
+    {/* КАРТА: КУЧЕТА */}
+    <div className="bg-amber-50/50 p-2 rounded-xl border border-amber-100/50">
+      <div className="flex items-center text-amber-600 mb-1">
+        <Dog size={14} className="mr-1" />
+        <span className="text-[10px] font-black uppercase">Кучета ({totalDogs})</span>
+      </div>
+      <div className="flex justify-between text-[11px] font-bold">
+        <span className="text-pink-500">♀ {dogFemales}</span>
+        <span className="text-amber-500">♂ {dogMales}</span>
+      </div>
+    </div>
+  </div>
+</div>
 
       {/* КАРТА: ПРИОРИТЕТНА ЗОНА */}
       <div className="relative overflow-hidden bg-gradient-to-br from-blue-600 to-indigo-700 rounded-2xl p-4 text-white shadow-md">
