@@ -50,6 +50,12 @@ const Calendar = () => {
     
     // Подготовка на животните
     const animalEvents = (records || []).map(element => {
+
+      // 1. ПРОВЕРКА: Ако няма дата за кастрация, животното е за лечение и не го показваме в графика
+    if (!element.castrated_at) {
+        return null; 
+    }
+
       const dateKey = element.castrated_at.split('T')[0];
       const today = new Date();
       today.setHours(0, 0, 0, 0);
@@ -89,7 +95,7 @@ const Calendar = () => {
         borderColor: isPast ? '#ccc' : (isMale ? '#3b82f6' : '#f43f5e'),
         textColor: isPast ? '#666' : '#000'
       };
-    });
+    }).filter(ev => ev !== null);
 
     // Подготовка на административните събития
     const staffEvents = (adminEvents || []).map(ev => ({
@@ -262,11 +268,11 @@ const Calendar = () => {
   };
 
   const suppliesConfig = {
-    blue_needles: 2,
+    blue_needles: 1,
     orange_needles: 1,
     pink_needles: 0.5,
-    syringes_one_ml: 1,
-    syringes_two_ml: 1,
+    syringes_oneml: 1,
+    syringes_twoml: 1,
     catheters: 1,
     leukoplast: 0.01,
 
@@ -291,8 +297,8 @@ const Calendar = () => {
     orange_needles: "Оранжеви игли",
     blue_needles: "Сини игли",
     pink_needles: "Розови игли",
-    syringes_one_ml: "Спринцовки 1мл",
-    syringes_two_ml: "Спринцовки 2мл",
+    syringes_oneml: "Спринцовки 1мл",
+    syringes_twoml: "Спринцовки 2мл",
     catheters: "Абокати",
     drape_60_90: "Подложки 60/90",
     shotapen_ml: "Шотапен (мл)",
@@ -609,7 +615,7 @@ const Calendar = () => {
           </div>
           <div className="flex flex-col min-w-0">
             <span className="text-[13px] font-bold text-slate-700 truncate leading-tight">
-              {amount.toLocaleString()} <small className="text-[10px] font-normal text-slate-400 uppercase">{key.includes('_ml') ? 'ml' : 'бр'}</small>
+              {amount.toLocaleString()} <small className="text-[10px] font-normal text-slate-400 uppercase">{key.includes('_ml') ? 'мл' : 'бр'}</small>
             </span>
             <span className="text-[10px] text-slate-500 truncate uppercase tracking-tighter">
               {label}

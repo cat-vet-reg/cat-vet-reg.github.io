@@ -96,8 +96,15 @@ const CatRegistryList = () => {
 
     // Филтър за записани и липсващи
     if (!filters.showRecorded) {
-      result = result.filter(cat => cat.status !== 'recorded' && cat.status !== 'missed');
-    }
+        // Скриваме 'recorded', 'missed' И всички, които нямат дата на кастрация (вкл. лечение)
+        result = result.filter(cat => {
+          const isRecordedOrMissed = cat.status === 'recorded' || cat.status === 'missed';
+          const hasNoDate = !cat.castratedAt; // Проверява за null, undefined или празен низ
+
+          // Показваме само ако НЕ е записан/пропуснат И има валидна дата
+          return !isRecordedOrMissed && !hasNoDate;
+        });
+      }
 
     // Търсене (изключително чисто вече!)
     const searchLower = filters.search.toLowerCase();
@@ -556,8 +563,8 @@ const CatRegistryList = () => {
               Общо регистрирани: {
                 catCollection.filter(cat => 
                   cat.castrated_at && // Има записана дата на кастрация
-                  cat.data?.status !== 'recorded' && // Статусът в 'data' не е 'recorded'
-                  cat.data?.status !== 'missed'      // Изключваме и пропуснатите за всеки случай
+                  cat.status !== 'recorded' && // Статусът не е 'recorded'
+                  cat.status !== 'missed'      // Изключваме и пропуснатите за всеки случай
                 ).length
               } животни
             </p>

@@ -12,6 +12,7 @@ import {
 } from "../../../constants/formOptions";
 import { breedOptions   } from "../../../constants/breed_options";
 import { cityOptions    } from "../../../constants/city_options";
+import { statusOptions } from "../../../constants/formOptions";
 
 const RegistryTable = ({ 
   cats, 
@@ -39,6 +40,14 @@ const RegistryTable = ({
 
   // Помощна функция за намиране на име на хирург
   const getStaffLabel = (id) => staffOptions.find(opt => opt.value === id)?.label || id || '—';
+
+  // Помощна функция за намиране на обекта на статуса
+  const getStatusInfo = (statusId) => {
+    return statusOptions.find(opt => opt.id === statusId) || { 
+      label: statusId, 
+      color: 'bg-slate-100 text-slate-700' 
+    };
+  };
 
   // 1. РЕЖИМ АМБУЛАТОРЕН ДНЕВНИК
   if (isClinicalView) {
@@ -86,8 +95,10 @@ const RegistryTable = ({
                 <tr key={cat.uId || cat.id} className="hover:bg-slate-50/80 transition-colors align-top">
                   <td className="px-3 py-4 text-[11px] text-muted-foreground/60 font-medium">{globalIndex}</td>
                   <td className="px-3 py-4 text-[11px] font-mono text-primary font-bold">{cat.id}</td>
-                  <td className="px-3 py-4 text-[11px] whitespace-nowrap">{convertDate(cat.displayDate)}</td>
-                  
+                  <td className="px-3 py-4 text-[11px] whitespace-nowrap">
+                    {cat.displayDate ? convertDate(cat.displayDate) : "—"}
+                  </td>
+
                   {/* Собственик */}
                   <td className="px-3 py-4 text-[11px] max-w-[200px]">
                     <div className="font-bold text-slate-900 leading-tight">{cat.ownerName}</div>
@@ -175,7 +186,7 @@ const RegistryTable = ({
                 { id: 'ownerName', label: 'Собственик' },
                 { id: 'castratedAt', label: 'Кастрирана на', hideMobile: true },
                 { id: 'staffSurgeon', label: 'Хирург', hideMobile: true },
-                { id: 'hasComplications', label: 'Усложнения' }
+                { id: 'status', label: 'Статус' }
               ].map(col => (
                 <th key={col.id} className={`${col.hideMobile ? 'hidden md:table-cell' : ''} px-4 py-3 text-left`}>
                   <button
@@ -221,6 +232,21 @@ const RegistryTable = ({
                     <span className="text-muted-foreground">
                       {cat.recordName?.startsWith('Котка №') ? "" : cat.recordName}
                     </span>
+
+                  {/* Удивителна за усложнения точно до името */}
+                  {cat.hasComplications === 'Y' && (
+                    <div className="relative group ml-1">
+                      <AlertTriangle size={14} className="text-destructive cursor-help" strokeWidth={3} />
+                      <div className="absolute bottom-full left-0 mb-2 hidden group-hover:block z-50 w-48 p-2 bg-white text-slate-900 text-[10px] rounded shadow-xl border border-destructive/20">
+                        <ul className="space-y-1">
+                          {cat.selectedComplications?.map((compId, idx) => {
+                            const all = [...complicationOptions.female, ...complicationOptions.male, ...complicationOptions.general];
+                            return <li key={idx}>• {all.find(o => o.id === compId)?.label || compId}</li>;
+                          })}
+                        </ul>
+                      </div>
+                    </div>
+                  )}
                   </div>
                 </td>
 
@@ -245,15 +271,26 @@ const RegistryTable = ({
                   </div>
                 </td>
 
-                <td className="hidden md:table-cell px-4 py-3 text-sm text-muted-foreground">
-                  {convertDate(cat.castratedAt)}
-                </td>
+              <td className="hidden md:table-cell px-4 py-3 text-sm text-muted-foreground">
+                {cat.castratedAt ? convertDate(cat.castratedAt) : "—"}
+              </td>
 
                 <td className="px-4 py-3 text-sm font-medium text-primary">
                   {staffOptions.find(opt => opt.value === cat.staffSurgeon)?.label || cat.staffSurgeon || '—'}
                 </td>
 
-                <td className="px-4 py-3 text-center relative group">
+<td className="px-4 py-3 text-sm">
+  {(() => {
+    const status = getStatusInfo(cat.status);
+    return (
+      <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase border border-black/5 whitespace-nowrap ${status.color}`}>
+        {status.label}
+      </span>
+    );
+  })()}
+</td>
+
+                {/* <td className="px-4 py-3 text-center relative group">
                   {cat.hasComplications === 'Y' ? (
                     <div className="flex items-center justify-center text-destructive cursor-help">
                       <AlertTriangle size={20} strokeWidth={2.5} />
@@ -267,7 +304,7 @@ const RegistryTable = ({
                       </div>
                     </div>
                   ) : <span className="text-muted-foreground/20">—</span>}
-                </td>
+                </td> */}
 
                 <td className="px-4 py-3 text-right">
                   <div className="flex justify-end gap-2">
