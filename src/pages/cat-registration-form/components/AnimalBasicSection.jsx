@@ -147,8 +147,7 @@ const AnimalBasicSection = ({ formData, handleInputChange, errors, isHighVolume 
         )}
 
       </div>
-      {!isHighVolume && (
-        <>
+
 
       <Input
         label="Тегло (в килограми)"
@@ -164,6 +163,9 @@ const AnimalBasicSection = ({ formData, handleInputChange, errors, isHighVolume 
         error={errors?.weight}
       />
       
+      {!isHighVolume && (
+        <>
+        
       <label>Телесно състояние (BCS 1-9)</label>
       <div className="space-y-4">
         <div className="flex justify-between items-center gap-1">
