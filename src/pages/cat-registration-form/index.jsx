@@ -51,7 +51,7 @@ import ComplicationSection  from "./components/ComplicationSection";
 const HIGH_VOLUME_DEFAULTS = {
   // Данни за собственика
   ownerName: "Нанси Танева",
-  ownerPhone: "000-000-0000",
+  ownerPhone: "0896160033",
   ownerAddress: "Center of Hope Veterinary Hospital, Piteasca",
   ownerEgn: "",
 
