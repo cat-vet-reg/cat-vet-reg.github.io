@@ -22,7 +22,7 @@ import Select from "../../../components/ui/Select";
 import { breedOptions } from "../../../constants/breed_options";
 
 
-const AnimalBasicSection = ({ formData, handleInputChange, errors }) => {
+const AnimalBasicSection = ({ formData, handleInputChange, errors, isHighVolume }) => {
 
   return (
     <FormSection title="Основна информация">
@@ -147,7 +147,9 @@ const AnimalBasicSection = ({ formData, handleInputChange, errors }) => {
         )}
 
       </div>
-      
+      {!isHighVolume && (
+        <>
+
       <Input
         label="Тегло (в килограми)"
         type="number"
@@ -243,7 +245,8 @@ const AnimalBasicSection = ({ formData, handleInputChange, errors }) => {
         onChange={(value) => handleInputChange("color", value)}
         error={errors?.color}
       />
-
+</>
+      )}
       <Input
         label="Бележки"
         type="text"

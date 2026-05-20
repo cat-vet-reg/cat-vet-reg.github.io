@@ -48,6 +48,31 @@ import AnesthesiaSectionRaw from "./components/AnesthesiaSectionRaw";
 import AnesthesiaSection    from "./components/AnesthesiaSection";
 import ComplicationSection  from "./components/ComplicationSection";
 
+const HIGH_VOLUME_DEFAULTS = {
+  // Данни за собственика
+  ownerName: "Нанси Танева",
+  ownerPhone: "000-000-0000",
+  ownerAddress: "Center of Hope Veterinary Hospital, Piteasca",
+  ownerEgn: "",
+
+  // Геолокация (Румъния)
+  recordCity: "Piteasca_ROM", // Или съкращението, което ползвате в select-а за Питеаска
+  address: "Center of Hope Veterinary Hospital",
+  zonaNumber: "99", // Служебен номер за външна зона/обучение
+
+  // Данни за животното (вътре в "data" обекта на JSON-а)
+  ageValue: "1",
+  ageUnit: "years",
+  birthDate: new Date(new Date().setFullYear(new Date().getFullYear() - 1)).toISOString().split('T')[0], // Точно преди 1 година
+  origin: "street",
+  livingCondition: ["street"],
+  
+  // Медицински детайли
+  castratedAt: new Date().toISOString().split('T')[0], // Днешната дата (YYYY-MM-DD)
+  status: "released", // Директно го маркираме като приключен случай / върнато
+  isAlreadyCastrated: "N"
+};
+
 const CatRegistrationForm = () => {
 
   const navigate = useNavigate();
@@ -176,6 +201,49 @@ useEffect(() => {
     }
   };
 
+  const handleRegTypeChange = (type) => {
+    setRegType(type);
+    
+    if (type === 'high-volume') {
+      setFormData(prev => ({
+        ...prev,
+        // Собственик
+        ownerName: HIGH_VOLUME_DEFAULTS.ownerName,
+        ownerPhone: HIGH_VOLUME_DEFAULTS.ownerPhone,
+        ownerAddress: HIGH_VOLUME_DEFAULTS.ownerAddress,
+        ownerEgn: HIGH_VOLUME_DEFAULTS.ownerEgn,
+
+        // Локация
+        recordCity: HIGH_VOLUME_DEFAULTS.recordCity,
+        address: HIGH_VOLUME_DEFAULTS.address,
+        zonaNumber: HIGH_VOLUME_DEFAULTS.zonaNumber,
+
+        // Основни данни
+        ageValue: HIGH_VOLUME_DEFAULTS.ageValue,
+        ageUnit: HIGH_VOLUME_DEFAULTS.ageUnit,
+        birthDate: HIGH_VOLUME_DEFAULTS.birthDate,
+        origin: HIGH_VOLUME_DEFAULTS.origin,
+        livingCondition: HIGH_VOLUME_DEFAULTS.livingCondition,
+
+        // Оперативни данни
+        castratedAt: HIGH_VOLUME_DEFAULTS.castratedAt,
+        status: HIGH_VOLUME_DEFAULTS.status,
+        isAlreadyCastrated: HIGH_VOLUME_DEFAULTS.isAlreadyCastrated,
+
+        // Запазваме бързия избор на потребителя, ако вече е цъкнал нещо
+        gender: prev.gender || 'female',
+        species: prev.species || 'cat',
+        
+        // Автоматично изчисляване на индукционната доза веднага при превключване
+        inductionDose: prev.gender === 'male' ? "0.12" : "0.11",
+        reproductiveStatus: prev.reproductiveStatus || "none_visible"
+      }));
+
+      // Изчистваме грешките, за да няма червени полета
+      setErrors({});
+    }
+  };
+
   const SignatureSection = ({ onSaveSignature }) => {
     const sigCanvas = useRef({});
 
@@ -274,6 +342,11 @@ useEffect(() => {
 
   const validateForm = () => {
     const newErrors = {};
+
+  // При High-Volume изискваме САМО пол
+  if (!formData?.gender) {
+    newErrors.gender = "Изберете пол";
+  }
 
     if (!formData?.gender) {
       newErrors.gender = "Изберете пол";
@@ -398,7 +471,7 @@ useEffect(() => {
           <div className="flex flex-wrap gap-3 mb-8 p-4 bg-slate-50 rounded-xl border border-slate-200">
             <button
               type="button"
-              onClick={() => setRegType('neutering')}
+              onClick={() => handleRegTypeChange('neutering')}
               className={`flex-1 py-3 px-4 rounded-lg font-bold transition-all ${regType === 'neutering' ? 'bg-blue-600 text-white shadow-lg' : 'bg-white text-slate-600 border'}`}
             >
               🐈 ЖВ за Кастрация
@@ -406,7 +479,7 @@ useEffect(() => {
 
             <button
               type="button"
-              onClick={() => navigate('/treatment-registry', { state: { openCreate: true } })} // Директно прехвърляне към другия регистър
+              onClick={() => navigate('/treatment-registry', { state: { openCreate: true } })}
               className="flex-1 py-3 px-4 rounded-lg font-bold bg-white text-slate-600 border hover:border-violet-400 hover:text-violet-600 transition-all"
             >
               🏥 ЖВ за Лечение
@@ -414,14 +487,74 @@ useEffect(() => {
 
             <button
               type="button"
-              onClick={() => setRegType('prevention')}
+              onClick={() => handleRegTypeChange('prevention')}
               className={`flex-1 py-3 px-4 rounded-lg font-bold transition-all ${regType === 'prevention' ? 'bg-emerald-600 text-white shadow-lg' : 'bg-white text-slate-600 border'}`}
             >
               🛡️ ЖВ за Профилактика
             </button>
+
+            {/* НОВИЯТ БУТОН ЗА HIGH-VOLUME */}
+            <button
+              type="button"
+              onClick={() => handleRegTypeChange('high-volume')}
+              className={`flex-1 py-3 px-4 rounded-lg font-bold transition-all ${regType === 'high-volume' ? 'bg-amber-600 text-white shadow-lg animate-pulse' : 'bg-white text-amber-600 border border-amber-200 hover:bg-amber-50'}`}
+            >
+              ⚡ High-Volume (Бърз)
+            </button>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-6 md:space-y-8">
+
+              {regType === 'high-volume' ? (
+              /* ==================================================================== */
+              /* РЕЖИМ HIGH-VOLUME: Показва САМО нужните компоненти на един екран    */
+              /* ==================================================================== */
+              <div className="max-w-3xl mx-auto space-y-6 md:space-y-8">
+                <AnimalBasicSection 
+                  formData={formData} 
+                  handleInputChange={handleInputChange} 
+                  errors={errors}
+                  isHighVolume={true}
+                />
+
+                <div ref={sectionRefs.anesthesia}>
+                  <AnesthesiaSection 
+                    formData={formData} 
+                    handleInputChange={handleInputChange} 
+                    errors={errors}
+                    isHighVolume={true}
+                  />
+                </div>
+
+                {/* Бутони за бързо записване / изчистване директно под анестезията */}
+                <div className="flex flex-col sm:flex-row gap-3 pt-4">
+                  <Button
+                    type="submit"
+                    variant="default"
+                    fullWidth
+                    disabled={!isFormValid() || isSubmitting}
+                    loading={isSubmitting}
+                    iconName="CheckCircle2"
+                    iconPosition="left"
+                  >
+                    {isEditing ? "Редактирай ЖВ" : "Регистрирай ЖВ"}
+                  </Button>
+
+                  <Button
+                    type="button"
+                    variant="outline"
+                    fullWidth
+                    onClick={handleSuccessModalClose}
+                    disabled={isSubmitting}
+                  >
+                    Изчисти
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              /* ==================================================================== */
+              /* СТАНДАРТЕН РЕЖИМ: Оригиналната ти двуколона структура с всички секции*/
+              /* ==================================================================== */
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-8">
               <div className="space-y-6 md:space-y-8" ref={sectionRefs.owner}>
                 <OwnerSection 
@@ -430,6 +563,7 @@ useEffect(() => {
                   errors={errors} 
                   isEditing={isEditing}
                 />
+                
                 
                 <div ref={sectionRefs.basic}>
                   <AnimalBasicSection 
@@ -510,11 +644,11 @@ useEffect(() => {
                   </FormSection>
                 )}
 
-                  <TemperamentSection 
-                    formData={formData} 
-                    handleInputChange={handleInputChange} 
-                    errors={errors} 
-                  />
+                <TemperamentSection 
+                  formData={formData} 
+                  handleInputChange={handleInputChange} 
+                  errors={errors} 
+                />
                 
                 <div ref={sectionRefs.location}>
                   <LocationSection 
@@ -588,7 +722,7 @@ useEffect(() => {
                   </div>
                 </FormSection>
                 
-                {regType === 'neutering' && (
+                {(regType === 'neutering' || regType === 'high-volume') && (
                  <>
                   <AnesthesiaSectionRaw 
                     formData={formData} 
@@ -734,6 +868,7 @@ useEffect(() => {
 
               </div>
             </div>
+          )}
           </form>
         </div>      
       </div>
