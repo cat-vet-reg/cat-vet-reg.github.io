@@ -67,7 +67,7 @@ async function recordAnimal(formData, ownerId) {
         gender                  : formData.gender,
         status                  : formData.status || 'recorded',
         castrated_at            : formData.castratedAt,
-        staff_surgeon           : formData.staffSurgeon || "dr_dimitrova",
+        staff_surgeon           : formData.staffSurgeon || "dr_taneva",
         location_city           : formData.recordCity,
         zona_number             : parseNum(formData.zonaNumber),
         map_coordinates         : mapCoordinatesField,
