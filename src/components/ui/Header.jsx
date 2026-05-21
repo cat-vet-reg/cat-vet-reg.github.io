@@ -101,13 +101,22 @@ const Header = () => {
               </Link>
             </div>
 
-            {/* БУТОН ЗА МОБИЛНО МЕНЮ (Видим само на телефон) */}
-            <button 
-              onClick={toggleMobileMenu} 
-              className="lg:hidden p-2 w-11 h-11 flex items-center justify-center rounded-lg bg-slate-50 text-slate-600 active:bg-slate-100 transition-colors"
-            >
-              <Icon name={isMobileMenuOpen ? 'X' : 'Menu'} size={24} />
-            </button>
+{/* БЪРЗ БУТОН "+" ЗА НОВО ЖИВОТНО (Видим само на телефон) */}
+<button
+  onClick={() => { closeMobileMenu(); window.location.href = '#/cat-registration-form'; }}
+  className="lg:hidden p-2 w-11 h-11 flex items-center justify-center rounded-lg bg-emerald-50 text-emerald-600 active:bg-emerald-100 border border-emerald-100 transition-colors mr-1"
+  title="Нова регистрация"
+>
+  <Icon name="Plus" size={24} />
+</button>
+
+{/* БУТОН ЗА МОБИЛНО МЕНЮ (Видим само на телефон) */}
+<button 
+  onClick={toggleMobileMenu} 
+  className="lg:hidden p-2 w-11 h-11 flex items-center justify-center rounded-lg bg-slate-50 text-slate-600 active:bg-slate-100 transition-colors"
+>
+  <Icon name={isMobileMenuOpen ? 'X' : 'Menu'} size={24} />
+</button>
           </div>
         </div>
       </header>

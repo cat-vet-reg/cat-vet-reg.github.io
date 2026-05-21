@@ -27,7 +27,7 @@ const getDiffInMinutes = (start, end) => {
 
 const AnesthesiaSection = ({ formData, handleInputChange, errors }) => {
   // Контрол на режима (Класически или High-Volume)
-  const [isHighVolume, setIsHighVolume] = useState(false);
+  const [isHighVolume, setIsHighVolume] = useState(true);
 
   // Обединено състояние за всички времеви маркери
   const [stamps, setStamps] = useState({

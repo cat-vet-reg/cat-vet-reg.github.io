@@ -77,7 +77,7 @@ const CatRegistrationForm = () => {
 
   const navigate = useNavigate();
   const location = useLocation(); 
-  const [regType, setRegType] = useState('neutering');
+  const [regType, setRegType] = useState('high-volume');
 
   // Вземаме данните от навигацията
   const editingData = location.state?.catData;
