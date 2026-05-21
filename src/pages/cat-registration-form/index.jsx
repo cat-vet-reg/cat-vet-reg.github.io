@@ -82,7 +82,46 @@ const CatRegistrationForm = () => {
   // Вземаме данните от навигацията
   const editingData = location.state?.catData;
   const [isEditing, setIsEditing] = useState(!!location.state?.isEditing);
-  const [formData, setFormData] = useState(() => mapRecordToForm(editingData));
+const [formData, setFormData] = useState(() => {
+    const initialMapped = mapRecordToForm(editingData);
+    
+    // Ако НЕ редактираме стаж/запис и по подразбиране сме в high-volume режим:
+    if (!editingData && regType === 'high-volume') {
+      return {
+        ...initialMapped,
+        // Данни за собственика от HIGH_VOLUME_DEFAULTS
+        ownerName: HIGH_VOLUME_DEFAULTS.ownerName,
+        ownerPhone: HIGH_VOLUME_DEFAULTS.ownerPhone,
+        ownerAddress: HIGH_VOLUME_DEFAULTS.ownerAddress,
+        ownerEgn: HIGH_VOLUME_DEFAULTS.ownerEgn,
+
+        // Геолокация (Румъния / Питеаска)
+        recordCity: HIGH_VOLUME_DEFAULTS.recordCity,
+        address: HIGH_VOLUME_DEFAULTS.address,
+        zonaNumber: HIGH_VOLUME_DEFAULTS.zonaNumber,
+
+        // Данни за животното
+        ageValue: HIGH_VOLUME_DEFAULTS.ageValue,
+        ageUnit: HIGH_VOLUME_DEFAULTS.ageUnit,
+        birthDate: HIGH_VOLUME_DEFAULTS.birthDate,
+        origin: HIGH_VOLUME_DEFAULTS.origin,
+        livingCondition: HIGH_VOLUME_DEFAULTS.livingCondition,
+        
+        // Медицински детайли
+        castratedAt: HIGH_VOLUME_DEFAULTS.castratedAt,
+        status: HIGH_VOLUME_DEFAULTS.status,
+        isAlreadyCastrated: HIGH_VOLUME_DEFAULTS.isAlreadyCastrated,
+        
+        // Базови стойности, които да не са празни
+        gender: 'female', 
+        species: 'cat',
+        inductionDose: "0.11",
+        reproductiveStatus: "none_visible"
+      };
+    }
+    
+    return initialMapped;
+  });
   const [mapUrl, setMapUrl]     = useState('AIzaSyCSyjPTq09LYc7lcBxotOnv-KBTiEfNbOI');
 
   useEffect(() => {
@@ -343,28 +382,30 @@ useEffect(() => {
   const validateForm = () => {
     const newErrors = {};
 
-  // При High-Volume изискваме САМО пол
-  if (!formData?.gender) {
-    newErrors.gender = "Изберете пол";
-  }
-
+    // 1. ПОЛ - Изисква се ВИНАГИ (и в High-Volume, и в стандартен режим)
     if (!formData?.gender) {
       newErrors.gender = "Изберете пол";
     }
 
-    if (!formData?.ageValue) {
-      newErrors.ageValue = "Въведете възраст";
-    } else if (parseInt(formData.ageValue) <= 0) {
-      newErrors.ageValue = "Възрастта трябва да е положително число";
-    } else if (
-      formData.ageUnit === "months" &&
-      parseInt(formData.ageValue) > 24
-    ) {
-      newErrors.ageValue = "Невалидна възраст в месеци";
-    }
+    // 2. ВЪЗРАСТ И АДРЕС - Изискват се САМО ако НЕ сме в бързия High-Volume режим
+    if (regType !== 'high-volume') {
+      
+      // Проверка за възраст
+      if (!formData?.ageValue) {
+        newErrors.ageValue = "Въведете възраст";
+      } else if (parseInt(formData.ageValue) <= 0) {
+        newErrors.ageValue = "Възрастта трябва да е положително число";
+      } else if (
+        formData.ageUnit === "months" &&
+        parseInt(formData.ageValue) > 24
+      ) {
+        newErrors.ageValue = "Невалидна възраст в месеци";
+      }
 
-    if (!formData?.address?.trim()) {
-      newErrors.address = "Въведете адрес";
+      // Проверка за адрес
+      if (!formData?.address?.trim()) {
+        newErrors.address = "Въведете адрес";
+      }
     }
 
     setErrors(newErrors);
