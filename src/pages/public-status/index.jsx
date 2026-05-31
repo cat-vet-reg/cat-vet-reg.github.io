@@ -149,7 +149,7 @@ export default function PublicStatusCheck() {
               🐾
             </div>
             <p className="text-lg font-bold text-slate-900">Моето животно</p>
-            <p className="text-slate-500 text-xs">Статус и грижи след операция</p>
+            <p className="text-slate-500 text-xs">Виж статус и грижи след операция</p>
           </button>
         </div>
       </div>

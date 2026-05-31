@@ -109,10 +109,15 @@ const GenderRatioChart = ({ male, female, total }) => {
 const AnesthesiaRecoveryChart = ({ data, activeGender, onGenderChange }) => {
   if (!data || data.length === 0) return null;
 
-  // Намираме макс. време за възстановяване за мащабиране на SVG-то
+  // 1. Намираме макс. време за възстановяване за мащабиране на точките (Y2)
   const maxRecovery = Math.max(...data.map(d => parseFloat(d.meanRecovery)), 60);
+  
+  // 2. Намираме макс. доза за правилно мащабиране на стълбчетата (Y1)
+  const maxDose = Math.max(...data.map(d => parseFloat(d.meanDose)), 0.05);
 
-  // Изчисляване на точките за кривата
+  const genderText = activeGender === 'all' ? 'всички' : activeGender === 'male' ? 'мъжки' : 'женски';
+
+  // Изчисляване на точките за кривата (Време за събуждане)
   const points = data.map((item, index) => {
     const x = (index / (data.length - 1)) * 100; // Позиция по X
     const y = 100 - (parseFloat(item.meanRecovery) / (maxRecovery * 1.2)) * 100; // Позиция по Y
@@ -122,19 +127,19 @@ const AnesthesiaRecoveryChart = ({ data, activeGender, onGenderChange }) => {
   const svgPath = `M ${points}`;
 
   return (
-    <div className="bg-card rounded-xl shadow-warm p-6 mb-8 border border-primary/10">
+    <div className="bg-card rounded-xl shadow-warm p-6 mb-8 border border-primary/10 w-full">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
         <div>
           <h2 className="text-xl font-semibold text-foreground flex items-center gap-2">
             <Icon name="Activity" size={20} className="text-primary" />
-            Скорост на възстановяване
+            Ефективност на анестезията: {genderText} котки
           </h2>
           <p className="text-sm text-muted-foreground italic">
-            Доза (мл/кг) спрямо времето за събуждане
+            Средна доза (мл/кг) и време за събуждане спрямо теглото
           </p>
         </div>
 
-        <div className="flex bg-slate-100 p-1 rounded-lg">
+        <div className="flex bg-slate-100 p-1 rounded-lg self-start">
           {['all', 'male', 'female'].map((g) => (
             <button
               key={g}
@@ -152,9 +157,18 @@ const AnesthesiaRecoveryChart = ({ data, activeGender, onGenderChange }) => {
       </div>
 
       <div className="relative h-72 w-full border-b border-l border-slate-200 pb-2 pl-4">
-        {/* Y-axis етикет */}
-        <div className="absolute -left-10 top-1/2 -rotate-90 text-[10px] text-muted-foreground uppercase tracking-widest">
-          Доза (мл/кг)
+        {/* Леви Y-axis етикети (Доза) */}
+        <div className="absolute -left-12 top-0 h-full flex flex-col justify-between text-[9px] text-emerald-600 font-mono py-2">
+          <span>{(maxDose * 1.1).toFixed(3)}</span>
+          <span>{((maxDose * 1.1) / 2).toFixed(3)}</span>
+          <span>0.000</span>
+        </div>
+
+        {/* Десни Y-axis етикети (Събуждане) */}
+        <div className="absolute -right-4 top-0 h-full flex flex-col justify-between text-[9px] text-rose-500 font-mono py-2">
+          <span>{Math.round(maxRecovery * 1.2)}м</span>
+          <span>{Math.round((maxRecovery * 1.2) / 2)}м</span>
+          <span>0м</span>
         </div>
 
         {/* --- SVG КРИВА (за събуждането) --- */}
@@ -164,53 +178,61 @@ const AnesthesiaRecoveryChart = ({ data, activeGender, onGenderChange }) => {
               d={svgPath}
               fill="none"
               stroke="#f43f5e" // rose-500
-              strokeWidth="2"
+              strokeWidth="2.5"
               strokeLinejoin="round"
               strokeLinecap="round"
-              className="opacity-30"
+              className="opacity-60"
             />
           </svg>
         </div>
 
         {/* Контейнер за стълбовете и точките */}
-        <div className="absolute inset-0 flex items-end gap-3 pr-6 pl-6" style={{ left: '12px' }}>
-          {data.map((item, index) => (
-            <div key={index} className="flex-1 flex flex-col items-center group relative h-full justify-end">
-              
-              {/* Tooltip */}
-              <div className="absolute -top-12 opacity-0 group-hover:opacity-100 bg-slate-900 text-white text-[10px] p-2 rounded shadow-xl transition-opacity z-30 pointer-events-none min-w-[100px]">
-                <div className="font-bold border-b border-slate-700 mb-1">{item.weightGroup}</div>
-                <div>Доза: {item.meanDose} мл/кг</div>
-                <div>Възст.: {item.meanRecovery} мин.</div>
-                <div className="text-emerald-400">Котки: {item.count} бр.</div>
-              </div>
+        <div className="absolute inset-0 flex items-end gap-4 pr-6 pl-6" style={{ left: '12px' }}>
+          {data.map((item, index) => {
+            // Изчисляваме височината на стълба спрямо макс. доза (в проценти от контейнера)
+            const doseHeightPercent = (parseFloat(item.meanDose) / (maxDose * 1.1)) * 100;
+            const recoveryBottomPercent = (parseFloat(item.meanRecovery) / (maxRecovery * 1.2)) * 100;
 
-              {/* СТЪЛБ (Доза) */}
-              <div 
-                className="w-full max-w-[32px] rounded-t-sm transition-all duration-500 relative z-10"
-                style={{ 
-                  height: `${Math.min(parseFloat(item.meanDose) * 6000, 240)}px`,
-                  backgroundColor: item.topUpRate > 30 ? '#f59e0b' : 'rgba(16, 185, 129, 0.4)' 
-                }} 
-              >
-                {item.topUpRate > 0 && (
-                  <div className="absolute -top-4 w-full text-[8px] text-center font-bold text-orange-600">
-                    +{item.topUpRate}%
+            return (
+              <div key={index} className="flex-1 flex flex-col items-center group relative h-full justify-end">
+                
+                {/* Tooltip */}
+                <div className="absolute opacity-0 group-hover:opacity-100 bg-slate-900 text-white text-[10px] p-2 rounded shadow-xl transition-opacity z-30 pointer-events-none min-w-[120px]"
+                     style={{ bottom: `${recoveryBottomPercent + 5}%` }}>
+                  <div className="font-bold border-b border-slate-700 mb-1 text-center">{item.weightGroup}</div>
+                  <div>Ср. Доза: <span className="font-mono text-emerald-400">{item.meanDose} мл/кг</span></div>
+                  <div>Ср. Събуждане: <span className="font-mono text-rose-400">{item.meanRecovery} мин.</span></div>
+                  <div className="text-slate-400 mt-1 text-[9px]">
+                    Честота на добавяне: {item.topUpRate}%
                   </div>
-                )}
-              </div>
-              
-              {/* ТОЧКА (Възстановяване) - вече е върху кривата */}
-              <div 
-                className="absolute w-3 h-3 bg-rose-500 rounded-full border-2 border-white shadow-md z-20 transition-all duration-500"
-                style={{ bottom: `${(parseFloat(item.meanRecovery) / (maxRecovery * 1.2)) * 100}%`, transform: 'translateY(50%)' }}
-              ></div>
+                  <div className="text-slate-400 text-[9px]">Общо пациенти: {item.count} бр.</div>
+                </div>
 
-              <span className="text-[10px] absolute -bottom-6 text-muted-foreground font-bold font-mono">
-                {item.weightGroup}
-              </span>
-            </div>
-          ))}
+                {/* СТЪЛБ (Доза мл/кг) */}
+                <div 
+                  className="w-full max-w-[24px] rounded-t-sm transition-all duration-500 relative z-10"
+                  style={{ 
+                    height: `${doseHeightPercent}%`,
+                    // Ако над 30% от котките в групата са имали нужда от допълнителна упойка, оцветяваме в оранжево
+                    backgroundColor: item.topUpRate > 30 ? 'rgba(245, 158, 11, 0.5)' : 'rgba(16, 185, 129, 0.4)',
+                    borderTop: item.topUpRate > 30 ? '1px solid #f59e0b' : '1px solid #10b981'
+                  }} 
+                >
+                </div>
+                
+                {/* ТОЧКА (Възстановяване в минути) */}
+                <div 
+                  className="absolute w-3 h-3 bg-rose-500 rounded-full border-2 border-white shadow-md z-20 hover:scale-150 transition-transform cursor-pointer"
+                  style={{ bottom: `${recoveryBottomPercent}%`, transform: 'translateY(50%)' }}
+                ></div>
+
+                {/* Етикет за Х-оста (Тегло) */}
+                <span className="text-[10px] absolute -bottom-6 text-muted-foreground font-bold font-mono">
+                  {item.weightGroup}
+                </span>
+              </div>
+            );
+          })}
         </div>
       </div>
 
@@ -222,7 +244,7 @@ const AnesthesiaRecoveryChart = ({ data, activeGender, onGenderChange }) => {
         </div>
         <div className="flex items-center gap-2">
           <div className="w-3 h-3 bg-rose-500 rounded-full"></div>
-          <div className="w-6 h-[2px] bg-rose-500/30 -ml-1"></div>
+          <div className="w-6 h-[2px] bg-rose-500/60 -ml-1"></div>
           <span className="text-xs font-medium text-slate-600">Събуждане (мин)</span>
         </div>
       </div>
