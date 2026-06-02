@@ -300,7 +300,7 @@ const Calendar = () => {
     syringes_oneml: "Спринцовки 1мл",
     syringes_twoml: "Спринцовки 2мл",
     catheters: "Абокати",
-    drape_60_90: "Подложки 60/90",
+    drape_60_90: "Ст. кърпи 60/90",
     shotapen_ml: "Шотапен (мл)",
     rheumocam_ml: "Ревмокам (мл)",
     fipronil_ml: "Фипронил (мл)",

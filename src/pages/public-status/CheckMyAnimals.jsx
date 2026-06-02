@@ -82,44 +82,7 @@ export default function CheckMyAnimals({ animalData }) {
               </div>
             </div>
 
-            {/* СЕКЦИЯ ДАРЕНИЕ */}
-            <div className={`p-6 rounded-2xl border transition-all ${
-              animalData.data?.hasDonation || animalData.data?.donationAmount > 0 
-              ? 'bg-emerald-50 border-emerald-100' 
-              : 'bg-amber-50 border-amber-100 shadow-inner'
-            }`}>
-              <div className="flex items-start gap-4">
-                <div className={`p-3 rounded-full ${
-                  animalData.data?.hasDonation || animalData.data?.donationAmount > 0 ? 'bg-emerald-500' : 'bg-amber-500'
-                } text-white`}>
-                  {/* Икона Сърце */}
-                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>
-                </div>
-                
-                <div className="space-y-2">
-                  <h3 className={`text-lg font-black uppercase tracking-tight ${
-                    animalData.data?.hasDonation || animalData.data?.donationAmount > 0 ? 'text-emerald-800' : 'text-amber-800'
-                  }`}>
-                    {animalData.data?.hasDonation || animalData.data?.donationAmount > 0 ? 'Благодарим за подкрепата!' : 'Вашето дарение е важно'}
-                  </h3>
-                  
-                  {animalData.data?.hasDonation || animalData.data?.donationAmount > 0 ? (
-                    <p className="text-emerald-700 text-sm leading-relaxed">
-                      Вашето дарение помага на центъра да продължи да предлага тези услуги безплатно за бездомни животни. Благодарим Ви, че сте част от промяната!
-                    </p>
-                  ) : (
-                    <div className="space-y-3">
-                      <p className="text-amber-900 text-sm leading-relaxed font-medium">
-                        Всички кастрации и прегледи в нашия център се финансират изцяло от дарения. Вашата подкрепа днес ще ни позволи да помогнем на следващото животно в беда.
-                      </p>
-                      <p className="text-amber-800 text-xs italic">
-                        * Можете да оставите дарение на място при получаване на животното. Самото дарение може да е парично или под формата на консумативи - пакети нестерилни марли, пелени 60х90 см, нестерилни S и M ръкавици, белина и др.
-                      </p>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
+
             
             <div className="space-y-6">
               <div className="border-l-4 border-blue-600 pl-4">
@@ -215,6 +178,45 @@ export default function CheckMyAnimals({ animalData }) {
               </div>
             );
           })}
+
+                      {/* СЕКЦИЯ ДАРЕНИЕ */}
+            <div className={`p-6 rounded-2xl border transition-all ${
+              animalData.data?.hasDonation || animalData.data?.donationAmount > 0 
+              ? 'bg-emerald-50 border-emerald-100' 
+              : 'bg-amber-50 border-amber-100 shadow-inner'
+            }`}>
+              <div className="flex items-start gap-4">
+                <div className={`p-3 rounded-full ${
+                  animalData.data?.hasDonation || animalData.data?.donationAmount > 0 ? 'bg-emerald-500' : 'bg-amber-500'
+                } text-white`}>
+                  {/* Икона Сърце */}
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>
+                </div>
+                
+                <div className="space-y-2">
+                  <h3 className={`text-lg font-black uppercase tracking-tight ${
+                    animalData.data?.hasDonation || animalData.data?.donationAmount > 0 ? 'text-emerald-800' : 'text-amber-800'
+                  }`}>
+                    {animalData.data?.hasDonation || animalData.data?.donationAmount > 0 ? 'Благодарим за подкрепата!' : 'Вашето дарение е важно'}
+                  </h3>
+                  
+                  {animalData.data?.hasDonation || animalData.data?.donationAmount > 0 ? (
+                    <p className="text-emerald-700 text-sm leading-relaxed">
+                      Вашето дарение помага на центъра да продължи да предлага тези услуги безплатно за бездомни животни. Благодарим Ви, че сте част от промяната!
+                    </p>
+                  ) : (
+                    <div className="space-y-3">
+                      <p className="text-amber-900 text-sm leading-relaxed font-medium">
+                        Всички кастрации и прегледи в нашия център се финансират изцяло от дарения. Вашата подкрепа днес ще ни позволи да помогнем на следващото животно в беда.
+                      </p>
+                      <p className="text-amber-800 text-xs italic">
+                        * Можете да оставите дарение на място при получаване на животното. Самото дарение може да е парично или под формата на консумативи - пакети нестерилни марли, пелени 60х90 см, нестерилни S и M ръкавици, белина и др.
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
 
         </div>
       </div>

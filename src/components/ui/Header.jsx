@@ -39,7 +39,7 @@ const Header = () => {
           
           {/* ЛОГО И ОСНОВНО МЕНЮ (DESKTOP) */}
           <div className="flex items-center gap-4">
-            <Link to="/dashboard-overview" className="flex items-center gap-2 mr-2" onClick={closeMobileMenu}>
+            <Link to="/cat-registry-list" className="flex items-center gap-2 mr-2" onClick={closeMobileMenu}>
               <img src="/nancy-cat-vet.png" alt="Logo" className="w-8 h-8 object-contain" />
               <span className="text-lg font-bold text-slate-800 hidden xl:block">Nancy Vet</span>
             </Link>
