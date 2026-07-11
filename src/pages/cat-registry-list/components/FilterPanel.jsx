@@ -42,7 +42,7 @@ const FilterPanel = ({
             <Input
               type="search"
               label="Бързо търсене"
-              placeholder="Търси по име, адрес или телефон..."
+              placeholder="Търси по име, адрес, телефон или ушна марка..."
               value={filters?.search}
               onChange={(e) => onFilterChange('search', e?.target?.value)}
               className="w-full"

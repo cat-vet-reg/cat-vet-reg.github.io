@@ -1,19 +1,18 @@
 import React, { useState, useEffect } from "react";
-import * as XLSX from 'xlsx';
-import jsPDF from 'jspdf';
-import autoTable from 'jspdf-autotable';
+import * as XLSX    from 'xlsx';
+import jsPDF        from 'jspdf';
+import autoTable    from 'jspdf-autotable';
 import './CalendarCustom.css';
 import FullCalendar       from '@fullcalendar/react';
 import dayGridPlugin      from '@fullcalendar/daygrid';
 import timeGridPlugin     from '@fullcalendar/timegrid';
 import supabase           from "utils/supabase";
 import { useNavigate }    from 'react-router-dom';
-import { color }          from "d3";
 import interactionPlugin  from '@fullcalendar/interaction';
-import { useRef }                           from 'react';
+import { useRef }         from 'react';
 
 
-const Calendar = () => {
+const Calendar = ({ selectedDate, onEditEvent }) => {
 
   const [myEvents, setMyEvents] = useState([]);
   const navigate = useNavigate();
@@ -21,15 +20,22 @@ const Calendar = () => {
   const [weeklyStats, setWeeklyStats] = useState({ male: 0, female: 0, total: 0 });
   const calendarRef = useRef(null);
 
+  const visitTypeLabels = {
+    castration: { label: "Кастрация", icon: "✂️" },
+    checkup: { label: "Преглед", icon: "🩺" },
+    vaccine: { label: "Ваксина", icon: "💉" },
+    surgery: { label: "Операция", icon: "🏥" }
+  };
+
   const handleEdit = (info) => {
     // Проверка: ако кликнатият елемент е бутон или вътре в бутон, не прави нищо
     if (info.jsEvent.target.closest('button')) {
       return;
     }
 
-    navigate('/cat-registration-form', { 
-      state: { catData: info.event.extendedProps.data, isEditing: true } 
-    });
+if (onEditEvent) {
+      onEditEvent(info.event.extendedProps.data);
+    }
   };
   
   // ФУНКЦИЯ ЗА ЗАРЕЖДАНЕ
@@ -50,39 +56,72 @@ const Calendar = () => {
     
     // Подготовка на животните
     const animalEvents = (records || []).map(element => {
-
-      // 1. ПРОВЕРКА: Ако няма дата за кастрация, животното е за лечение и не го показваме в графика
-    if (!element.castrated_at) {
-        return null; 
-    }
+      if (!element.castrated_at) {
+          return null; 
+      }
 
       const dateKey = element.castrated_at.split('T')[0];
       const today = new Date();
       today.setHours(0, 0, 0, 0);
 
       const eventDate = new Date(element.castrated_at);
-      eventDate.setHours(0, 0, 0, 0);
-
       const isPast = eventDate < today;
       
-      // КОРИГИРАНО: елементът сам по себе си е записа
       const rawGender = element.gender || element.data?.gender;
       const isMale = rawGender === 'male';
 
-      if (!counts[dateKey]) counts[dateKey] = { male: 0, female : 0 };
-      if (isMale) counts[dateKey].male++;
-      else counts[dateKey].female++;
+      // Броене на кастрациите за деня (само ако типът е кастрация или не е дефиниран)
+      const currentVisitType = element.visit_type || 'castration';
+      if (currentVisitType === 'castration') {
+        if (!counts[dateKey]) counts[dateKey] = { male: 0, female : 0 };
+        if (isMale) counts[dateKey].male++;
+        else counts[dateKey].female++;
+      }
 
-      let eventColor = isPast ? '#dedede' : (isMale ? '#dbeafe' : '#ffe4e6');
+      // Цветова схема според типа процедура (ако не е минало събитие)
+      let eventColor = '#ffe4e6'; // по подразбиране женска кастрация
+      let borderColor = '#f43f5e';
+      
+      if (isPast) {
+        eventColor = '#dedede';
+        borderColor = '#ccc';
+      } else {
+        switch(currentVisitType) {
+          case 'checkup':
+            eventColor = '#e0f2fe'; // светло синьо
+            borderColor = '#0284c7';
+            break;
+          case 'vaccine':
+            eventColor = '#f0fdf4'; // светло зелено
+            borderColor = '#22c55e';
+            break;
+          case 'surgery':
+            eventColor = '#faf5ff'; // лилаво
+            borderColor = '#a855f7';
+            break;
+          default:
+            eventColor = isMale ? '#dbeafe' : '#ffe4e6';
+            borderColor = isMale ? '#3b82f6' : '#f43f5e';
+        }
+      }
+
       const genderSym = isMale ? "♂️" : "♀️";
       const species = (element.species || element.data?.species || 'Котка');
+
+      // Екстрактване на час, ако има такъв в ISO стринга
+      const hasTime = element.castrated_at.includes('T') && element.castrated_at.split('T')[1] !== '00:00:00';
 
       return {
         id: element.id.toString(),
         title: `${genderSym} ${species} - ${element.owner?.name}`, 
         start: element.castrated_at,
+        allDay: !hasTime, // Ако има реален час, се позиционира правилно в timeGridWeek
+        backgroundColor: eventColor,
+        borderColor: borderColor,
+        textColor: isPast ? '#666' : '#000',
         extendedProps: { 
-          type: 'animal', // Важно за разграничаване
+          type: 'animal',
+          visitType: currentVisitType,
           phone: element.owner?.phone, 
           gender: genderSym,
           isMale: isMale,
@@ -90,10 +129,7 @@ const Calendar = () => {
           ownerName: element.owner?.name,
           displayId: element.id.toString().slice(-4),
           data: element 
-        },
-        backgroundColor: eventColor,
-        borderColor: isPast ? '#ccc' : (isMale ? '#3b82f6' : '#f43f5e'),
-        textColor: isPast ? '#666' : '#000'
+        }
       };
     }).filter(ev => ev !== null);
 
@@ -119,7 +155,7 @@ const Calendar = () => {
 
   // ФУНКЦИЯ ЗА ДОБАВЯНЕ НА БЕЛЕЖКА (Отпуска/Празник)
   const handleDateClick = async (arg) => {
-    const note = window.prompt("Въведете бележка (напр. 'Д-р Петрова - отпуска' или 'Почивен ден'):");
+    const note = window.prompt("Въведете бележка (напр. 'Д-р Танева - отпуска' или 'Почивен ден'):");
     if (!note) return;
 
     const type = window.confirm("Това официален празник ли е? (Cancel за отпуска/отсъствие)") ? 'holiday' : 'leave';
@@ -131,21 +167,34 @@ const Calendar = () => {
     if (!error) loadCalendarData();
   };
 
+  // ОБЕДИНЕНА И КОРИГИРАНА ФУНКЦИЯ ЗА КЛИК ВЪРХУ СЪБИТИЕ
   const handleEventClick = (info) => {
-    // Ако е административно събитие, можем да го изтрием
+    // Проверка: ако е кликнато върху вътрешен бутон (изтриване, прием, пропуснат), не прави нищо
+    if (info.jsEvent.target.closest('button')) return;
+
+    // Ако е административно събитие
     if (info.event.extendedProps.type === 'admin') {
       if (window.confirm("Изтриване на тази бележка?")) {
         const id = info.event.id.replace('admin-', '');
-        supabase.from('td_calendar_events').delete().eq('id', id).then(() => loadCalendarData());
+        supabase.from('td_calendar_events')
+          .delete()
+          .eq('id', id)
+          .then(() => loadCalendarData());
       }
       return;
     }
     
-    // Ако е животно - стандартната логика за редакция
-    if (info.jsEvent.target.closest('button')) return;
-    navigate('/cat-registration-form', { 
-      state: { catData: info.event.extendedProps.data, isEditing: true } 
-    });
+// Клик по самото събитие
+    if (onEditEvent) {
+      onEditEvent(info.event.extendedProps.data);
+    }
+  };
+
+  // Можете да махнете или пренапишете navigateToEdit, ако се вика от иконата на моливчето:
+  const navigateToEdit = (catData) => {
+    if (onEditEvent) {
+      onEditEvent(catData);
+    }
   };
 
   useEffect(() => {
@@ -153,26 +202,24 @@ const Calendar = () => {
   }, []);
 
   const handleDelete = async (e, id) => {
-      e.stopPropagation();
+    e.stopPropagation();
+    if (!window.confirm("Сигурни ли сте, че искате да изтриете този час?")) return;
+    try {
+        const { error } = await supabase
+            .from('td_records')
+            .delete()
+            .eq('id', id);
 
-      if (!window.confirm("Сигурни ли сте, че искате да изтриете този час?")) return;
+        if (error) throw error;
 
-      try {
-          const { error } = await supabase
-              .from('td_records')
-              .delete()
-              .eq('id', id);
-
-          if (error) throw error;
-
-          // Вместо само да филтрираме, викаме функцията за зареждане,
-          // за да сме 100% сигурни, че данните са актуални
-          await loadCalendarData();
-          
-      } catch (err) {
-          console.error("Грешка при триене:", err.message);
-          alert("Възникна грешка при триенето.");
-      }
+        // Вместо само да филтрираме, викаме функцията за зареждане,
+        // за да сме 100% сигурни, че данните са актуални
+        await loadCalendarData();
+        
+    } catch (err) {
+        console.error("Грешка при триене:", err.message);
+        alert("Възникна грешка при триенето.");
+    }
   };
 
   const handleEventDrop = async (info) => {
@@ -310,6 +357,13 @@ const Calendar = () => {
   };
 
   const exportWeeklyPDF = (currentView) => {
+
+    // ЗАШТИТА: Ако не сме в седмичен изглед, предупреждаваме потребителя
+    if (currentView.type !== 'dayGridWeek') {
+      alert("Моля, превключете на изглед 'Седмица', за да генеририте този отчет правилно.");
+      return;
+    }
+
     const start = currentView.activeStart;
     const end = currentView.activeEnd;
 
@@ -429,20 +483,20 @@ const Calendar = () => {
     <div className="mt-10 bg-card p-6 rounded-xl shadow-lg border border-border calendar-container">
       {/* Бутон за Експорт */}
       <div className="flex justify-end gap-3 mb-4 no-print">
-<button
-  onClick={() => {
-    const api = calendarRef.current.getApi();
-    exportWeeklyPDF(api.view);
-  }}
-  className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-bold shadow-md"
->
-  🖨️ ПРИНТИРАЙ ТАЗИ СЕДМИЦА
-</button>
+        <button
+          onClick={() => {
+            const api = calendarRef.current.getApi();
+            exportWeeklyPDF(api.view);
+          }}
+          className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-bold shadow-md"
+        >
+          🖨️ ПРИНТИРАЙ ТАЗИ СЕДМИЦА
+        </button>
       </div>
       <FullCalendar
         ref={calendarRef}
         datesSet={handleDatesSet}
-        eventClick={handleEdit}
+        eventClick={handleEventClick}
         dateClick={handleDateClick}
         dayMaxEvents={false}
         plugins={[ dayGridPlugin, timeGridPlugin, interactionPlugin ]}
@@ -450,7 +504,9 @@ const Calendar = () => {
         eventDrop={handleEventDrop}
         initialView={initialView}
         locale="bg"
-        allDaySlot={false} // Скриваме all-day за по-чист изглед
+        allDaySlot={true} // Позволява застъпване на целодневни бележки
+        slotMinTime="08:00:00" // Отрежете графика за работно време
+        slotMaxTime="20:00:00"
         slotLabelFormat={{ hour: '2-digit', minute: '2-digit', hour12: false }} // 24ч формат
         headerToolbar={{
           left: 'prev,next today',
@@ -504,81 +560,72 @@ const Calendar = () => {
           }
 
           // АКО Е ЖИВОТНО (Вадим данните само ако е animal)
-          const { isMale, gender, species, phone, ownerName, displayId, data } = eventInfo.event.extendedProps;
+          const { isMale, gender, species, phone, ownerName, displayId, data, visitType } = eventInfo.event.extendedProps;
           const isPast = eventInfo.event.backgroundColor === '#dedede';
           const currentStatus = data?.status;
           const isAtClinic = !['recorded', 'missed', undefined, null].includes(currentStatus);
+          
+          // Извличане на форматиран час (напр. "09:30")
+          const formattedTime = eventInfo.event.start 
+            ? new Date(eventInfo.event.start).toLocaleTimeString('bg-BG', { hour: '2-digit', minute: '2-digit' }) 
+            : '';
+
+          const visitConfig = visitTypeLabels[visitType] || { label: "Процедура", icon: "🐾" };
+
           return (
-            <div className="p-1 overflow-hidden text-[10px] sm:text-xs cursor-pointer hover:brightness-95 transition-all leading-tight relative">
-              <button 
-                onTouchStart={(e) => e.stopPropagation()}
-                onClick={(e) => {
-                    if (isAtClinic) return; // Спираме действието, ако вече е прието
-                    handleReceive(e, eventInfo.event.id);
-                }}
-                className={`absolute top-0 right-14 p-1 font-bold transition-transform hover:scale-120 ${
-                    isAtClinic 
-                    ? 'text-green-600' 
-                    : 'text-gray-400 hover:text-green-500'
-                }`}
-                title="Маркирай като пристигнало (Received)"
-              >
-                {/* Ако е в клиниката (който и да е работен статус), показваме тикче */}
-                {isAtClinic ? '✅' : '📥'}
-              </button>
-              {/* Промяна и на зелената точка (пулсацията) */}
-              {isAtClinic && (
-                  <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse" title="Животното е в клиниката" />
-              )}
-              <button 
-                onTouchStart={(e) => e.stopPropagation()}
-                onClick={(e) => handleDelete(e, eventInfo.event.id)}
-                className="absolute top-0 right-0 p-1 text-red-500/50 hover:text-red-600 hover:bg-red-50 rounded-bl-lg transition-colors z-50 font-bold"
-                title="Изтрий часа"
-              >
-                ✕ 
-              </button>
-
-              <button 
-                  onTouchStart={(e) => e.stopPropagation()}
-                  onClick={(e) => handleMissed(e, eventInfo.event.id)}
-                  className="absolute top-0 right-7 p-1 text-orange-500 hover:text-orange-700 font-bold"
-                  title="Маркирай като пропуснат"
-              >
+            <div className="p-1 text-[10px] sm:text-xs cursor-pointer relative flex flex-col gap-0.5 group">
+              {/* Бутони за бързи действия в десния ъгъл */}
+              <div className="absolute top-0 right-0 hidden group-hover:flex items-center bg-white/80 backdrop-blur-xs rounded-bl-md shadow-sm z-50">
+                <button 
+                  onClick={(e) => { e.stopPropagation(); handleReceive(e, eventInfo.event.id); }}
+                  className={`p-1 font-bold ${isAtClinic ? 'text-green-600' : 'text-gray-400 hover:text-green-500'}`}
+                  title="Пристигнал"
+                >
+                  {isAtClinic ? '✅' : '📥'}
+                </button>
+                <button 
+                  onClick={(e) => { e.stopPropagation(); handleMissed(e, eventInfo.event.id); }}
+                  className="p-1 text-orange-500 hover:text-orange-700 font-bold"
+                  title="Пропуснат"
+                >
                   🚫
-              </button>
+                </button>
+                {/* НОВИЯТ БУТОН ЗА РЕДАКЦИЯ */}
+                <button 
+                  onClick={(e) => { e.stopPropagation(); navigateToEdit(data); }}
+                  className="p-1 text-blue-600 hover:text-blue-800 font-bold"
+                  title="Редактирай"
+                >
+                  ✏️
+                </button>
+                <button 
+                  onClick={(e) => handleDelete(e, eventInfo.event.id)}
+                  className="p-1 text-red-500 hover:text-red-700 font-bold"
+                  title="Изтрий"
+                >
+                  ✕
+                </button>
+              </div>
 
-              {/* Основен акцент: ПОЛ И ВИД */}
-              <div className="font-bold flex items-center justify-between mb-0.5 border-b border-black/5 pb-0.5">
-                <div className="flex items-center gap-1">
-                  <span style={{ 
-                    color: isPast ? '#666' : (isMale ? '#1d4ed8' : '#be123c'), 
-                    fontSize: '14px'
-                  }}>
-                    {gender}
-                  </span> 
-                  <span className={isPast ? "text-gray-500" : "text-black"}>
-                    {species.toUpperCase()}
-                  </span>
-                </div>
-              
-                {/* ID НОМЕР - откроен в малко сиво правоъгълниче */}
-                {eventInfo.event.extendedProps.data.status === 'received' && (
-                  <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse" title="Прието в центъра" />
-                )}
-                <span className="bg-black/5 px-1 rounded text-[9px] text-gray-600 font-mono">
-                  #{displayId}
+              {/* РЕД 1: Час и Тип процедура (Нов акцент!) */}
+              <div className="font-black text-blue-900 flex items-center gap-1 text-[11px]">
+                {formattedTime && <span className="bg-white/60 px-1 rounded border border-black/5">{formattedTime} ч.</span>}
+                <span className="truncate" title={visitConfig.label}>
+                  {visitConfig.icon} {visitConfig.label.toUpperCase()}
                 </span>
               </div>
+
+              {/* РЕД 2: Пол и Вид на животното */}
+              <div className="font-bold flex items-center gap-1 border-b border-black/5 pb-0.5">
+                <span style={{ color: isPast ? '#666' : (isMale ? '#1d4ed8' : '#be123c') }}>{gender}</span> 
+                <span className="truncate">{species.toUpperCase()}</span>
+                {isAtClinic && <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse inline-block" />}
+                <span className="ml-auto text-[9px] text-gray-500 font-mono">#{displayId}</span>
+              </div>
               
-              {/* Вторичен план: СОБСТВЕНИК И ТЕЛЕФОН */}
-              <div className="flex flex-col text-gray-500 border-t border-black/5 mt-0.5 pt-0.5 font-normal">
-                <span className="truncate italic">
-                  {ownerName || "—"}
-                </span>
-                <span className="text-[9px] tracking-tighter opacity-80">
-                  {phone || "няма тел."}
-                </span>
+              {/* РЕД 3: Стопанин */}
+              <div className="text-gray-600 truncate font-medium">
+                {ownerName || "—"} {phone ? `(${phone})` : ''}
               </div>
             </div>
           );
@@ -596,36 +643,36 @@ const Calendar = () => {
         
         <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm col-span-2">
           <h4 className="text-xs uppercase text-slate-500 font-bold mb-2">Нужни консумативи (прогноза)</h4>
-<div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm col-span-full">
-  <h4 className="text-xs uppercase text-slate-500 font-black mb-4 flex items-center gap-2">
-    <span className="w-2 h-2 bg-blue-500 rounded-full"></span>
-    Прогноза за нужни консумативи (Седмичен отчет)
-  </h4>
-  
-  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
-    {Object.entries(supplyLabels).map(([key, label]) => {
-      const amount = weeklyStats.total * (suppliesConfig[key] || 0);
-      
-      return (
-        <div key={key} className="flex items-center gap-3 p-2 rounded-lg border border-slate-50 hover:bg-slate-50 transition-colors">
-          <div className="w-8 h-8 bg-slate-100 rounded flex items-center justify-center text-lg shadow-sm">
-            {key.includes('needle') || key.includes('catheter') ? '📍' : 
-             key.includes('syringe') ? '💉' : 
-             key.includes('_ml') ? '🧪' : '📦'}
+          <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm col-span-full">
+            <h4 className="text-xs uppercase text-slate-500 font-black mb-4 flex items-center gap-2">
+              <span className="w-2 h-2 bg-blue-500 rounded-full"></span>
+              Прогноза за нужни консумативи (Седмичен отчет)
+            </h4>
+            
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
+              {Object.entries(supplyLabels).map(([key, label]) => {
+                const amount = weeklyStats.total * (suppliesConfig[key] || 0);
+                
+                return (
+                  <div key={key} className="flex items-center gap-3 p-2 rounded-lg border border-slate-50 hover:bg-slate-50 transition-colors">
+                    <div className="w-8 h-8 bg-slate-100 rounded flex items-center justify-center text-lg shadow-sm">
+                      {key.includes('needle') || key.includes('catheter') ? '📍' : 
+                      key.includes('syringe') ? '💉' : 
+                      key.includes('_ml') ? '🧪' : '📦'}
+                    </div>
+                    <div className="flex flex-col min-w-0">
+                      <span className="text-[13px] font-bold text-slate-700 truncate leading-tight">
+                        {amount.toLocaleString()} <small className="text-[10px] font-normal text-slate-400 uppercase">{key.includes('_ml') ? 'мл' : 'бр'}</small>
+                      </span>
+                      <span className="text-[10px] text-slate-500 truncate uppercase tracking-tighter">
+                        {label}
+                      </span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
           </div>
-          <div className="flex flex-col min-w-0">
-            <span className="text-[13px] font-bold text-slate-700 truncate leading-tight">
-              {amount.toLocaleString()} <small className="text-[10px] font-normal text-slate-400 uppercase">{key.includes('_ml') ? 'мл' : 'бр'}</small>
-            </span>
-            <span className="text-[10px] text-slate-500 truncate uppercase tracking-tighter">
-              {label}
-            </span>
-          </div>
-        </div>
-      );
-    })}
-  </div>
-</div>
         </div>
       </div>
 
@@ -641,6 +688,8 @@ const Calendar = () => {
             <li>• <strong>Редакция:</strong> Кликнете върху името на стопанина, за да отворите формата за редакция.</li>
             <li>• <strong>Изтриване:</strong> Кликнете върху червения хикс, за да я премахнете от графика.</li>
             <li>• <strong>Почивен ден/отпуска:</strong> Кликнете върху дадения ден два пъти, при което въведете "Почивен ден" или "Отпуска".</li>
+            <li>• <strong>Бутон Редакция (✏️):</strong> Появява се в горния десен ъгъл при посочване на часа с мишката.</li>
+            <li>• <strong>Изгледи:</strong> Използвайте бутона "Седмица" или "Ден" горе вдясно за детайлно разписание по часове.</li>
           </ul>
         </div>
 

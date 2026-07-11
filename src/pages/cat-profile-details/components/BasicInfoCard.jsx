@@ -27,7 +27,7 @@ const BasicInfoCard = ({ cat }) => {
   const formattedBirthDate = birthDateValue ? convertDate(birthDateValue) : '—';
   
   const castratedAt = cat?.castrated_at ? convertDate(cat.castrated_at) : null;
-  const rawHasComp = cat?.has_complications || cat?.hasComplications || cat?.data?.has_complications;
+  const rawHasComp = cat?.has_complications;
   const hasComp = rawHasComp?.toString().toUpperCase() === 'Y';
   const selectedKeys = 
     cat?.selectedComplications || 
@@ -36,10 +36,10 @@ const BasicInfoCard = ({ cat }) => {
     cat?.data?.selected_complications || 
     [];
 
-  const rawEarStatus = cat?.earStatus || cat?.ear_status || cat?.data?.earStatus;
+  const rawEarStatus = cat?.medical_details.ear_status;
   const isMarked = rawStatus => {
     const s = rawStatus?.toString().toLowerCase();
-    return s === 'y' || s === 'marked' || s === 'yes';
+    return s === 'Y' || s === 'marked' || s === 'yes';
   };
   const hasEarMarked = isMarked(rawEarStatus);
 

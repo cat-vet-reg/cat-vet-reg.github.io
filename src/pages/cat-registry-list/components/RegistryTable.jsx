@@ -17,6 +17,7 @@ import { statusOptions } from "../../../constants/formOptions";
 const RegistryTable = ({ 
   cats, 
   isClinicalView, // Важно: приемаме го от родителя
+  isTreatmentView, // от родителя
   currentPage, // Приемаме го
   pageSize,
   selectedCats,
@@ -49,7 +50,113 @@ const RegistryTable = ({
     };
   };
 
-  // 1. РЕЖИМ АМБУЛАТОРЕН ДНЕВНИК
+
+
+// =========================================================================
+  // НОВ РЕЖИМ 3: РЕГИСТЪР ЗА ЛЕЧЕНИЕ (Задейства се при натиснат бутон "Лекуващи се")
+  // =========================================================================
+  if (isTreatmentView && !isClinicalView) {
+    return (
+      <div className="bg-card rounded-lg shadow-warm overflow-hidden border">
+        <div className="overflow-x-auto scrollbar-custom">
+          <table className="w-full border-collapse">
+            <thead className="bg-amber-50/60"> {/* Различен нюанс за визуален комфорт */}
+              <tr>
+                {[
+                  { id: 'patient', label: 'Пациент' },
+                  { id: 'species', label: 'Вид' },
+                  { id: 'owner', label: 'Собственик' },
+                  { id: 'anamnesis', label: 'Последна анамнеза' },
+                  { id: 'diseases', label: 'Заболявания' },
+                  { id: 'treatment', label: 'Лечение' },
+                  { id: 'actions', label: 'Действия', alignRight: true }
+                ].map(col => (
+                  <th key={col.id} className={`px-4 py-3.5 text-xs font-bold uppercase border-b border-border text-muted-foreground tracking-wider ${col.alignRight ? 'text-right' : 'text-left'}`}>
+                    {col.label}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-border bg-white">
+              {cats?.map((cat) => {
+                // Извличане на най-новия протокол (последния елемент в масива)
+                const protocols = cat.td_protocols || [];
+                const lastProtocol = protocols.length > 0 ? protocols[protocols.length - 1] : null;
+                
+                // Взимане на анамнезата и лечението от базата данни (проверява и двата възможни модела данни)
+                const lastAnamnesis = lastProtocol?.data?.anamnesis || lastProtocol?.anamnesis || "—";
+                const lastTreatment = lastProtocol?.data?.treatment || lastProtocol?.treatment || "—";
+
+                return (
+                  <tr key={cat.uId || cat.id} className="hover:bg-slate-50/80 transition-colors align-middle">
+                    
+                    {/* Пациент (Име и Номер) */}
+                    <td className="px-4 py-3">
+                      <div className="font-bold text-slate-950">
+                        {cat.recordName?.startsWith('Котка №') ? cat.recordName : cat.recordName || `Пациент #${cat.id}`}
+                      </div>
+                      <div className="text-[10px] font-mono text-muted-foreground mt-0.5">Амб. №{cat.id}</div>
+                    </td>
+
+                    {/* Вид (Икона, Пол, Порода) */}
+                    <td className="px-4 py-3 text-sm">
+                      <div className="flex items-center gap-1.5 font-medium text-slate-700">
+                        <Icon name={cat.species === 'dog' ? 'Dog' : 'Cat'} size={16} className="text-muted-foreground" />
+                        <span>{cat.species === 'dog' ? 'Куче' : 'Котка'}</span>
+                        <Icon 
+                          name={cat.gender === 'male' ? 'Mars' : 'Venus'} 
+                          size={13} 
+                          color={cat.gender === 'male' ? 'var(--color-primary)' : 'var(--color-secondary)'} 
+                        />
+                      </div>
+                      <div className="text-xs text-muted-foreground/80 mt-0.5">
+                        {breedOptions.find(opt => opt.value === cat?.data?.breed)?.label || cat?.data?.breed || 'Смесена'}
+                      </div>
+                    </td>
+
+                    {/* Собственик (Име и Телефон) */}
+                    <td className="px-4 py-3 text-sm">
+                      <div className="font-semibold text-slate-800">{cat.ownerName}</div>
+                      <div className="text-xs text-muted-foreground mt-0.5">{cat.ownerPhone || '—'}</div>
+                    </td>
+
+                    {/* Последна анамнеза */}
+                    <td className="px-4 py-3 text-xs text-slate-600 max-w-[250px] truncate-2-lines italic">
+                      {lastAnamnesis}
+                    </td>
+
+                    {/* Заболявания */}
+                    <td className="px-6 py-4">
+                      <span className="text-xs font-medium text-amber-700 bg-amber-50 px-2 py-1 rounded-md break-words border border-amber-100">
+                        {cat.diagnosis || cat.diagnoses || "-"}
+                      </span>
+                    </td>
+
+                    {/* Лечение */}
+                    <td className="px-4 py-3 text-xs text-slate-700 font-medium max-w-[250px] truncate-2-lines">
+                      {lastTreatment}
+                    </td>
+
+                    {/* Действия */}
+                    <td className="px-4 py-3 text-right">
+                      <div className="flex justify-end gap-1.5">
+                        <Button variant="ghost" size="icon" iconName="Eye" onClick={() => onViewDetails(cat.id)} title="Картон" />
+                        <Button variant="ghost" size="icon" iconName="Edit" onClick={() => onEdit(cat)} title="Редакция" />
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    );
+  }
+
+
+
+  // 2. РЕЖИМ АМБУЛАТОРЕН ДНЕВНИК
   if (isClinicalView) {
     return (
       <div className="bg-card rounded-lg shadow-warm overflow-hidden border">
@@ -165,7 +272,7 @@ const RegistryTable = ({
     );
   }
 
-  // 2. ОРИГИНАЛНАТА ТАБЛИЦА (както беше преди)
+  // 3. ОРИГИНАЛНАТА ТАБЛИЦА (както беше преди)
   return (
     <div className="bg-card rounded-lg shadow-warm">
       <div className="overflow-x-auto scrollbar-custom">

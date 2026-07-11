@@ -51,7 +51,8 @@ const CatRegistryList = () => {
     status: '',
     staffSurgeon: '',
     location: '',
-    showRecorded: false
+    showRecorded: false,
+    onlyWithProtocols: false
   });
 
     const genderOptions = [
@@ -76,13 +77,14 @@ const CatRegistryList = () => {
         // ТУК ПРИЛАГАМЕ formMapper
         const mappedCats = (data || []).map(dbItem => {
           const uiItem = mapDbToUi(dbItem);
-          // РЪЧНО закачаме идентификацията, за да не я изгубим при мапването
+          // РЪЧНО закачаме идентификацията и протоколите, за да не се изгубят при мапването
           uiItem.td_identifications = dbItem.td_identifications; 
+          uiItem.td_protocols = dbItem.td_protocols || []; // <-- ЗАДЪЛЖИТЕЛНО запазваме протоколите
           return uiItem;
         });
         setCatCollection(mappedCats);
       } catch (err) {
-        console.error("Грешка:", err.message);
+        console.error("Грешка при зареждане на данните:", err.message);
       } finally {
         setIsLoading(false);
       }
@@ -94,16 +96,24 @@ const CatRegistryList = () => {
   const filteredAndSortedCats = useMemo(() => {
     let result = [...catCollection];
 
-    // Филтър за записани и липсващи
-    if (!filters.showRecorded) {
-        // Скриваме 'recorded', 'missed' И всички, които нямат дата на кастрация (вкл. лечение)
-        result = result.filter(cat => {
-          const isRecordedOrMissed = cat.status === 'recorded' || cat.status === 'missed';
-          const hasNoDate = !cat.castratedAt; // Проверява за null, undefined или празен низ
+      // КРИТИЧНО: Филтър за лекуващи се (с налични протоколи)
+      if (filters.onlyWithProtocols) {
+        result = result.filter(cat => cat.td_protocols && cat.td_protocols.length > 0);
+      } else {
+        // Стандартната логика за скриване на записани/липсващи, ОВЕН ако не сме пуснали "onlyWithProtocols"
+        if (!filters.showRecorded) {
+          // Скриваме 'recorded', 'missed' И всички, които нямат дата на кастрация (вкл. лечение)
+          result = result.filter(cat => {
+            const isRecordedOrMissed = cat.status === 'recorded' || cat.status === 'missed';
+            const isUnderTreatment = cat.status === 'treatment';
+            const hasNoDate = !cat.castratedAt;  // Проверява за null, undefined или празен низ
 
-          // Показваме само ако НЕ е записан/пропуснат И има валидна дата
-          return !isRecordedOrMissed && !hasNoDate;
-        });
+            if (isUnderTreatment) return true;
+
+            // Показваме само ако НЕ е записан/пропуснат И има валидна дата
+            return !isRecordedOrMissed && !hasNoDate;
+          });
+        }
       }
 
     // Търсене (изключително чисто вече!)
@@ -113,7 +123,8 @@ const CatRegistryList = () => {
         cat.recordName.toLowerCase().includes(searchLower) ||
         cat.ownerName.toLowerCase().includes(searchLower) ||
         cat.ownerPhone.toLowerCase().includes(searchLower) ||
-        cat.address.toLowerCase().includes(searchLower)
+        cat.address.toLowerCase().includes(searchLower) ||
+        (cat.data?.ear_tag_number && String(cat.data.ear_tag_number).toLowerCase().includes(searchLower))
       );
     }
 
@@ -122,6 +133,8 @@ const CatRegistryList = () => {
     if (filters.color) result = result.filter(cat => cat.data?.color === filters.color);
     if (filters.species) result = result.filter(cat => cat.species === filters.species);
     if (filters.status)  result = result.filter(cat => cat.status === filters.status);
+    // Ако филтрираме по протоколи, може да искаме да игнорираме точния стрингов статус
+    if (filters.status && !filters.onlyWithProtocols) result = result.filter(cat => cat.status === filters.status);
     if (filters.staffSurgeon) result = result.filter(cat => cat.staffSurgeon === filters.staffSurgeon);
     if (filters.location) {
       const locLower = filters.location.toLowerCase();
@@ -158,7 +171,8 @@ const CatRegistryList = () => {
       species: '', 
       status: '', 
       location: '', 
-      showRecorded: false 
+      showRecorded: false,
+      onlyWithProtocols: false
     });
   };
 
@@ -186,13 +200,51 @@ const CatRegistryList = () => {
 
   // обединява td_records,  td_protocols, td_medical_treatments
   const displayData = useMemo(() => {
-    // 1. Стандартен изглед
+  // 1. Стандартен изглед (Тук добавяме извличането на най-новия протокол и заболявания)
+// 1. Стандартен изглед
     if (!isClinicalView) {
-      return filteredAndSortedCats.map(cat => ({
-        ...cat,
-        uId: `base-${cat.id}`,
-        displayDate: cat.castratedAt || cat.created_at
-      }));
+      return filteredAndSortedCats.map(cat => {
+        const allProtocols = cat.td_protocols || [];
+        
+        // Сортираме хронологично
+        const sortedProtocols = [...allProtocols].sort((a, b) => {
+          const dateA = new Date(a.data?.protocol_creation_date || a.created_at).getTime();
+          const dateB = new Date(b.data?.protocol_creation_date || b.created_at).getTime();
+          return dateA - dateB;
+        });
+
+        // Взимаме последния протокол
+        const lastProtocolObj = sortedProtocols[sortedProtocols.length - 1];
+        const lastProtocolData = lastProtocolObj?.data;
+
+        // Безопасно извличане на диагноза (проверяваме и на двете нива - в data и на корена)
+        const uniqueDiagnoses = [
+          ...new Set(
+            allProtocols
+              .map(p => p.data?.diagnosis || p.diagnosis)
+              .filter(d => d && String(d).trim() !== "")
+          )
+        ];
+
+        const diagnosesString = uniqueDiagnoses.length > 0 ? uniqueDiagnoses.join(", ") : "-";
+        
+        // Последна единична диагноза
+        const lastDiagnosis = lastProtocolData?.diagnosis || lastProtocolObj?.diagnosis || "-";
+
+        return {
+          ...cat,
+          uId: `base-${cat.id}`,
+          displayDate: cat.castratedAt || cat.created_at,
+          
+          // Подаваме стойностите във всички възможни вариации, които RegistryTable може да търси:
+          diagnosis: diagnosesString !== "-" ? diagnosesString : lastDiagnosis, // Обединени или последна
+          diagnoses: diagnosesString,
+          latestDiagnosis: lastDiagnosis,
+          
+          latestAnamnesis: lastProtocolData?.anamnesis || lastProtocolObj?.anamnesis || "Няма вписана анамнеза",
+          latestTreatment: lastProtocolData?.treatment || lastProtocolObj?.treatment || "Няма вписано лечение"
+        };
+      });
     }
 
     // 2. Амбулаторен дневник (Клиничен изглед)
@@ -248,17 +300,25 @@ const CatRegistryList = () => {
         isProtocolRow: false
       });
 
-      // СЪБИТИЕ Б: Последващи протоколи (td_protocols)
+      // СЪБИТИЕ Б: Последващи протоколи (Осигуряваме правилното сортиране и тук)
       const protocols = cat.td_protocols || [];
-      protocols.forEach(p => {
+      
+      // Сортираме ги хронологично за хронологията на дневника
+      const sortedProtocolsForDiary = [...protocols].sort((a, b) => {
+        const dateA = new Date(a.data?.protocol_creation_date || a.created_at).getTime();
+        const dateB = new Date(b.data?.protocol_creation_date || b.created_at).getTime();
+        return dateA - dateB;
+      });
+      
+      sortedProtocolsForDiary.forEach(p => {
         const anamnesis = p.data?.anamnesis ? `Анамнеза: ${p.data.anamnesis}` : '';
         const signs = p.data?.clinical_signs ? `Симптоми: ${p.data.clinical_signs}` : '';
         const combinedClinical = [anamnesis, signs].filter(Boolean).join('; ') || "б.о.";
 
+
         diaryRows.push({
           ...cat,
           uId: `proto-${p.id}`, 
-          // ВАЖНО: Сортираме по датата на протокола, а не по записването му
           displayDate: p.data?.protocol_creation_date || p.created_at,
           identificationInfo: idenString,
           td_identifications: cat.td_identifications,
@@ -571,6 +631,18 @@ const CatRegistryList = () => {
 
             <div className="flex flex-wrap gap-2 mt-4">
               <Button
+                variant={filters.onlyWithProtocols ? "default" : "outline"}
+                iconName="Activity"
+                onClick={() => setFilters(prev => ({ 
+                  ...prev, 
+                  onlyWithProtocols: !prev.onlyWithProtocols,
+                  // Изчистваме специфичен статус, за да не си пречат
+                  status: '' 
+                }))}
+              >
+                {filters.onlyWithProtocols ? "Всички пациенти" : "Лекуващи се (с протоколи)"}
+              </Button>
+              <Button
                 variant={isClinicalView ? "default" : "outline"} // Промяна на цвета при активен режим
                 iconName="FileText"
                 onClick={() => setIsClinicalView(!isClinicalView)}
@@ -621,6 +693,7 @@ const CatRegistryList = () => {
           <RegistryTable
             cats={paginatedCats}
             isClinicalView={isClinicalView}
+            isTreatmentView={filters.onlyWithProtocols}
             currentPage={currentPage}
             pageSize={pageSize}
             selectedCats={selectedCats}

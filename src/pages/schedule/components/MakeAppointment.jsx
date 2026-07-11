@@ -11,6 +11,9 @@ const MakeAppointment = ({ selectedDate, onAnimalAdd, prefillData }) => {
         phone: '',
         ownerName: '',
         date: selectedDate ? selectedDate.toISOString().split('T')[0] : '',
+        time: '09:00', // Час по подразбиране
+        appointmentType: 'castration', // Вид час по подразбиране
+        notes: '', // Бележки / Описание
         animals: [],
         // Добавяме тези, за да не се губят от prefillData
         address: '',
@@ -144,6 +147,9 @@ const MakeAppointment = ({ selectedDate, onAnimalAdd, prefillData }) => {
             phone: '',
             ownerName: '',
             date: selectedDate ? selectedDate.toISOString().split('T')[0] : '',
+            time: '09:00',
+            appointmentType: 'castration',
+            notes: '',
             animals: [],
             address: '',
             zonaNumber: '',
@@ -214,17 +220,64 @@ const MakeAppointment = ({ selectedDate, onAnimalAdd, prefillData }) => {
                 </div>
             )}
 
-            <div className="mb-6">
-                 <label className="text-xs text-muted-foreground block mb-1">Дата на кастрация</label>
+            {/* <div className="mb-6">
+                 <label className="text-xs text-muted-foreground block mb-1">Дата на записания час</label>
                  <input 
                     type="date" 
                     className="p-2 w-full rounded border bg-background border-border" 
                     value={appointment.date}
                     onChange={(e) => setAppointment({...appointment, date: e.target.value})}
                 />
+            </div> */}
+
+            {/* НОВА СЕКЦИЯ: ДАТА, ЧАС И ВИД ЧАС */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4">
+                <div>
+                     <label className="text-xs text-muted-foreground block mb-1">Дата</label>
+                     <input 
+                        type="date" 
+                        className="p-2 w-full rounded border bg-background border-border text-sm" 
+                        value={appointment.date}
+                        onChange={(e) => setAppointment({...appointment, date: e.target.value})}
+                    />
+                </div>
+                <div>
+                     <label className="text-xs text-muted-foreground block mb-1">Час</label>
+                     <input 
+                        type="time" 
+                        className="p-2 w-full rounded border bg-background border-border text-sm" 
+                        value={appointment.time}
+                        onChange={(e) => setAppointment({...appointment, time: e.target.value})}
+                    />
+                </div>
+                <div>
+                     <label className="text-xs text-muted-foreground block mb-1">Вид час</label>
+                     <select 
+                        className="p-2 w-full rounded border bg-background border-border text-sm" 
+                        value={appointment.appointmentType}
+                        onChange={(e) => setAppointment({...appointment, appointmentType: e.target.value})}
+                     >
+                        <option value="castration">⚡ Кастрация</option>
+                        <option value="surgery">🏥 Операция</option>
+                        <option value="examination">🩺 Преглед</option>
+                        <option value="prevention">🛡️ Профилактика</option>
+                     </select>
+                </div>
             </div>
 
-            {/* Секция за добавяне на животно - остава същата като твоята */}
+            {/* НОВА СЕКЦИЯ: БЕЛЕЖКИ / ОПИСАНИЕ */}
+            <div className="mb-4">
+                <label className="text-xs text-muted-foreground block mb-1">Бележки / Описание на случая</label>
+                <textarea 
+                    placeholder="Добави специфични детайли за часа (напр. симптоми, улична локация, транспорт)..."
+                    rows="2"
+                    className="p-2 w-full rounded border bg-background border-border text-sm resize-none"
+                    value={appointment.notes || ""}
+                    onChange={(e) => setAppointment({...appointment, notes: e.target.value})}
+                />
+            </div>
+
+            {/* Секция за добавяне на животно */}
             <div className="bg-muted/30 p-4 rounded-lg border border-dashed border-border mb-4">
                 <div className="flex flex-wrap gap-3 items-end">
                     <div>

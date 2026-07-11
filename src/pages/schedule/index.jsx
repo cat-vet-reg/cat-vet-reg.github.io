@@ -36,7 +36,7 @@ const Schedule = () => {
       animalType  : item.animal_type,
       gender      : item.gender,
       zonaNumber  : item.zona_number,
-      notes       : item.notes,
+      notes       : item.data?.notes,
       coords      : { lat: item.lat, lng: item.lng }
     });
     // 3. Скролни до конкретния елемент вместо до 0
@@ -47,6 +47,42 @@ const Schedule = () => {
 
       });
      }
+  };
+
+  const handleSelectFromCalendar = (record) => {
+    console.log("Избрано животно от календара за редакция:", record);
+
+    // Мапираме данните от td_records към структурата на prefillData
+    setPrefillData({
+      id: record.id,
+      isEditing: true, // Флаг, че редактираме съществуващ час, а не създаваме нов
+      ownerName: record.owner?.name || record.data?.ownerName || "",
+      phone: record.owner?.phone || record.data?.ownerPhone || "",
+      address: record.address || record.data?.address || "",
+      city: record.record_city || record.data?.recordCity || "",
+      zonaNumber: record.zona_number,
+      notes: record.data?.notes || "",
+      coords: record.map_coordinates || record.data?.coords,
+      // Ако искате да попълните и конкретното животно/процедура във формата:
+      animals: [
+        {
+          species: record.species || 'cat',
+          gender: record.gender || (record.data?.gender) || 'female',
+          count: 1
+        }
+      ],
+      date: record.castrated_at ? record.castrated_at.split('T')[0] : "",
+      time: record.data?.appointment_time || "",
+      appointmentType: record.visit_type || record.data?.appointment_type || "castration"
+    });
+
+    // Плавно скролване до формата "Запиши час"
+    if (appointmentFormRef.current) {
+      appointmentFormRef.current.scrollIntoView({
+        behavior: 'smooth',
+        block: 'center'
+      });
+    }
   };
 
   const registerAnimalIntoTheSystem = async (appointmentData) => {
@@ -68,9 +104,21 @@ const Schedule = () => {
             gender      : animalGroup.gender,
             castratedAt : appointmentData.date,
             status      : 'recorded', // Важно: началният статус е записан
+
+            // НОВИТЕ ПОЛЕТА: На корена на обекта
+            appointmentTime : appointmentData.time,
+            appointmentType : appointmentData.appointmentType,
+            notes           : appointmentData.notes,
             
             // Други дефолтни стойности, които API очаква
             donation    : appointmentData.donation || "N",
+            data: {
+              donation        : appointmentData.donation || "N",
+              appointment_time: appointmentData.time,
+              appointment_type: appointmentData.appointmentType,
+              notes           : appointmentData.notes,
+              status          : 'recorded'
+            }
           };
 
           // ИЗПОЛЗВАМЕ ТВОЯТА ГОТОВА ФУНКЦИЯ
@@ -189,7 +237,10 @@ const Schedule = () => {
 
           {/* Секция: Календар */}
           <div ref={calendarRef} className="mb-10">
-              <Calendar selectedDate={date} key={refreshKey} />
+              <Calendar 
+                selectedDate={date} 
+                key={refreshKey}
+                onEditEvent={handleSelectFromCalendar} />
           </div>
           <hr className="my-10 border-border" />
 
