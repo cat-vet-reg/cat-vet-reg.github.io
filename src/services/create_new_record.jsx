@@ -79,7 +79,7 @@ async function recordAnimal(formData, ownerId) {
         has_complications       : formData.hasComplications || "N",
         selected_complications  : formData.selectedComplications || [],
         record_complications    : formData.recordComplications || "",
-        
+        appointments            : formData.appointments || [],
         // ВАЖНО: Тук НЕ изброяваме weight, color и т.н., защото те влизат в 'data'
         data                    : customDataField,
         medical_details         : medicalDetailsField
@@ -113,6 +113,17 @@ export async function $apiCreateNewRecord(formData, isEditing = false, catId = n
     // 1. Първо оправяме собственика
     const ownerData = await recordOwner(formData);
     const finalOwnerId = ownerData.data[0].id;
+    // ФИКС: Ако appointments липсва, но имаме единична среща в formData, я пакетираме в масив
+    let finalAppointments = formData.appointments || [];
+    
+    if (finalAppointments.length === 0 && (formData.date || formData.appointment_time)) {
+        finalAppointments = [{
+            date: formData.date,
+            time: formData.time,
+            appointment_time: formData.appointment_time || `${formData.date}T${formData.time}:00.000Z`,
+            appointment_type: formData.appointmentType || 'castration'
+        }];
+    }
 
     // 2. Подготвяме чистите данни
     const { customDataField, medicalDetailsField, mapCoordinatesField } = prepareJsonFields(formData);
@@ -134,6 +145,7 @@ export async function $apiCreateNewRecord(formData, isEditing = false, catId = n
         has_complications       : formData.hasComplications || "N",
         selected_complications  : formData.selectedComplications || [],
         record_complications    : formData.recordComplications,
+        appointments            : finalAppointments || [],
         data                    : customDataField, 
         medical_details         : medicalDetailsField
     };
@@ -148,12 +160,12 @@ export async function $apiCreateNewRecord(formData, isEditing = false, catId = n
         if (error) throw error;
         savedCat = data[0];
     } else {
-        const response = await recordAnimal(formData, finalOwnerId);
+        const response = await recordAnimal({ ...formData, appointments: finalAppointments }, finalOwnerId);
         savedCat = response.data[0];
     }
 
-    // 3. НОВО: Записваме идентификацията, ако типът е Профилактика или има попълнени данни
-    if (formData.regType === 'prevention' || formData.chipNumber || formData.passportNumber) {
+    // 3. Записваме идентификацията
+    if (formData.regType === 'castration' || formData.chipNumber || formData.passportNumber) {
         await recordIdentification(savedCat.id, formData);
     }
 
@@ -254,7 +266,8 @@ export async function $apiGetCats() {
         address       : cat.location_address, // Map-ваме го обратно за компоненти, които ползват .address
         td_protocols  : cat.td_protocols || [],
         td_medical_treatments: cat.td_medical_treatments || [],
-        td_identifications: myIden ? [myIden] : []
+        td_identifications: myIden ? [myIden] : [],
+        appointments  : cat.appointments || []
         };
     });
 

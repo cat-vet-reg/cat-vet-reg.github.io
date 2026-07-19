@@ -52,10 +52,19 @@ const Schedule = () => {
   const handleSelectFromCalendar = (record) => {
     console.log("Избрано животно от календара за редакция:", record);
 
-    // Мапираме данните от td_records към структурата на prefillData
-    setPrefillData({
-      id: record.id,
-      isEditing: true, // Флаг, че редактираме съществуващ час, а не създаваме нов
+  // 1. Вземаме масива с часове директно от записа (ако липсва, подсигуряваме празен масив)
+  const appointmentsArray = record.appointments || [];
+
+  // 2. Намираме първия час в масива
+  const firstAppointment = appointmentsArray[0] || {};
+
+  // Мапираме данните от td_records към структурата на prefillData
+  setPrefillData({
+    id: record.id,
+    isEditing: true, // Флаг, че редактираме съществуващ час, а не създаваме нов
+    
+    // ФИКС: Вече appointmentsArray е дефиниран правилно
+    appointments: appointmentsArray,
       ownerName: record.owner?.name || record.data?.ownerName || "",
       phone: record.owner?.phone || record.data?.ownerPhone || "",
       address: record.address || record.data?.address || "",
@@ -72,7 +81,7 @@ const Schedule = () => {
         }
       ],
       date: record.castrated_at ? record.castrated_at.split('T')[0] : "",
-      time: record.data?.appointment_time || "",
+      time: firstAppointment.appointment_time || "",
       appointmentType: record.visit_type || record.data?.appointment_type || "castration"
     });
 
@@ -87,6 +96,15 @@ const Schedule = () => {
 
   const registerAnimalIntoTheSystem = async (appointmentData) => {
     try {
+
+      // ВАЖНО: Нека видим какво точно пристига от формата в родителя!
+    console.log("=== ДАННИ ПРИСТИГНАЛИ В SCHEDULE ===", appointmentData);
+
+      // 1. Извличаме флаговете и ID-тата от prefillData
+      const isEditing = prefillData?.isEditing || false;
+      const currentId = prefillData?.id || null;
+      const currentAppointmentId = isEditing ? prefillData?.appointmentId : null;
+
       // Въртим цикъл, ако потребителят е добавил повече от едно животно (напр. "2 котки")
       for (const animalGroup of appointmentData.animals) {
         for (let i = 0; i < animalGroup.count; i++) {
@@ -103,31 +121,37 @@ const Schedule = () => {
             species     : animalGroup.species,
             gender      : animalGroup.gender,
             castratedAt : appointmentData.date,
-            status      : 'recorded', // Важно: началният статус е записан
+            status      : appointmentData.status || 'recorded', // Ползваме статуса от формата
 
-            // НОВИТЕ ПОЛЕТА: На корена на обекта
-            appointmentTime : appointmentData.time,
-            appointmentType : appointmentData.appointmentType,
-            notes           : appointmentData.notes,
+            // НОВИТЕ ПОЛЕТА: Подаваме масива с правилното ID на часа
+            appointments: [
+                {
+                  id                : currentAppointmentId, 
+                  appointment_time  : appointmentData.appointment_time, // ФИКС: Използваме ISO стринга
+                  appointment_type  : appointmentData.appointmentType,
+                  appointment_notes : appointmentData.notes,
+                  status            : appointmentData.status || 'recorded'
+                }
+              ],
             
             // Други дефолтни стойности, които API очаква
             donation    : appointmentData.donation || "N",
             data: {
               donation        : appointmentData.donation || "N",
-              appointment_time: appointmentData.time,
-              appointment_type: appointmentData.appointmentType,
               notes           : appointmentData.notes,
-              status          : 'recorded'
+              status          : appointmentData.status || 'recorded'
             }
           };
+// ВАЖНО: Нека видим какво изпращаме към крайното API!
+        console.log("=== ФОРМАТИРАН ФОРМ-ДЕЙТА КЪМ API ===", formData);
 
-          // ИЗПОЛЗВАМЕ ТВОЯТА ГОТОВА ФУНКЦИЯ
-          await $apiCreateNewRecord(formData);
+          // 2. ПОПРАВКА: Подаваме formData и флаговете за редакция към твоето API
+          await $apiCreateNewRecord(formData, isEditing, isEditing ? currentId : null);
         }
       }
 
-      // Ако записът е дошъл от списъка на чакащи, изтриваме го
-      if (appointmentData.id) {
+      // Ако записът е дошъл от списъка на чакащи (и НЕ сме в режим на редакция), го изтриваме
+      if (!isEditing && appointmentData.id) {
         console.log("Премахвам от Waiting List запис с ID:", appointmentData.id);
         const { error: deleteError } = await supabase
           .from('td_waiting_list')
@@ -136,18 +160,17 @@ const Schedule = () => {
 
         if (deleteError) {
           console.error("Грешка при триене от чакащи:", deleteError);
-          // Не спираме процеса тук, защото записите в регистъра вече са направени
         }
       }
 
-        // 3. Обновяваме UI
-        setRefreshKey(prev => prev + 1); // Това ще презареди Календара и WaitingList
-        setPrefillData(null); // Изчистваме "паметта" на формата
-        alert("Успешно записани часове!");
+      // 3. Обновяваме UI и чистим формата
+      setRefreshKey(prev => prev + 1); 
+      setPrefillData(null); 
+      alert(isEditing ? "Успешно редактиран час!" : "Успешно записани часове!");
 
     } catch (error) {
-      console.error("Грешка при запис:", error);
-      alert("Грешка при записването.");
+      console.error("Грешка при запис/редакция:", error);
+      alert("Грешка при обработка на операцията.");
     }
   };
 

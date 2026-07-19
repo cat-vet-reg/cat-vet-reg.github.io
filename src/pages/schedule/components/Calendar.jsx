@@ -37,6 +37,11 @@ if (onEditEvent) {
       onEditEvent(info.event.extendedProps.data);
     }
   };
+
+
+  const handleViewDetails = (catId) => {
+    navigate(`/cat-profile-details/${catId}`);
+  };
   
   // ФУНКЦИЯ ЗА ЗАРЕЖДАНЕ
   const loadCalendarData = async () => {
@@ -55,30 +60,38 @@ if (onEditEvent) {
     const counts = {};
     
     // Подготовка на животните
-    const animalEvents = (records || []).map(element => {
-      if (!element.castrated_at) {
-          return null; 
-      }
+// Подготовка на животните
+const animalEvents = (records || []).map(element => {
+  // 1. Проверяваме дали има реален запис за час в appointments
+  const appointment = element.appointments?.[0] || {};
+  // Използваме appointment_time ако съществува, в противен случай падаме до castrated_at
+  const targetDateStr = appointment.appointment_time || element.castrated_at;
 
-      const dateKey = element.castrated_at.split('T')[0];
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
+  if (!targetDateStr) {
+      return null; 
+  }
 
-      const eventDate = new Date(element.castrated_at);
-      const isPast = eventDate < today;
-      
-      const rawGender = element.gender || element.data?.gender;
-      const isMale = rawGender === 'male';
+  // Подсигуряваме правилен парсинг на датата
+  const normalizedDateStr = targetDateStr.replace(' ', 'T');
+  const dateKey = targetDateStr.split('T')[0];
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
 
-      // Броене на кастрациите за деня (само ако типът е кастрация или не е дефиниран)
-      const currentVisitType = element.visit_type || 'castration';
-      if (currentVisitType === 'castration') {
-        if (!counts[dateKey]) counts[dateKey] = { male: 0, female : 0 };
-        if (isMale) counts[dateKey].male++;
-        else counts[dateKey].female++;
-      }
+  const eventDate = new Date(targetDateStr);
+  const isPast = eventDate < today;
+  
+  const rawGender = element.gender || element.data?.gender;
+  const isMale = rawGender === 'male';
 
-      // Цветова схема според типа процедура (ако не е минало събитие)
+  // Броене на кастрациите за деня
+  const currentVisitType = element.visit_type || appointment.appointment_type || 'castration';
+  if (currentVisitType === 'castration') {
+    if (!counts[dateKey]) counts[dateKey] = { male: 0, female : 0 };
+    if (isMale) counts[dateKey].male++;
+    else counts[dateKey].female++;
+  }
+
+       // Цветова схема според типа процедура (ако не е минало събитие)
       let eventColor = '#ffe4e6'; // по подразбиране женска кастрация
       let borderColor = '#f43f5e';
       
@@ -108,30 +121,34 @@ if (onEditEvent) {
       const genderSym = isMale ? "♂️" : "♀️";
       const species = (element.species || element.data?.species || 'Котка');
 
-      // Екстрактване на час, ако има такъв в ISO стринга
-      const hasTime = element.castrated_at.includes('T') && element.castrated_at.split('T')[1] !== '00:00:00';
+  // По-сигурна проверка за наличие на реален записан час
+  const hasTime = normalizedDateStr.includes('T') && 
+                  normalizedDateStr.split('T')[1] !== '00:00:00' && 
+                  normalizedDateStr.split('T')[1] !== '00:00:00.000' && 
+                  normalizedDateStr.split('T')[1] !== '00:00:00.000Z' &&
+                  !normalizedDateStr.endsWith('00:00:00');
 
-      return {
-        id: element.id.toString(),
-        title: `${genderSym} ${species} - ${element.owner?.name}`, 
-        start: element.castrated_at,
-        allDay: !hasTime, // Ако има реален час, се позиционира правилно в timeGridWeek
-        backgroundColor: eventColor,
-        borderColor: borderColor,
-        textColor: isPast ? '#666' : '#000',
-        extendedProps: { 
-          type: 'animal',
-          visitType: currentVisitType,
-          phone: element.owner?.phone, 
-          gender: genderSym,
-          isMale: isMale,
-          species: species,
-          ownerName: element.owner?.name,
-          displayId: element.id.toString().slice(-4),
-          data: element 
-        }
-      };
-    }).filter(ev => ev !== null);
+  return {
+    id: element.id.toString(),
+    title: `${genderSym} ${species} - ${element.owner?.name}`, 
+    start: normalizedDateStr, // Вече ще бъде "2026-07-19T09:00:00.000"
+    allDay: !hasTime, // Тъй като има час, ще стане false и ще се позиционира правилно
+    backgroundColor: eventColor,
+    borderColor: borderColor,
+    textColor: isPast ? '#666' : '#000',
+    extendedProps: { 
+      type: 'animal',
+      visitType: currentVisitType,
+      phone: element.owner?.phone, 
+      gender: genderSym,
+      isMale: isMale,
+      species: species,
+      ownerName: element.owner?.name,
+      displayId: element.id.toString().slice(-4),
+      data: element 
+    }
+  };
+}).filter(ev => ev !== null);
 
     // Подготовка на административните събития
     const staffEvents = (adminEvents || []).map(ev => ({
@@ -184,9 +201,10 @@ if (onEditEvent) {
       return;
     }
     
-// Клик по самото събитие
-    if (onEditEvent) {
-      onEditEvent(info.event.extendedProps.data);
+    // КЛИК ПО ЖИВОТНО: Отваря профила му, вместо формата за час
+    const catId = info.event.id; // Вземаме ID-то на записа/котката
+    if (catId) {
+      handleViewDetails(catId);
     }
   };
 
@@ -224,27 +242,58 @@ if (onEditEvent) {
 
   const handleEventDrop = async (info) => {
     const eventId = info.event.id;
-    const newDate = info.event.startStr.split('T')[0]; // Взимаме само датата YYYY-MM-DD
+    // info.event.startStr ни дава пълния ISO стринг (напр. "2026-07-20T10:30:00")
+    const newDateTime = info.event.startStr; 
+    const newDateOnly = newDateTime.split('T')[0];
 
-    if (!window.confirm(`Сигурни ли сте, че искате да преместите часа на ${newDate}?`)) {
-      info.revert(); // Връща събитието обратно, ако откажете
+    if (!window.confirm(`Сигурни ли сте, че искате да преместите часа на ${newDateTime.replace('T', ' ')}?`)) {
+      info.revert();
       return;
     }
 
     try {
+      // 1. Вземаме старите разширени данни за събитието, за да не загубим нещо
+      const originalData = info.event.extendedProps.data || {};
+      
+      // 2. Подготвяме обновения масив appointments
+      const updatedAppointments = (originalData.appointments || []).map((app, index) => {
+        // Обновяваме първия (или основния) час с новото време от влаченето
+        if (index === 0 || !app.appointment_time) {
+          return {
+            ...app,
+            appointment_time: newDateTime,
+            status: app.status || 'recorded'
+          };
+        }
+        return app;
+      });
+
+      // Ако случайно масивът е бил празен, добавяме новия час
+      if (updatedAppointments.length === 0) {
+        updatedAppointments.push({
+          appointment_time: newDateTime,
+          appointment_type: originalData.visit_type || 'castration',
+          status: originalData.status || 'recorded'
+        });
+      }
+
+      // 3. Изпълняваме ъпдейта към Супабейс
       const { error } = await supabase
         .from('td_records')
-        .update({ castrated_at: newDate })
+        .update({ 
+          castrated_at: newDateOnly, // Държим чистата дата тук
+          appointments: updatedAppointments // Записваме обновения масив с новата дата и час
+        })
         .eq('id', eventId);
 
       if (error) throw error;
       
-      // Презареждаме, за да се обновят цветовете (ако от сиво стане цветно)
-      loadCalendarData();
+      await loadCalendarData();
+      alert("Часът е преместен успешно!");
     } catch (err) {
       console.error("Грешка при преместване:", err);
-      alert("Неуспешно преместване.");
-      info.revert();
+      alert("Неуспешно преместване. Проверете връзката или структурата на данните.");
+      info.revert(); // Връща събитието на старото му място в календара
     }
   };
 
@@ -456,7 +505,7 @@ if (onEditEvent) {
 
   // Използваме 768px като граница за мобилни устройства
   const [initialView, setInitialView] = useState(
-    window.innerWidth < 768 ? 'dayGridDay' : 'dayGridWeek'
+    window.innerWidth < 768 ? 'timeGridDay' : 'timeGridWeek'
   );
 
   useEffect(() => {
@@ -465,12 +514,12 @@ if (onEditEvent) {
       if (!calendarApi) return;
 
       if (window.innerWidth < 768) {
-        if (calendarApi.view.type !== 'dayGridDay') {
-          calendarApi.changeView('dayGridDay');
+        if (calendarApi.view.type !== 'timeGridDay') {
+          calendarApi.changeView('timeGridDay');
         }
       } else {
-        if (calendarApi.view.type !== 'dayGridWeek') {
-          calendarApi.changeView('dayGridWeek');
+        if (calendarApi.view.type !== 'timeGridWeek') {
+          calendarApi.changeView('timeGridWeek');
         }
       }
     };
@@ -511,7 +560,7 @@ if (onEditEvent) {
         headerToolbar={{
           left: 'prev,next today',
           center: 'title',
-          right: window.innerWidth < 768 ? 'dayGridDay' : 'dayGridMonth,dayGridWeek,dayGridDay' 
+          right: window.innerWidth < 768 ? 'timeGridDay' : 'dayGridMonth,timeGridWeek,timeGridDay' 
         }}
         buttonText={{
             today: 'Днес', month: 'Месец', week: 'Седмица', day: 'Ден'
@@ -570,7 +619,7 @@ if (onEditEvent) {
             ? new Date(eventInfo.event.start).toLocaleTimeString('bg-BG', { hour: '2-digit', minute: '2-digit' }) 
             : '';
 
-          const visitConfig = visitTypeLabels[visitType] || { label: "Процедура", icon: "🐾" };
+          const visitConfig = visitTypeLabels[visitType] || { label: "Преглед", icon: "🐾" };
 
           return (
             <div className="p-1 text-[10px] sm:text-xs cursor-pointer relative flex flex-col gap-0.5 group">
@@ -592,7 +641,10 @@ if (onEditEvent) {
                 </button>
                 {/* НОВИЯТ БУТОН ЗА РЕДАКЦИЯ */}
                 <button 
-                  onClick={(e) => { e.stopPropagation(); navigateToEdit(data); }}
+                  onClick={(e) => { 
+                    e.stopPropagation(); // Спира събитието да не отиде към handleEventClick
+                    navigateToEdit(data); 
+                  }}
                   className="p-1 text-blue-600 hover:text-blue-800 font-bold"
                   title="Редактирай"
                 >

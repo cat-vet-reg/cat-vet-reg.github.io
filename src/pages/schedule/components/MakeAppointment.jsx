@@ -40,6 +40,18 @@ const MakeAppointment = ({ selectedDate, onAnimalAdd, prefillData }) => {
     // 2. Обработка на prefillData (от Списъка на чакащи)
     useEffect(() => {
         if (prefillData) {
+            // Ако prefillData съдържа цялостна дата и час в едно поле (напр. ISO стринг)
+            let initialDate = appointment.date;
+            let initialTime = "09:00";
+            
+            if (prefillData.appointment_time) {
+                const d = new Date(prefillData.appointment_time);
+                if (!isNaN(d.getTime())) {
+                    initialDate = d.toISOString().split('T')[0];
+                    initialTime = d.toTimeString().split(' ')[0].substring(0, 5);
+                }
+            }
+
             setAppointment(prev => ({
                 ...prev,
                 ownerName: prefillData.ownerName || "",
@@ -140,7 +152,25 @@ const MakeAppointment = ({ selectedDate, onAnimalAdd, prefillData }) => {
             return;
         }
 
-        onAnimalAdd(appointment);
+        // ФИКС: Използваме директен локален формат на стринга, за да спрем таймзона отместването
+        const localISOString = `${appointment.date}T${appointment.time}:00.000`;
+        
+        // Създаваме финалния обект, който подаваме нагоре
+        const finalAppointmentData = {
+            phone: appointment.phone,
+            ownerName: appointment.ownerName,
+            date: appointment.date, // Добавяме го за по-лесно четене в родителя
+            time: appointment.time, // Добавяме го за по-лесно четене в родителя
+            appointment_time: localISOString, // Праща се чист стринг без "Z" отзад
+            appointmentType: appointment.appointmentType,
+            notes: appointment.notes,
+            animals: appointment.animals,
+            address: appointment.address,
+            zonaNumber: appointment.zonaNumber,
+            coords: appointment.coords
+        };
+
+        onAnimalAdd(finalAppointmentData);
 
         // Ресет на формата
         setAppointment({

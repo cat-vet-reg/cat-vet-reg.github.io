@@ -14,7 +14,7 @@ import TreatmentRegistry   from './pages/treatment-registry';
 import Today               from './pages/today';
 import Profile             from './pages/profile';
 import PublicStatusPage    from './pages/public-status';
-import InventoryLog        from './pages/inventory-log';
+// import InventoryLog        from './pages/inventory-log';
 import Login               from "./Login";
 
 // ПОМОЩЕН КОМПОНЕНТ ЗА ЗАЩИТА
@@ -53,7 +53,7 @@ const Routes = ({ session, userRole }) => {
             <Route path="/schedule" element={session ? <Schedule /> : <Navigate to="/login" />} />
             <Route path="/today" element={session ? <Today /> : <Navigate to="/login" />} />
             <Route path="/cat-registry-list" element={session ? <CatRegistryList /> : <Navigate to="/login" />} />
-            <Route path="/inventory-log" element={session ? <InventoryLog /> : <Navigate to="/login" />} />
+            {/* <Route path="/inventory-log" element={session ? <InventoryLog /> : <Navigate to="/login" />} /> */}
             <Route path="/cat-profile-details/:id" element={session ? <CatProfileDetails /> : <Navigate to="/login" />} />
             <Route path="/cat-registration-form" element={session ? <CatRegistrationForm /> : <Navigate to="/login" />} />
             <Route path="/treatment-registry" element={session ? <TreatmentRegistry /> : <Navigate to="/login" />} />
