@@ -7,6 +7,11 @@ const MakeAppointment = ({ selectedDate, onAnimalAdd, prefillData }) => {
     const [isBlacklisted, setIsBlacklisted] = useState(false);
     const [ownerStats, setOwnerStats] = useState({ total: 0, donations: 0 });
 
+    // Състояние за търсене по ID на животно
+    const [searchRecordId, setSearchRecordId] = useState("");
+    const [isSearchingRecord, setIsSearchingRecord] = useState(false);
+    const [recordSearchError, setRecordSearchError] = useState("");
+
     const [appointment, setAppointment] = useState({
         phone: '',
         ownerName: '',
@@ -127,6 +132,59 @@ const MakeAppointment = ({ selectedDate, onAnimalAdd, prefillData }) => {
         return () => clearTimeout(timer);
     }, [appointment.phone]);
 
+// ТЪРСЕНЕ НА СЪЩЕСТВУВАЩО ЖИВОТНО ПО IDВ td_records
+    const handleSearchAnimalById = async () => {
+        if (!searchRecordId.trim()) return;
+
+        setIsSearchingRecord(true);
+        setRecordSearchError("");
+
+        try {
+            const { data: rec, error } = await supabase
+                .from('td_records')
+                .select('id, name, species, gender, owner_name, owner_phone, location_address, zona_number, map_coordinates')
+                .eq('id', searchRecordId.trim())
+                .maybeSingle();
+
+            if (error) throw error;
+
+            if (!rec) {
+                setRecordSearchError(`Не е намерено животно с ID #${searchRecordId}`);
+                setIsSearchingRecord(false);
+                return;
+            }
+
+            // Добавяме намереното животно към списъка с животни за този час
+            const existingAnimalObj = {
+                id: Date.now(),
+                record_id: rec.id, // Връзката към td_records
+                name: rec.name || `Животно #${rec.id}`,
+                species: rec.species || 'cat',
+                gender: rec.gender || 'female',
+                count: 1
+            };
+
+            // Автоматично попълваме и данните за собственика и адреса, ако липсват
+            setAppointment(prev => ({
+                ...prev,
+                ownerName: rec.owner_name || prev.ownerName,
+                phone: rec.owner_phone || prev.phone,
+                address: rec.location_address || prev.address,
+                zonaNumber: rec.zona_number || prev.zonaNumber,
+                coords: rec.map_coordinates || prev.coords,
+                appointmentType: prev.appointmentType === 'castration' ? 'examination' : prev.appointmentType, // Препоръчваме 'преглед' ако вече съществува
+                animals: [...prev.animals, existingAnimalObj]
+            }));
+
+            setSearchRecordId("");
+        } catch (err) {
+            console.error("Грешка при търсене на record:", err);
+            setRecordSearchError("Възникна грешка при търсенето.");
+        } finally {
+            setIsSearchingRecord(false);
+        }
+    };
+
     const addAnimalToList = () => {
         setAppointment(prev => ({
             ...prev,
@@ -194,6 +252,34 @@ const MakeAppointment = ({ selectedDate, onAnimalAdd, prefillData }) => {
             <h3 className="text-xl font-bold mb-4 flex items-center gap-2 text-foreground">
                 <Icon name="CalendarPlus" className="text-primary" /> Запиши час
             </h3>
+
+            {/* БЪРЗО ТЪРСЕНЕ НА СЪЩЕСТВУВАЩО ЖИВОТНО ПО ID */}
+            <div className="mb-5 p-3 bg-muted/40 rounded-lg border border-border">
+                <label className="text-xs font-semibold text-muted-foreground block mb-1 flex items-center gap-1">
+                    <Icon name="Search" size={13} /> Търсене на съществуващо животно по ID (td_records):
+                </label>
+                <div className="flex gap-2">
+                    <input 
+                        type="number"
+                        placeholder="напр. 683"
+                        className="p-2 text-sm rounded border bg-background border-border w-36"
+                        value={searchRecordId}
+                        onChange={(e) => setSearchRecordId(e.target.value)}
+                        onKeyDown={(e) => e.key === 'Enter' && handleSearchAnimalById()}
+                    />
+                    <button
+                        type="button"
+                        onClick={handleSearchAnimalById}
+                        disabled={isSearchingRecord || !searchRecordId}
+                        className="bg-secondary text-secondary-foreground px-3 py-2 rounded-md hover:opacity-90 text-sm font-medium flex items-center gap-1 disabled:opacity-50"
+                    >
+                        {isSearchingRecord ? "Търсене..." : "Зареди пациент"}
+                    </button>
+                </div>
+                {recordSearchError && (
+                    <p className="text-xs text-destructive mt-1 font-medium">{recordSearchError}</p>
+                )}
+            </div>
 
             {/* Полета за телефон и име */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">

@@ -59,6 +59,9 @@ function prepareJsonFields(formData) {
 }
 
 async function recordAnimal(formData, ownerId) {
+    const rawZona = formData.zonaNumber ?? formData.zona_number ?? formData.coords?.zona_number;
+    const extractedZona = parseNum(rawZona);
+
     const { customDataField, medicalDetailsField, mapCoordinatesField } = prepareJsonFields(formData);
 
     const tdRecordsResponse = await supabase.from('td_records').insert({
@@ -69,7 +72,7 @@ async function recordAnimal(formData, ownerId) {
         castrated_at            : formData.castratedAt,
         staff_surgeon           : formData.staffSurgeon || "dr_taneva",
         location_city           : formData.recordCity,
-        zona_number             : parseNum(formData.zonaNumber),
+        zona_number             : extractedZona,
         map_coordinates         : mapCoordinatesField,
         location_address        : formData.address,
         owner_id                : ownerId,
@@ -110,9 +113,15 @@ async function recordAnimal(formData, ownerId) {
 }
 
 export async function $apiCreateNewRecord(formData, isEditing = false, catId = null) {
+    console.log("🔍 [$apiCreateNewRecord] Извикана с:", { isEditing, catId, formDataName: formData.recordName });
+
+    if (!catId) {
+        console.warn("⚠️ ВНИМАНИЕ: catId е празно/undefined! Ще бъде създаден НОВ запис!");
+    }
     // 1. Първо оправяме собственика
     const ownerData = await recordOwner(formData);
     const finalOwnerId = ownerData.data[0].id;
+
     // ФИКС: Ако appointments липсва, но имаме единична среща в formData, я пакетираме в масив
     let finalAppointments = formData.appointments || [];
     
@@ -152,25 +161,30 @@ export async function $apiCreateNewRecord(formData, isEditing = false, catId = n
 
     let savedCat;
 
-    if (isEditing && catId) {
+    // ВАЖНО: Проверяваме дали ИМАМЕ catId (не разчитаме само на флага isEditing)
+    if (catId) {
+        // РЕДАКЦИЯ / ОБНОВЯВАНЕ на съществуващ пациент
         const { data, error } = await supabase
-            .from('td_records')
-            .upsert({ id: catId, ...recordPayload })
-            .select();
+        .from('td_records')
+        .update(recordPayload) // Използваме UPDATE вместо UPSERT за сигурност
+        .eq('id', catId)
+        .select();
+
         if (error) throw error;
         savedCat = data[0];
     } else {
+        // СЪЗДАВАНЕ на чисто нов пациент
         const response = await recordAnimal({ ...formData, appointments: finalAppointments }, finalOwnerId);
-        savedCat = response.data[0];
+        savedCat = response?.data?.[0];
     }
 
-    // 3. Записваме идентификацията
-    if (formData.regType === 'castration' || formData.chipNumber || formData.passportNumber) {
+    // 3. Записваме идентификацията (чип, паспорт и т.н.)
+    if (savedCat?.id && (formData.regType === 'castration' || formData.chipNumber || formData.passportNumber)) {
         await recordIdentification(savedCat.id, formData);
     }
 
     return savedCat;
-  }
+}
 
 // Помощни функции за собственик...
 async function recordOwner(formData) {

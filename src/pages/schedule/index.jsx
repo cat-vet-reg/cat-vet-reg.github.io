@@ -108,7 +108,11 @@ const Schedule = () => {
       // Въртим цикъл, ако потребителят е добавил повече от едно животно (напр. "2 котки")
       for (const animalGroup of appointmentData.animals) {
         for (let i = 0; i < animalGroup.count; i++) {
-          
+
+          // Взимаме record_id, ако животното вече съществува в базата
+          const animalRecordId = animalGroup.record_id || (isEditing ? prefillData?.id : null);
+          const isExistingAnimal = Boolean(animalRecordId);
+            
           // Подготвяме обекта във формат, който defaultFormData разбира
           const formData = {
             ownerName   : appointmentData.ownerName,
@@ -142,9 +146,9 @@ const Schedule = () => {
               status          : appointmentData.status || 'recorded'
             }
           };
-// ВАЖНО: Нека видим какво изпращаме към крайното API!
-        console.log("=== ФОРМАТИРАН ФОРМ-ДЕЙТА КЪМ API ===", formData);
 
+          console.log(`=== ОБРАБОТКА (Редакция/Съществуващо: ${isExistingAnimal}) ===`, formData);
+          
           // 2. ПОПРАВКА: Подаваме formData и флаговете за редакция към твоето API
           await $apiCreateNewRecord(formData, isEditing, isEditing ? currentId : null);
         }

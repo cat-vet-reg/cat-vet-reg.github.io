@@ -556,6 +556,8 @@ const animalEvents = (records || []).map(element => {
         allDaySlot={true} // Позволява застъпване на целодневни бележки
         slotMinTime="08:00:00" // Отрежете графика за работно време
         slotMaxTime="20:00:00"
+        slotEventOverlap={false} 
+        eventOrder="start,-duration,allDay,title"
         slotLabelFormat={{ hour: '2-digit', minute: '2-digit', hour12: false }} // 24ч формат
         headerToolbar={{
           left: 'prev,next today',
