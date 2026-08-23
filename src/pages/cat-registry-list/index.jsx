@@ -294,7 +294,11 @@ const CatRegistryList = () => {
         identificationInfo: idenString,
         td_identifications: cat.td_identifications,
         diagnosis: "Клинично здраво за кастрация",
-        treatment: "Операция:" + (cat.gender === 'female' ? "Овариохистеректомия" : "Орхиектомия") + ". Лекарства: Шотапен инж. 0.5 мл ПК, Ревмокам 5 мг/мл инж. 0,1 мл ПК, Фипронил спрей 1 впръскване. Упояване с Коктейл (Медетомидин, буторфанол, Золетил) 0,11 мл." ,
+        // treatment: "Операция:" + (cat.gender === 'female' ? "Овариохистеректомия" : "Орхиектомия") + ". Лекарства: Шотапен инж. 0.5 мл ПК, Ревмокам 5 мг/мл инж. 0,1 мл ПК, Фипронил спрей 1 впръскване. Упояване с Коктейл (Медетомидин, буторфанол, Золетил) 0,11 мл. Оп. кърпа, ст. ръкавици, острие за скалпел, 3-0 PGA конец." ,
+        treatment: "Операция:" + (cat.gender === 'female' ? "Овариохистеректомия" : "Орхиектомия") + 
+          (cat.species === 'dog' 
+            ? ". Лекарства: Шотапен инж. 2 мл ПК, Ревмокам 5 мг/мл инж. 0,5 мл ПК, Упояване с Коктейл (Ксилазин, буторфанол, Золетил). Оп. кърпа, ст. ръкавици, острие за скалпел, 0 PGA конец."
+            : ". Лекарства: Шотапен инж. 0.5 мл ПК, Ревмокам 5 мг/мл инж. 0,1 мл ПК, Фипронил спрей 1 впръскване. Упояване с Коктейл (Медетомидин, буторфанол, Золетил) 0,11 мл. Оп. кърпа, ст. ръкавици, острие за скалпел, 3-0 PGA конец."),
         outcome: outcomeText,
         clinicalData: cat.data?.notes || "б.о.",
         isProtocolRow: false
@@ -467,8 +471,14 @@ const CatRegistryList = () => {
       
       const species = item.species === 'dog' ? 'Куче' : 'Котка';
       const gender = item.gender === 'female' ? 'женски' : 'мъжки';
-      const breed = breedOptions.find(opt => opt.value === item?.data?.breed)?.label || item?.data?.breed || 'Нер.';
-      const age = item.data?.age_value ? `${item.data.age_value}${item.data.age_unit === 'years' ? 'год.' : 'мес.'}` : '';
+      // const breed = breedOptions.find(opt => opt.value === item?.data?.breed)?.label || item?.data?.breed || 'Нер.';
+      
+      // Проверка: ако е куче, породата/промптът става "микс", иначе проверяваме нормалните опции
+      const breed = item.species === 'dog' 
+        ? 'микс' 
+        : (breedOptions.find(opt => opt.value === item?.data?.breed)?.label || item?.data?.breed || 'Нер.');
+      
+        const age = item.data?.age_value ? `${item.data.age_value}${item.data.age_unit === 'years' ? 'год.' : 'мес.'}` : '';
 
       const iden = item.td_identifications && item.td_identifications[0];
       const chipStr = iden?.chip_number ? `Чип: ${iden.chip_number}` : '';
